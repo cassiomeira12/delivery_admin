@@ -1,16 +1,13 @@
+import 'package:delivery_admin/models/singleton/company_singleton.dart';
+
 import '../../contracts/company/company_contract.dart';
 import '../../models/company/company.dart';
-import '../../models/company/opening_hour.dart';
-import '../../models/company/type_payment.dart';
 import '../../presenters/company/company_presenter.dart';
 import '../../views/home/company_widget.dart';
 import '../../widgets/empty_list_widget.dart';
-import '../../widgets/list_view_body.dart';
 import '../../widgets/loading_shimmer_list.dart';
-import '../../widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:shimmer/shimmer.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
 
@@ -205,7 +202,8 @@ class _HomePageState extends State<HomePage> implements CompanyContractView {
         child: CompanyWidget(
           item: item,
           onPressed: (value) {
-            PageRouter.push(context, CompanyPage(company: item, orderCallback: widget.orderCallback,));
+            CompanySingleton.instance.update(item);
+            //PageRouter.push(context, CompanyPage(company: item, orderCallback: widget.orderCallback,));
           },
         ),
       ),

@@ -1,4 +1,10 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:flutter/material.dart';
+import 'product_page.dart';
 import '../../contracts/menu/menu_contract.dart';
 import '../../models/menu/additional.dart';
 import '../../models/menu/category.dart';
@@ -13,16 +19,10 @@ import '../../views/home/product_widget.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 import '../../models/company/company.dart';
-import 'package:flutter/material.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
 import '../page_router.dart';
-import 'product_page.dart';
 
 class CompanyPage extends StatefulWidget {
   final VoidCallback orderCallback;

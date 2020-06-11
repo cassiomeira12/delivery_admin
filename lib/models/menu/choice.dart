@@ -9,7 +9,10 @@ class Choice extends BaseModel<Choice> {
   int minQuantity;
   List<Item> itens;
 
-  Choice();
+  Choice() {
+    itens = List();
+    required = false;
+  }
 
   Choice.fromMap(Map<dynamic, dynamic>  map) {
     name = map["name"];

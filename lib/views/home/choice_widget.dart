@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sticky_headers/sticky_headers/widget.dart';
 import '../../models/menu/choice.dart';
 import '../../models/menu/item.dart';
@@ -22,18 +23,29 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
         color: Colors.grey[200],
         padding: EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.centerLeft,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "${widget.choice.name}",
-            ),
-            widget.choice.required ?
-              Text(
-                "*",
-                style: TextStyle(
-                  color: Colors.red,
+            Row(
+              children: [
+                Text(
+                  "${widget.choice.name}",
+                  style: Theme.of(context).textTheme.body1,
                 ),
-              ) : Container(),
+                widget.choice.required ?
+                Text(
+                  "*",
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ) : Container(),
+              ],
+            ),
+            widget.choice.description != null ?
+            Text(
+              widget.choice.description,
+              style: Theme.of(context).textTheme.body2,
+            ) : Container(),
           ],
         ),
       ),
@@ -84,23 +96,16 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
                   color: Colors.green,
                 ),
               ) : Container(),
-              Radio(
-                value: item,
-                groupValue: widget.selectedItem,
-                activeColor: Theme.of(context).primaryColor,
-                toggleable: true,
-                onChanged: (value) {
-                  if (widget.selectedItem != null && widget.selectedItem == item) {
-                    setState(() {
-                      widget.selectedItem = null;
-                    });
-                  } else {
-                    setState(() {
-                      widget.selectedItem = item;
-                    });
-                  }
-                },
-              ),
+             GestureDetector(
+               child: Container(
+                 padding: EdgeInsets.only(left: 20, right: 20),
+                 child: FaIcon(FontAwesomeIcons.trashAlt,),
+               ),
+               onTap: () {
+
+               },
+             ),
+
             ],
           ),
         ],
