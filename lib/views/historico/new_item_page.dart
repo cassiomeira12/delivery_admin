@@ -1,38 +1,29 @@
-import 'package:delivery_admin/models/menu/additional.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:delivery_admin/models/menu/choice.dart';
-import 'package:delivery_admin/views/home/choice_widget.dart';
-import 'package:delivery_admin/widgets/secondary_button.dart';
+import 'package:delivery_admin/widgets/rounded_shape.dart';
 import 'package:delivery_admin/widgets/text_input_field.dart';
 
-import '../../models/order/order_item.dart';
-import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/user_singleton.dart';
-import '../../widgets/scaffold_snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:sticky_headers/sticky_headers/widget.dart';
 import '../../models/menu/item.dart';
-import '../../models/menu/product.dart';
 import '../../strings.dart';
-import '../../views/home/additional_widget.dart';
-import '../../views/image_view_page.dart';
 import '../../widgets/area_input_field.dart';
-import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:progress_state_button/progress_button.dart';
-import '../../widgets/background_card.dart';
 import '../page_router.dart';
 
-class NewAdditionalPage extends StatefulWidget {
+class NewItemPage extends StatefulWidget {
+  final Choice choice;
+
+  NewItemPage({this.choice});
 
   @override
-  State<StatefulWidget> createState() => _NewAdditionalPageState();
+  State<StatefulWidget> createState() => _NewItemPageState();
 }
 
-class _NewAdditionalPageState extends State<NewAdditionalPage> {
+class _NewItemPageState extends State<NewItemPage> {
   final _formKey = new GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -40,8 +31,8 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
 
   TextEditingController descriptionController;
   String name;
+  bool required = false;
   double cost;
-  int maxQuantity;
 
   @override
   void initState() {
@@ -54,7 +45,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Novo Adicional"),
+        title: Text("Novo Item"),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
@@ -104,15 +95,8 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   child: TextInputField(
                     labelText: "Preço R\$",
                     inputType: TextInputType.number,
-                    onSaved: (value) => value.isEmpty ? cost = 0 : cost = double.parse(value.trim()),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-                  child: TextInputField(
-                    labelText: "Quantidade Máxima",
-                    inputType: TextInputType.number,
-                    onSaved: (value) => maxQuantity = int.parse(value.trim()),
+                    onSaved: (value) => value.isEmpty ? cost = null : cost = double.parse(value.trim()),
+                    validator: (value) => null,
                   ),
                 ),
                 saveButton(),
@@ -146,12 +130,11 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
 
   void save() {
     if (validateAndSave()) {
-      var additional = Additional()
+      var item = Item()
           ..name = name
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
-          ..cost = cost
-          ..maxQuantity = maxQuantity;
-      PageRouter.pop(context, additional);
+          ..cost = cost;
+      PageRouter.pop(context, item);
     }
   }
 

@@ -5,7 +5,7 @@ import 'package:progress_dialog/progress_dialog.dart';
 import '../../widgets/text_input_field.dart';
 import '../../contracts/login/login_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/login/login_presenter.dart';
 import '../../views/page_router.dart';
 import '../../widgets/background_card.dart';
@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   @override
   onSuccess(BaseUser result) {
-    SingletonUser.instance.update(result);
+    UserSingleton.instance.update(result);
     widget.loginCallback();
   }
 

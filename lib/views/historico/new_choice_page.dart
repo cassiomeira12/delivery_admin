@@ -1,5 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:delivery_admin/models/menu/choice.dart';
+import 'package:delivery_admin/views/historico/new_item_page.dart';
 import 'package:delivery_admin/widgets/rounded_shape.dart';
 import 'package:delivery_admin/widgets/text_input_field.dart';
 
@@ -15,7 +16,7 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../page_router.dart';
 
 class NewChoicePage extends StatefulWidget {
-  final Choice choice;
+  Choice choice;
 
   NewChoicePage({this.choice});
 
@@ -38,60 +39,54 @@ class _NewChoicePageState extends State<NewChoicePage> {
   void initState() {
     super.initState();
     descriptionController = TextEditingController();
-    print(widget.choice.toMap());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text("Nova Opção"),
-      ),
-      body: ModalProgressHUD(
-        inAsyncCall: _loading,
-        progressIndicator: Card(
-          elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text("Nova Opção"),
         ),
-        child: SingleChildScrollView(
-          child: widget.choice == null ? bodyChoice() : bodyItem(),
+        body: ModalProgressHUD(
+          inAsyncCall: _loading,
+          progressIndicator: Card(
+            elevation: 5,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+            child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          ),
+          child: SingleChildScrollView(
+            child: widget.choice == null ? bodyChoice() : bodyItem(),
+          ),
         ),
+        floatingActionButton: widget.choice != null ? FloatingActionButton(
+          child: Icon(Icons.add, color: Colors.white,),
+          onPressed: () async {
+            var result = await PageRouter.push(context, NewItemPage());
+            if (result != null) {
+              setState(() {
+                widget.choice.itens.add(result);
+              });
+            }
+          },
+        ) : null,
       ),
-      floatingActionButton: widget.choice != null ? FloatingActionButton(
-        child: Icon(Icons.add, color: Colors.white,),
-        onPressed: () async {
-          var result = await showTextInputDialog(
-            context: context,
-            title: "Observação",
-            message: "Digite aqui sua observação",
-            cancelLabel: CANCELAR,
-            okLabel: SALVAR,
-            textFields: [
-              DialogTextField(
-                hintText: "Nome",
-              ),
-              DialogTextField(
-                hintText: "Descrição",
-              ),
-              DialogTextField(
-                hintText: "Preço R\$",
-              ),
-            ],
-          );
-        },
-      ) : null,
     );
+  }
+
+  Future<bool> _onBackPressed() {
+    PageRouter.pop(context, widget.choice);
   }
 
   Widget bodyItem() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: StickyHeader(
         header: Container(
           color: Colors.grey[200],
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.only(left: 10, top: 20, bottom: 20),
           alignment: Alignment.centerLeft,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +132,6 @@ class _NewChoicePageState extends State<NewChoicePage> {
 
   Widget choiceItemWidget(Item item) {
     return FlatButton(
-      padding: EdgeInsets.fromLTRB(10, 2.5, 0, 2.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -184,15 +178,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
         ],
       ),
       onPressed: () {
-//        if (widget.selectedItem != null && widget.selectedItem == item) {
-//          setState(() {
-//            widget.selectedItem = null;
-//          });
-//        } else {
-//          setState(() {
-//            widget.selectedItem = item;
-//          });
-//        }
+
       },
     );
   }
@@ -303,7 +289,9 @@ class _NewChoicePageState extends State<NewChoicePage> {
           ..minQuantity = minQuantity
           ..maxQuantity = maxQuantity;
       choice.required = required;
-      PageRouter.pop(context, choice);
+      setState(() {
+        widget.choice = choice;
+      });
     }
   }
 

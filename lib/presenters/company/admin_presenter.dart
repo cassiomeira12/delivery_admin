@@ -1,20 +1,20 @@
 import 'dart:io';
+import 'package:delivery_admin/models/singleton/user_singleton.dart';
 
-import '../../contracts/user/user_contract.dart';
-import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
+import '../../contracts/company/admin_contract.dart';
+import '../../models/company/admin.dart';
 import '../../contracts/crud.dart';
-import '../../services/firebase/firebase_user_service.dart';
+import '../../services/firebase/firebase_admin_service.dart';
 import '../../strings.dart';
 
-class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
-  final UserContractView _view;
-  UserPresenter(this._view);
+class AdminPresenter implements AdminContractPresenter, Crud<Admin> {
+  final AdminContractView _view;
+  AdminPresenter(this._view);
 
-  UserContractService service = FirebaseUserService("users");
+  AdminContractService service = FirebaseAdminService("admins");
 
   @override
-  Future<BaseUser> create(BaseUser item) async {
+  Future<Admin> create(Admin item) async {
     return await service.create(item).then((value) {
       _view.onSuccess(value);
       return value;
@@ -25,7 +25,7 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<BaseUser> read(BaseUser item) async {
+  Future<Admin> read(Admin item) async {
     return await service.read(item).then((value) {
       _view.onSuccess(value);
       return value;
@@ -36,7 +36,7 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<BaseUser> update(BaseUser item) async {
+  Future<Admin> update(Admin item) async {
     return await service.update(item).then((value) {
       _view.onSuccess(value);
       return value;
@@ -47,7 +47,7 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<BaseUser> delete(BaseUser item) async {
+  Future<Admin> delete(Admin item) async {
     return await service.create(item).then((value) {
       _view.onSuccess(value);
       return value;
@@ -58,7 +58,7 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<List<BaseUser>> findBy(String field, value) async {
+  Future<List<Admin>> findBy(String field, value) async {
     return await service.findBy(field, value).then((value) {
       return value;
     }).catchError((error) {
@@ -68,7 +68,7 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<List<BaseUser>> list() {
+  Future<List<Admin>> list() {
     // TODO: implement list
     return null;
   }
@@ -104,8 +104,8 @@ class UserPresenter implements UserContractPresenter, Crud<BaseUser> {
   }
 
   @override
-  Future<BaseUser> currentUser() async {
-    BaseUser user =  await service.currentUser();
+  Future<Admin> currentUser() async {
+    Admin user =  await service.currentUser();
     if (user == null) {
       _view.onFailure("");
     } else {

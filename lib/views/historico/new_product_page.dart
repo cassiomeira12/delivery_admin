@@ -1,14 +1,16 @@
 import 'package:delivery_admin/models/menu/additional.dart';
 import 'package:delivery_admin/models/menu/choice.dart';
+import 'package:delivery_admin/utils/log_util.dart';
 import 'package:delivery_admin/views/historico/new_additional_page.dart';
 import 'package:delivery_admin/views/historico/new_choice_page.dart';
 import 'package:delivery_admin/views/home/choice_widget.dart';
+import 'package:delivery_admin/widgets/rounded_shape.dart';
 import 'package:delivery_admin/widgets/secondary_button.dart';
 import 'package:delivery_admin/widgets/text_input_field.dart';
 
 import '../../models/order/order_item.dart';
 import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
@@ -40,36 +42,20 @@ class _NewProductPageState extends State<NewProductPage> {
 
   bool _loading = false;
 
-  Product product;
-
-  bool favotito = false;
-
-  var menu = ['Remover'];
-
-  List list = [1,2,3];
-
-  int count = 1;
-  double additionalCost = 0;
-
-  TextEditingController _observacaoController;
-
-  int radioGroup;
-  Item escolhido;
-
-
+  TextEditingController descriptionController;
+  String name;
+  double cost, discount;
+  PreparationTime preparationTime;
+  List<String> imagesList = List();
   List<Choice> choiceList = List();
   List<Additional> additionalList = List();
 
   List<ChoiceWidget> selectedChoices = List();
 
-  ButtonState buttonState = ButtonState.idle;
-
   @override
   void initState() {
     super.initState();
-    product = Product();
-    _observacaoController = TextEditingController();
-    //selectedChoices = product.choices.map((e) => ChoiceWidget(e)).toList();
+    descriptionController = TextEditingController();
   }
 
   @override
@@ -86,7 +72,9 @@ class _NewProductPageState extends State<NewProductPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
           child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
         ),
-        child: nestedScrollView(),
+        child: SingleChildScrollView(
+          child: body(),
+        ),
       ),
     );
   }
@@ -124,51 +112,6 @@ class _NewProductPageState extends State<NewProductPage> {
     );
   }
 
-  Widget slidesImages() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-      child: CarouselSlider(
-        options: CarouselOptions(
-          height: 250,
-          aspectRatio: 16/9,
-          viewportFraction: 0.8,
-          initialPage: 0,
-          enableInfiniteScroll: true,
-          reverse: false,
-          autoPlay: true,
-          autoPlayInterval: Duration(seconds: 3),
-          autoPlayAnimationDuration: Duration(milliseconds: 800),
-          autoPlayCurve: Curves.fastOutSlowIn,
-          enlargeCenterPage: true,
-          scrollDirection: Axis.horizontal,
-          //pauseAutoPlayOnTouch: true,
-          //onPageChanged: () {},
-        ),
-        items: product.images.map((e) {
-          return Builder(
-            builder: (BuildContext context) {
-              return GestureDetector(
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    image: DecorationImage(
-                      image: NetworkImage(e),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                onTap: () {
-                  PageRouter.push(context, ImageViewPage(networkImage: e,));
-                },
-              );
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget body() {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 5, 10, 0),
@@ -186,8 +129,7 @@ class _NewProductPageState extends State<NewProductPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Nome",
-                    //inputType: TextInputType.emailAddress,
-                    onSaved: (value) => value = value.trim(),
+                    onSaved: (value) => name = value.trim(),
                   ),
                 ),
                 Padding(
@@ -195,31 +137,51 @@ class _NewProductPageState extends State<NewProductPage> {
                   child: AreaInputField(
                     labelText: "Descrição",
                     maxLines: 4,
-                    controller: _observacaoController,
+                    textCapitalization: TextCapitalization.sentences,
+                    controller: descriptionController,
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Preço R\$",
-                    //inputType: TextInputType.emailAddress,
-                    onSaved: (value) => value = value.trim(),
+                    inputType: TextInputType.number,
+                    onSaved: (value) => cost = double.parse(value.trim()),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Desconto R\$",
-                    //inputType: TextInputType.emailAddress,
-                    onSaved: (value) => value = value.trim(),
+                    controller: TextEditingController(text: "0"),
+                    onSaved: (value) => discount = double.parse(value.trim()),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-                  child: TextInputField(
-                    labelText: "Tempo de preparo",
-                    //inputType: TextInputType.emailAddress,
-                    onSaved: (value) => value = value.trim(),
+                  child: GestureDetector(
+                    child: RoundedShape(
+                      padding: EdgeInsets.only(left: 10, top: 15, bottom: 15),
+                      color: Colors.transparent,
+                      child: Text(
+                        preparationTime == null ? "Tempo de preparo" : "Tempo de preparo: ${preparationTime.toString()}",
+                        style: Theme.of(context).textTheme.body2,
+                      ),
+                    ),
+                    onTap: () {
+                      showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay(hour: 0, minute: 0),
+                      ).then((value) {
+                        if (value != null) {
+                          setState(() {
+                            preparationTime = PreparationTime()
+                              ..hour = value.hour
+                              ..minute = value.minute;
+                          });
+                        }
+                      });
+                    },
                   ),
                 ),
               ],
@@ -230,148 +192,9 @@ class _NewProductPageState extends State<NewProductPage> {
 
           additionalWidget(),
 
-//          titleTextWidget(product.name),
-//
-//          Row(
-//            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//            children: [
-//              Padding(
-//                padding: EdgeInsets.only(left: 10),
-//                child: CountWidget(
-//                  minValue: 1,
-//                  maxValue: 5,
-//                  changedCount: (value) {
-//                    setState(() {
-//                      count = value;
-//                    });
-//                  },
-//                ),
-//              ),
-//              costWidget(product.cost),
-//            ],
-//          ),
-//
-//          product.description == null ? Container() :
-//          descriptionTextWidget(product.description),
-//
-//          product.preparationTime == null ? Container() : tempoPreparo(product.preparationTime),
-//
-//          SizedBox(height: 20,),
-//
-//          choicesWidget(),
-//
-//          additionalWidget(),
-//
-//          SizedBox(height: 30,),
-//
-//          GestureDetector(
-//            child: AbsorbPointer(
-//              absorbing: true,
-//              child: Padding(
-//                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-//                child: AreaInputField(
-//                  labelText: "Observação",
-//                  maxLines: 4,
-//                  controller: _observacaoController,
-//                ),
-//              ),
-//            ),
-//            onTap: () async {
-//              var result = await showTextInputDialog(
-//                context: context,
-//                title: "Observação",
-//                message: "Digite aqui sua observação",
-//                cancelLabel: CANCELAR,
-//                okLabel: SALVAR,
-//                textFields: [
-//                  DialogTextField(
-//                    hintText: "Observação",
-//                    initialText: _observacaoController.text,
-//                  ),
-//                ],
-//              );
-//              if (result == null) return;
-//              var temp = result[0];
-//              setState(() {
-//                _observacaoController.text = temp;
-//              });
-//            },
-//          ),
-//
-//          SizedBox(height: 20,),
-
           saveProductButton(),
 
           SizedBox(height: 30,),
-        ],
-      ),
-    );
-  }
-
-  Widget titleTextWidget(String title) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-      child: Text(
-        title,
-        textAlign: TextAlign.left,
-        style: TextStyle(
-          fontSize: 30,
-          color: Colors.black45,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget costWidget(double cost) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: Text(
-        "R\$ ${((count * cost) + additionalCost).toStringAsFixed(2)}",
-        textAlign: TextAlign.left,
-        style: TextStyle(
-          fontSize: 30,
-          color: Theme.of(context).primaryColor,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget descriptionTextWidget(String description) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(10, 20, 10, 10),
-      child: Text(
-        description,
-        textAlign: TextAlign.left,
-        style: TextStyle(
-          fontSize: 20,
-          color: Colors.black45,
-        ),
-      ),
-    );
-  }
-
-  Widget tempoPreparo(String tempo) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(10, 20, 10, 0),
-      child: Row(
-        children: [
-          Text(
-            "Tempo de preparo: ",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black54,
-            ),
-          ),
-          Text(
-            "20 - 30 min",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black45,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ],
       ),
     );
@@ -452,104 +275,37 @@ class _NewProductPageState extends State<NewProductPage> {
       padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
       alignment: Alignment.center,
       child: PrimaryButton(
-        text: "Cadastrar",
+        text: "Salvar",
         onPressed: () {
-          saveOrderItem();
+          save();
         },
       ),
     );
   }
 
-  void saveOrderItem() async {
-    setState(() {
-      _loading = true;
-    });
+  bool validateAndSave() {
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      return true;
+    }
+    return false;
+  }
 
-    await Future.delayed(Duration(seconds: 1));
+  void save() async {
+    if (validateAndSave()) {
+      var product = Product()
+        ..name = name
+        ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
+        ..cost = cost
+        ..discount = discount
+        ..preparationTime = preparationTime
+        ..images = imagesList
+        ..choices = choiceList
+        ..additional = additionalList;
 
-    bool foundError = false;
-
-    if (OrderSingleton.instance.id == null) {
-      var order = OrderItem();
-      order.id = product.id;
-
-      order.name = product.name;
-      order.description = product.description;
-      order.cost = product.cost;
-      order.discount = product.discount;
-      order.preparationTime = product.preparationTime;
-      order.amount = count;
-      order.note = _observacaoController.text;
-
-      product.additional.forEach((element) {
-        if (element.amount > 0) {
-          order.additionalSelected.add(element);
-        }
-      });
-
-      selectedChoices.forEach((element) {
-        if (element.selectedItem == null) {
-          if (element.choice.required) {
-            foundError = true;
-            return;
-          }
-        } else {
-          order.choicesSelected.add(element.choice.name + " - " + element.selectedItem.toString());
-        }
-      });
-
-      if (foundError) {
-        setState(() {
-          _loading = false;
-        });
-        ScaffoldSnackBar.failure(context, _scaffoldKey, "Selecione todas as opções obrigatórias");
-      } else {
-        OrderSingleton.instance.id = product.id;
-        OrderSingleton.instance.userId = SingletonUser.instance.id;
-        OrderSingleton.instance.userName = SingletonUser.instance.name;
-        OrderSingleton.instance.items.add(order);
-        PageRouter.pop(context, OrderSingleton.instance);
-      }
-
-    } else {
-      var order = OrderItem();
-      order.id = product.id;
-
-      order.name = product.name;
-      order.description = product.description;
-      order.cost = product.cost;
-      order.discount = product.discount;
-      order.preparationTime = product.preparationTime;
-      order.amount = count;
-      order.note = _observacaoController.text;
-
-      product.additional.forEach((element) {
-        if (element.amount > 0) {
-          order.additionalSelected.add(element);
-        }
-      });
-
-      selectedChoices.forEach((element) {
-        if (element.selectedItem == null) {
-          if (element.choice.required) {
-            foundError = true;
-            return;
-          }
-        } else {
-          order.choicesSelected.add(element.choice.name + " - " + element.selectedItem.toString());
-        }
-      });
-
-      if (foundError) {
-        await Future.delayed(Duration(seconds: 1));
-        setState(() {
-          _loading = false;
-        });
-        ScaffoldSnackBar.failure(context, _scaffoldKey, "Selecione todas as opções obrigatórias");
-      } else {
-        OrderSingleton.instance.items.add(order);
-        PageRouter.pop(context, OrderSingleton.instance);
-      }
+      Log.d(product.toMap());
+      PageRouter.pop(context, product);
     }
   }
 

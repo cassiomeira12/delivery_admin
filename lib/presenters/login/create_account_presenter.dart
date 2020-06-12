@@ -1,5 +1,5 @@
 import '../../contracts/login/create_account_contract.dart';
-import '../../models/base_user.dart';
+import '../../models/company/admin.dart';
 import '../../services/firebase/firebase_create_account_service.dart';
 
 class CreateAccountPresenter extends CreateAccountContractPresenter {
@@ -16,7 +16,7 @@ class CreateAccountPresenter extends CreateAccountContractPresenter {
   }
 
   @override
-  createAccount(BaseUser user) {
+  createAccount(Admin user) {
     view.showProgress();
     service.createAccount(user);
   }
@@ -28,7 +28,7 @@ class CreateAccountPresenter extends CreateAccountContractPresenter {
   }
 
   @override
-  onSuccess(BaseUser user) {
+  onSuccess(Admin user) {
     view.hideProgress();
     view.onSuccess(user);
   }

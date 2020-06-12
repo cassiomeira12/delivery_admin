@@ -1,8 +1,10 @@
-import '../contracts/user/user_contract.dart';
-import '../models/base_user.dart';
-import '../models/singleton/singleton_user.dart';
+import 'package:delivery_admin/models/base_user.dart';
+import 'package:delivery_admin/models/singleton/user_singleton.dart';
+import '../contracts/company/admin_contract.dart';
+import '../models/company/admin.dart';
+import '../models/singleton/user_singleton.dart';
 import '../models/version_app.dart';
-import '../presenters/user/user_presenter.dart';
+import '../presenters/company/admin_presenter.dart';
 import '../presenters/version_app_presenter.dart';
 import '../strings.dart';
 import '../themes/my_themes.dart';
@@ -36,10 +38,10 @@ class RootPage extends StatefulWidget {
   State<StatefulWidget> createState() => new _RootPageState();
 }
 
-class _RootPageState extends State<RootPage> implements UserContractView {
+class _RootPageState extends State<RootPage> implements AdminContractView {
   AuthStatus authStatus = AuthStatus.NOT_DETERMINED;
 
-  UserContractPresenter presenter;
+  AdminContractPresenter presenter;
 
   VersionApp versionApp;
   bool minimumUpdate = true;
@@ -47,7 +49,7 @@ class _RootPageState extends State<RootPage> implements UserContractView {
   @override
   void initState() {
     super.initState();
-    presenter = UserPresenter(this);
+    presenter = AdminPresenter(this);
     presenter.currentUser();
     updateCurrentTheme();
   }
@@ -219,7 +221,7 @@ class _RootPageState extends State<RootPage> implements UserContractView {
   }
 
   void loginCallback() {
-    if (SingletonUser.instance.emailVerified) {
+    if (UserSingleton.instance.emailVerified) {
       setState(() {
         authStatus = AuthStatus.LOGGED_IN;
       });
@@ -243,8 +245,8 @@ class _RootPageState extends State<RootPage> implements UserContractView {
   }
 
   @override
-  onSuccess(BaseUser user) async {
-    SingletonUser.instance.update(user);
+  onSuccess(Admin user) async {
+    UserSingleton.instance.update(user);
     if (user.emailVerified) {
       setState(() {
         authStatus = AuthStatus.LOGGED_IN;
@@ -273,10 +275,10 @@ class _RootPageState extends State<RootPage> implements UserContractView {
 
   void updateNotificationToken() async {
     String notificationToken = await PreferencesUtil.getNotificationToken();
-    NotificationToken token = SingletonUser.instance.notificationToken;
-    if (token == null || token.token != notificationToken) {
-      SingletonUser.instance.notificationToken = NotificationToken(notificationToken);
-      presenter.update(SingletonUser.instance);
+    NotificationToken token = UserSingleton.instance.notificationToken;
+    if (token == null || (token.token != null && token.token != notificationToken)) {
+      UserSingleton.instance.notificationToken = NotificationToken(notificationToken);
+      presenter.update(UserSingleton.instance);
     }
   }
 

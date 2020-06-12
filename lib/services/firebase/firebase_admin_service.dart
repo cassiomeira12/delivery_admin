@@ -1,86 +1,87 @@
 import 'dart:io';
+import '../../models/singleton/user_singleton.dart';
+import '../../models/company/admin.dart';
+import '../../contracts/company/admin_contract.dart';
 import '../../utils/preferences_util.dart';
 import '../../utils/log_util.dart';
 import 'package:path/path.dart' as Path;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../contracts/user/user_contract.dart';
-import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'base_firebase_service.dart';
 
-class FirebaseUserService implements UserContractService {
+class FirebaseAdminService implements AdminContractService {
   CollectionReference _collection;
   BaseFirebaseService _firebaseCrud;
 
-  FirebaseUserService(String path) {
+  FirebaseAdminService(String path) {
     _firebaseCrud = BaseFirebaseService(path);
     _collection = _firebaseCrud.collection;
   }
 
   @override
-  Future<BaseUser> create(BaseUser item) async {
+  Future<Admin> create(Admin item) async {
     item.password = null;
     return _firebaseCrud.create(item).then((response) {
-      return BaseUser.fromMap(response);
+      return Admin.fromMap(response);
     });
   }
 
   @override
-  Future<BaseUser> read(BaseUser item) {
+  Future<Admin> read(Admin item) {
     return _firebaseCrud.read(item).then((response) {
-      return BaseUser.fromMap(response);
+      return Admin.fromMap(response);
     }).catchError((error) {
       Log.e("Document ${item.id} not found");
     });
   }
 
   @override
-  Future<BaseUser> update(BaseUser item) {
+  Future<Admin> update(Admin item) {
     return _firebaseCrud.update(item).then((response) {
-      return BaseUser.fromMap(response);
+      return Admin.fromMap(response);
     }).catchError((error) {
       Log.e("Document ${item.id} not found");
     });
   }
 
   @override
-  Future<BaseUser> delete(BaseUser item) {
+  Future<Admin> delete(Admin item) {
     return _firebaseCrud.delete(item).then((response) {
-      return BaseUser.fromMap(response);
+      return Admin.fromMap(response);
     }).catchError((error) {
       Log.e("Document ${item.id} not found");
     });
   }
 
   @override
-  Future<List<BaseUser>> findBy(String field, value) async {
+  Future<List<Admin>> findBy(String field, value) async {
     return _firebaseCrud.findBy(field, value).then((response) {
-      return response.map<BaseUser>((item) => BaseUser.fromMap(item)).toList();
+      return response.map<Admin>((item) => Admin.fromMap(item)).toList();
     });
   }
 
   @override
-  Future<List<BaseUser>> list() {
+  Future<List<Admin>> list() {
     return _firebaseCrud.list().then((response) {
-      return response.map<BaseUser>((item) => BaseUser.fromMap(item)).toList();
+      return response.map<Admin>((item) => Admin.fromMap(item)).toList();
     });
   }
 
-  Future<BaseUser> findUserByEmail(String email) async {
-    List<BaseUser> list;
+  Future<Admin> findUserByEmail(String email) async {
+    List<Admin> list;
     await findBy("email", email).then((value) {
       if (value.length == 1) {
         PreferencesUtil.setUserData(value[0].toMap());
       }
       list = value;
     }).catchError((error) async {
-      print(error.toString());
       dynamic result = await PreferencesUtil.getUserData();
-      list = List();
-      list.add(BaseUser.fromMap(result));
+      if (result != null) {
+        list = List();
+        list.add(Admin.fromMap(result));
+      }
     });
 
     if (list == null) return null;
@@ -97,7 +98,7 @@ class FirebaseUserService implements UserContractService {
   }
 
   @override
-  Future<BaseUser> createAccount(BaseUser user) async {
+  Future<Admin> createAccount(Admin user) async {
     return await create(user);
   }
 
@@ -135,12 +136,12 @@ class FirebaseUserService implements UserContractService {
   }
 
   @override
-  Future<BaseUser> currentUser() async {
+  Future<Admin> currentUser() async {
     FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
     if (currentUser == null) {
       return null;
     } else {
-      BaseUser user = await findUserByEmail(currentUser.email);
+      Admin user = await findUserByEmail(currentUser.email);
       if (user == null) {
         return null;
       }
@@ -159,7 +160,7 @@ class FirebaseUserService implements UserContractService {
   Future<bool> isEmailVerified() async {
     FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
     bool emailVerified = currentUser.isEmailVerified;
-    BaseUser user = await findUserByEmail(currentUser.email);
+    Admin user = await findUserByEmail(currentUser.email);
     if (user != null) {
       user.emailVerified = emailVerified;
       _collection.document(user.id).updateData(user.toMap());

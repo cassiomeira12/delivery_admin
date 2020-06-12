@@ -50,7 +50,7 @@ class _ProductWidgetState extends State<ProductWidget> {
                 ],
               ),
             ),
-            FaIcon(FontAwesomeIcons.angleRight, color: Theme.of(context).iconTheme.color,),
+            // FaIcon(FontAwesomeIcons.angleRight, color: Theme.of(context).iconTheme.color,),
           ],
         ),
         onPressed: () {

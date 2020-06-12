@@ -1,3 +1,7 @@
+import 'package:delivery_admin/widgets/primary_button.dart';
+import 'package:delivery_admin/widgets/secondary_button.dart';
+import 'package:sembast/sembast.dart';
+
 import '../../contracts/order/order_contract.dart';
 import '../../models/address/address.dart';
 import '../../models/order/order.dart';
@@ -8,18 +12,18 @@ import '../../utils/date_util.dart';
 import '../../widgets/stars_widget.dart';
 import 'package:flutter/material.dart';
 
-class HistoricOrderPage extends StatefulWidget {
+class OrderPage extends StatefulWidget {
   final dynamic item;
 
-  HistoricOrderPage({
+  OrderPage({
     this.item,
   });
 
   @override
-  State<StatefulWidget> createState() => _HistoricOrderPageState();
+  State<StatefulWidget> createState() => _OrderPageState();
 }
 
-class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderContractView {
+class _OrderPageState extends State<OrderPage> implements OrderContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -50,7 +54,6 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
       }
       index++;
     });
-    print(currentStatusIndex);
   }
 
   @override
@@ -66,7 +69,6 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
   @override
   onSuccess(Order result) {
     order.update(result);
-    print(result.status.toMap());
     int index = 0;
     order.status.values.forEach((element) {
       if (element.name == order.status.current.name) {
@@ -111,7 +113,7 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
           ),
         ];
       },
-      body: body(),
+      body: order.status.isFirst() ? Container() : body(),
     );
   }
 
@@ -126,8 +128,8 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                titleTextWidget(order.companyName),
-                dateTextWidget(DateUtil.formatDateCalendar(order.createdAt)),
+                titleTextWidget(order.userName),
+                dateTextWidget(DateUtil.formatDateMouthHour(order.createdAt)),
               ],
             ),
             SizedBox(height: 5,),
@@ -144,12 +146,12 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
             ),
             addressDataWidget(order.deliveryAddress),
             order.status.current.name == order.status.values.last.name ?
-            Column(
-              children: [
-                avaliationTextWidget(),
-                StarsWidget(stars: 5, size: 40,),
-              ],
-            ) : Container(),
+              Column(
+                children: [
+                  avaliationTextWidget(),
+                  StarsWidget(stars: 5, size: 40,),
+                ],
+              ) : Container(),
             deliveryCurrentStatus(),
           ],
         ),
@@ -162,41 +164,66 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
       padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Column(
         children: [
-
           Column(
             children: [
-              Text(
-                "Previsão de entrega",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 25,
-                  color: Colors.black45,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10,),
-              Text(
-                "Aguarde seu pedido ser confirmado",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black45,
-                ),
-              ),
-              SizedBox(height: 10,),
-              Text(
-                "19:30h",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 35,
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              order.status.isFirst() ?
+              PrimaryButton(
+                text: "Confirmar",
+                onPressed: () {
+                  var now = DateTime.now();
+                  int hour = now.hour;
+                  int minute = now.minute;
+                  if (order.preparationTime != null) {
+                    if ((minute + order.preparationTime.minute) > 59) {
+                      hour += order.preparationTime.hour + 1;
+                      minute = (minute + order.preparationTime.minute) - 60;
+                    }
+                    if (hour > 23) {
+                      hour = 0;
+                    }
+                  }
+                  showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay(hour: hour, minute: minute),
+                  ).then((value) {
+                    if (value != null) {
+                      order.deliveryForecast = DeliveryForecast();
+                      order.deliveryForecast.hour = value.hour;
+                      order.deliveryForecast.minute = value.minute;
+
+                      order.status.values[1].date = DateTime.now();
+                      setState(() {
+                        order.status.current = order.status.values[1];
+                      });
+                      presenter.update(order);
+                    }
+                  });
+                },
+              ) : Column(
+                children: [
+                  Text(
+                    "Previsão de entrega",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 25,
+                      color: Colors.black45,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10,),
+                  Text(
+                    order.deliveryForecast.toString(),
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 35,
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-
-
         ],
       ),
     );
@@ -305,9 +332,7 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       onRefresh: () => presenter.read(order),
-      child: Center(
-        child: listView(),
-      ),
+      child: listView(),
     );
   }
 
@@ -494,13 +519,13 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
         children: [
           Container(
             width: 50,
-            height: 70,
+            //height: 70,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 Container(
                   width: 3,
-                  height: 70,
+                  height: 80,
                   color: Colors.grey[350],
                 ),
                 Container(
@@ -521,13 +546,37 @@ class _HistoricOrderPageState extends State<HistoricOrderPage> implements OrderC
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  status.name,
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: this.currentStatusIndex > index ? Colors.grey[550] : this.currentStatusIndex == index ? Colors.green : Colors.grey[300],
-                    fontWeight: FontWeight.bold,
+                Container(
+                  margin: EdgeInsets.only(top: 10, right: 30),
+                  child: SecondaryButton(
+                    child: Text(
+                      status.name,
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 25,
+                        color: this.currentStatusIndex > index ?
+                          Colors.grey[500]
+                            :
+                          this.currentStatusIndex == index ?
+                            Colors.green
+                              :
+                            this.currentStatusIndex + 1 == index ?
+                              Colors.black54
+                                :
+                              Colors.grey[300],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      if (currentStatusIndex + 1 == index) {
+                        setState(() {
+                          currentStatusIndex++;
+                          order.status.values[currentStatusIndex].date = DateTime.now();
+                          order.status.current = order.status.values[currentStatusIndex];
+                          presenter.update(order);
+                        });
+                      }
+                    },
                   ),
                 ),
                 status.date != null ?

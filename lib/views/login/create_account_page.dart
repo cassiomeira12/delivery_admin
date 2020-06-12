@@ -1,6 +1,6 @@
 import '../../contracts/login/create_account_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/login/create_account_presenter.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/shape_round.dart';
@@ -135,7 +135,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> implements Create
       _imgURL = "assets/sucesso.png";
       _textMessage = CONTA_CRIADA_SUCESSO;
     });
-    SingletonUser.instance.update(user);
+    UserSingleton.instance.update(user);
     await Future.delayed(const Duration(seconds: 2));
     PageRouter.pop(context);
     widget.loginCallback();

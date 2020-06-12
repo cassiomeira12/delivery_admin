@@ -3,7 +3,7 @@ import '../../views/image_view_page.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../strings.dart';
 import '../../themes/my_themes.dart';
@@ -39,8 +39,8 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
   void initState() {
     super.initState();
     presenter = UserPresenter(this);
-    userName = SingletonUser.instance.name;
-    userPhoto = SingletonUser.instance.avatarURL;
+    userName = UserSingleton.instance.name;
+    userPhoto = UserSingleton.instance.avatarURL;
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:delivery_admin/models/singleton/company_singleton.dart';
+import 'package:delivery_admin/utils/log_util.dart';
 import 'package:delivery_admin/views/historico/new_product_page.dart';
 import 'package:delivery_admin/views/home/product_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -67,36 +68,6 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     menu = Menu()..id = company.idMenu;
     //menu = Menu()..id = "1";
     presenter.read(menu);
-    updateOrders();
-  }
-
-  void updateOrders() async {
-//    final database = LocalDB.MemoryDatabaseAdapter().database();
-//    final query = LocalDB.Query(
-//      filter: NotFilter(ValueFilter('example')),
-//      skip: 0, // Start from the first result item
-//      take: 10, // Return 10 result items
-//    );
-//    var result = await database.collection("asdf").search(query: query, reach: LocalDB.Reach.local);
-//    print(result.count);
-//    result.items.forEach((element) {
-//      print(element.data);
-//    });
-    setState(() {
-      orderSelected = OrderSingleton.instance.id != null;
-    });
-    if (orderSelected) {
-      OrderSingleton.instance.companyId = company.id;
-      OrderSingleton.instance.companyName = company.name;
-
-      OrderSingleton.instance.company = company;
-
-      sliddingPage.listItens();
-    }
-    orderItens = 0;
-    OrderSingleton.instance.items.forEach((element) {
-      orderItens += element.amount;
-    });
   }
 
   @override
@@ -115,10 +86,76 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, color: Colors.white,),
         onPressed: () async {
-          var result = await PageRouter.push(context, NewProductPage());
+          final categoriesSelected = await showConfirmationDialog<String>(
+            context: context,
+            title: "Escolha uma categoria",
+            okLabel: "Ok",
+            cancelLabel: CANCELAR,
+            barrierDismissible: false,
+            //message: "Deseja sair do $APP_NAME ?",
+            actions: menu.categories.map((e) {
+              return AlertDialogAction<String>(label: e.name, key: e.id);
+            }).toList(),
+          );
+
+          if (categoriesSelected != null) {
+            var newProduct = await PageRouter.push(context, NewProductPage());
+            if (newProduct != null) {
+              menu.categories.forEach((element) {
+                if (element.id == categoriesSelected) {
+                  element.products.add(newProduct);
+                  return;
+                }
+              });
+            }
+            presenter.update(menu);
+          }
+
         },
       ),
     );
+  }
+
+  @override
+  listSuccess(List<Menu> list) {
+    list.forEach((element) {
+      print(element.toMap());
+    });
+  }
+
+  @override
+  onFailure(String error)  {
+    print(error);
+    setState(() {
+      list = [];
+      menu.id = company.idMenu;
+    });
+  }
+
+  @override
+  onSuccess(Menu result) {
+    List<Product> temp = List();
+
+//    if (menu.categories.isEmpty) {
+//      menu.categories.add(adicionar());
+//      presenter.update(menu);
+//    }
+
+    result.categories.forEach((product) {
+      temp.addAll(product.products);
+    });
+
+//    if (temp.length == 2) {
+//      var p = adicionar();
+//      menu.categories[0].products.add(p);
+//      presenter.update(menu);
+//    }
+
+    setState(() {
+      menu = result;
+      list = temp;
+    });
+
   }
 
   Widget notificationCount(int notifications) {
@@ -234,7 +271,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     );
   }
 
-  Widget listItem(item) {
+  Widget listItem(Product item) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: Slidable(
@@ -245,54 +282,35 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
           onPressed: (value) async {
             var result = await PageRouter.push(context, ProductPage(item: item,));
             if (result != null) {
-              updateOrders();
+              //updateOrders();
             }
           },
         ),
+        secondaryActions: <Widget>[
+          IconSlideAction(
+            caption: "Excluir",
+            color: Colors.red,
+            icon: Icons.delete,
+            onTap: () {
+              Category categoryProduct;
+              menu.categories.forEach((category) {
+                category.products.forEach((product) {
+                  if (product.name == item.name) {
+                    categoryProduct = category;
+                    return;
+                  }
+                });
+                if (categoryProduct != null) {
+                  return;
+                }
+              });
+              categoryProduct.products.remove(item);
+              presenter.update(menu);
+            },
+          ),
+        ],
       ),
     );
-  }
-
-  @override
-  listSuccess(List<Menu> list) {
-    list.forEach((element) {
-      print(element.toMap());
-    });
-  }
-
-  @override
-  onFailure(String error)  {
-    print(error);
-    setState(() {
-      list = [];
-      menu.id = company.idMenu;
-    });
-  }
-
-  @override
-  onSuccess(Menu menu) {
-    List<Product> temp = List();
-
-//    if (menu.categories.isEmpty) {
-//      menu.categories.add(adicionar());
-//      presenter.update(menu);
-//    }
-
-    menu.categories.forEach((product) {
-      temp.addAll(product.products);
-    });
-
-//    if (temp.length == 2) {
-//      var p = adicionar();
-//      menu.categories[0].products.add(p);
-//      presenter.update(menu);
-//    }
-
-    setState(() {
-      menu = menu;
-      list = temp;
-    });
-
   }
 
   Product adicionar() {

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../contracts/user/notification_contract.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../models/user_notification.dart';
 import '../../services/firebase/base_firebase_service.dart';
 import '../../utils/log_util.dart';
@@ -12,7 +12,7 @@ class FirebaseNotificationService implements NotificationContractService {
   BaseFirebaseService _firebaseCrud;
 
   FirebaseNotificationService(String path) {
-    _firebaseCrud = BaseFirebaseService("users/${SingletonUser.instance.id}/$path");
+    _firebaseCrud = BaseFirebaseService("users/${UserSingleton.instance.id}/$path");
     _collection = _firebaseCrud.collection;
   }
 
@@ -72,7 +72,7 @@ class FirebaseNotificationService implements NotificationContractService {
 
     var geral = Firestore.instance.collection("notifications");
 
-    var notificationsDestinationUser = await geral.limit(20).where("destinationUser", isEqualTo: SingletonUser.instance.id).getDocuments().then((value) {
+    var notificationsDestinationUser = await geral.limit(20).where("destinationUser", isEqualTo: UserSingleton.instance.id).getDocuments().then((value) {
       return value.documentChanges.map<UserNotification>((doc) => UserNotification.fromMap(doc.document.data)).toList();
     });
     list.addAll(notificationsDestinationUser);

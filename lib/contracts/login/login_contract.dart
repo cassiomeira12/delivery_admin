@@ -1,8 +1,8 @@
 import '../../contracts/base_result_contract.dart';
-import '../../models/base_user.dart';
+import '../../models/company/admin.dart';
 import '../base_progress_contract.dart';
 
-abstract class LoginContractView implements BaseProgressContract, BaseResultContract<BaseUser> {
+abstract class LoginContractView implements BaseProgressContract, BaseResultContract<Admin> {
 
 }
 
@@ -17,7 +17,7 @@ abstract class LoginContractPresenter {
   signIn(String email, String password);
   signInWithGoogle();
   onFailure(String error);
-  onSuccess(BaseUser user);
+  onSuccess(Admin user);
 }
 
 abstract class LoginContractService {

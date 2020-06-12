@@ -1,6 +1,6 @@
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../strings.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ class NotificationsSettingsPage extends StatefulWidget {
 class _NotificationsSettingsState extends State<NotificationsSettingsPage> implements UserContractView {
   final _formKey = new GlobalKey<FormState>();
 
-  bool notifications = SingletonUser.instance.notificationToken.active;
+  bool notifications = UserSingleton.instance.notificationToken.active;
 
   UserContractPresenter presenter;
 
@@ -97,8 +97,8 @@ class _NotificationsSettingsState extends State<NotificationsSettingsPage> imple
           onPressed: () {
             setState(() {
               notifications = !notifications;
-              SingletonUser.instance.notificationToken.active = notifications;
-              presenter.update(SingletonUser.instance);
+              UserSingleton.instance.notificationToken.active = notifications;
+              presenter.update(UserSingleton.instance);
             });
           },
         ),

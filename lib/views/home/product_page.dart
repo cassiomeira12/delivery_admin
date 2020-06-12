@@ -1,17 +1,13 @@
 import '../../models/order/order_item.dart';
 import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../models/menu/item.dart';
 import '../../models/menu/product.dart';
-import '../../strings.dart';
 import '../../views/home/additional_widget.dart';
 import '../../views/image_view_page.dart';
-import '../../widgets/area_input_field.dart';
-import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -187,75 +183,17 @@ class _ProductPageState extends State<ProductPage> {
 
           titleTextWidget(product.name),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: CountWidget(
-                  minValue: 1,
-                  maxValue: 5,
-                  changedCount: (value) {
-                    setState(() {
-                      count = value;
-                    });
-                  },
-                ),
-              ),
-              costWidget(product.cost),
-            ],
-          ),
+          costWidget(product.cost),
 
-          product.description == null ? Container() :
-          descriptionTextWidget(product.description),
+          product.description == null ? Container() : descriptionTextWidget(product.description),
 
-          product.preparationTime == null ? Container() : tempoPreparo(product.preparationTime),
+          tempoPreparo(product.preparationTime),
 
           SizedBox(height: 20,),
 
           choicesWidget(),
 
           additionalWidget(),
-
-          SizedBox(height: 30,),
-
-          GestureDetector(
-            child: AbsorbPointer(
-              absorbing: true,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: AreaInputField(
-                  labelText: "Observação",
-                  maxLines: 4,
-                  controller: _observacaoController,
-                ),
-              ),
-            ),
-            onTap: () async {
-              var result = await showTextInputDialog(
-                context: context,
-                title: "Observação",
-                message: "Digite aqui sua observação",
-                cancelLabel: CANCELAR,
-                okLabel: SALVAR,
-                textFields: [
-                  DialogTextField(
-                    hintText: "Observação",
-                    initialText: _observacaoController.text,
-                  ),
-                ],
-              );
-              if (result == null) return;
-              var temp = result[0];
-              setState(() {
-                _observacaoController.text = temp;
-              });
-            },
-          ),
-
-          SizedBox(height: 20,),
-
-          adicionarButton(),
 
           SizedBox(height: 30,),
         ],
@@ -307,27 +245,44 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  Widget tempoPreparo(String tempo) {
+  Widget tempoPreparo(PreparationTime preparationTime) {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 0),
-      child: Row(
-        children: [
-          Text(
-            "Tempo de preparo: ",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black54,
+      child: GestureDetector(
+        child: Row(
+          children: [
+            Text(
+              "Tempo de preparo: ",
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.black54,
+              ),
             ),
-          ),
-          Text(
-            "20 - 30 min",
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black45,
-              fontWeight: FontWeight.bold,
+            Text(
+              preparationTime == null ? "Adicionar" : preparationTime.toString(),
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.black45,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        onTap: () {
+          showTimePicker(
+            context: context,
+            initialTime: TimeOfDay(hour: 0, minute: 0),
+          ).then((value) {
+            if (value != null) {
+              setState(() {
+                preparationTime = PreparationTime()
+                  ..hour = value.hour
+                  ..minute = value.minute;
+                product.preparationTime = preparationTime;
+              });
+            }
+          });
+        },
       ),
     );
   }
@@ -421,7 +376,7 @@ class _ProductPageState extends State<ProductPage> {
       order.description = product.description;
       order.cost = product.cost;
       order.discount = product.discount;
-      order.preparationTime = product.preparationTime;
+      //order.preparationTime = product.preparationTime;
       order.amount = count;
       order.note = _observacaoController.text;
 
@@ -449,8 +404,8 @@ class _ProductPageState extends State<ProductPage> {
         ScaffoldSnackBar.failure(context, _scaffoldKey, "Selecione todas as opções obrigatórias");
       } else {
         OrderSingleton.instance.id = product.id;
-        OrderSingleton.instance.userId = SingletonUser.instance.id;
-        OrderSingleton.instance.userName = SingletonUser.instance.name;
+        OrderSingleton.instance.userId = UserSingleton.instance.id;
+        OrderSingleton.instance.userName = UserSingleton.instance.name;
         OrderSingleton.instance.items.add(order);
         PageRouter.pop(context, OrderSingleton.instance);
       }
@@ -463,7 +418,7 @@ class _ProductPageState extends State<ProductPage> {
       order.description = product.description;
       order.cost = product.cost;
       order.discount = product.discount;
-      order.preparationTime = product.preparationTime;
+      //order.preparationTime = product.preparationTime;
       order.amount = count;
       order.note = _observacaoController.text;
 

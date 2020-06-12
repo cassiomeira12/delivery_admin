@@ -1,7 +1,7 @@
 import '../../widgets/image_network_widget.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
@@ -35,11 +35,11 @@ class _UserState extends State<UserPage> implements UserContractView {
   void initState() {
     super.initState();
     presenter = UserPresenter(this);
-    if (SingletonUser.instance != null) {
-      userName = SingletonUser.instance.name;
-      userEmail = SingletonUser.instance.email;
-      userPhoneNumber = SingletonUser.instance.phoneNumber == null ? NUMERO_CELULAR : SingletonUser.instance.phoneNumber.toString();
-      userPhoto = SingletonUser.instance.avatarURL;
+    if (UserSingleton.instance != null) {
+      userName = UserSingleton.instance.name;
+      userEmail = UserSingleton.instance.email;
+      userPhoneNumber = UserSingleton.instance.phoneNumber == null ? NUMERO_CELULAR : UserSingleton.instance.phoneNumber.toString();
+      userPhoto = UserSingleton.instance.avatarURL;
     }
   }
 
@@ -77,7 +77,7 @@ class _UserState extends State<UserPage> implements UserContractView {
   @override
   onSuccess(BaseUser user) async {
     setState(() {
-      userPhoto = SingletonUser.instance.avatarURL;
+      userPhoto = UserSingleton.instance.avatarURL;
       loading = false;
     });
     ScaffoldSnackBar.success(context, _scaffoldKey, FOTO_ALTERADA);

@@ -1,6 +1,6 @@
 import '../../contracts/login/create_account_contract.dart';
-import '../../models/base_user.dart';
-import '../../services/firebase/firebase_user_service.dart';
+import '../../models/company/admin.dart';
+import '../../services/firebase/firebase_admin_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../strings.dart';
@@ -10,11 +10,11 @@ class FirebaseCreateAccountService extends CreateAccountContractService {
   FirebaseCreateAccountService(CreateAccountContractPresenter presenter) : super(presenter);
 
   @override
-  Future<BaseUser> createAccount(BaseUser user) async {
+  Future<Admin> createAccount(Admin user) async {
     return FirebaseAuth.instance.createUserWithEmailAndPassword(email: user.email, password: user.password).then((AuthResult authResult) async {
       user.emailVerified = authResult.user.isEmailVerified;
-      Crud<BaseUser> crud = FirebaseUserService("users");
-      BaseUser result = await crud.create(user);
+      Crud<Admin> crud = FirebaseAdminService("admins");
+      Admin result = await crud.create(user);
       if (result == null) {
         presenter.onFailure(ERROR_CRIAR_USUARIO);
       } else {

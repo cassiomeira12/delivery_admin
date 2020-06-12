@@ -1,6 +1,6 @@
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/primary_button.dart';
@@ -30,7 +30,7 @@ class _VerifiedEmailPageState extends State<VerifiedEmailPage> implements UserCo
   @override
   void initState() {
     super.initState();
-    email = SingletonUser.instance.email;
+    email = UserSingleton.instance.email;
     presenter = UserPresenter(this);
     presenter.sendEmailVerification();
   }

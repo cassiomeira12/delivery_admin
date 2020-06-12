@@ -1,8 +1,8 @@
-import '../../models/base_user.dart';
+import '../../models/company/admin.dart';
 import '../base_progress_contract.dart';
 import '../base_result_contract.dart';
 
-abstract class CreateAccountContractView implements BaseProgressContract, BaseResultContract<BaseUser> {
+abstract class CreateAccountContractView implements BaseProgressContract, BaseResultContract<Admin> {
 
 }
 
@@ -14,10 +14,10 @@ abstract class CreateAccountContractPresenter {
     this.view = null;
   }
 
-  Future<BaseUser> createAccount(BaseUser user);
+  Future<Admin> createAccount(Admin user);
 
   onFailure(String error);
-  onSuccess(BaseUser user);
+  onSuccess(Admin user);
 }
 
 abstract class CreateAccountContractService {
@@ -28,5 +28,5 @@ abstract class CreateAccountContractService {
     this.presenter = null;
   }
 
-  Future<BaseUser> createAccount(BaseUser user);
+  Future<Admin> createAccount(Admin user);
 }

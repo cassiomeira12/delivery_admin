@@ -1,6 +1,6 @@
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/primary_button.dart';
@@ -254,7 +254,7 @@ class _ChangePasswordState extends State<ChangePasswordPage> implements UserCont
       setState(() {
         _isLoading = true;
       });
-      String email = SingletonUser.instance.email;
+      String email = UserSingleton.instance.email;
       presenter.changePassword(email, _currentPassword, _newPassword);
     }
   }

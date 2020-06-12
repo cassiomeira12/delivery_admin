@@ -62,4 +62,14 @@ class FirebaseOrderService implements OrderContractService {
     });
   }
 
+  @override
+  Stream<QuerySnapshot> listTodayOrders(String companyId, DateTime day) {
+    var date = DateTime(day.year, day.month, day.day, 0, 0, 0, 0, 0).toString();
+    return _collection
+        .where("companyId", isEqualTo: companyId)
+        .where("createdAt", isGreaterThanOrEqualTo: date)
+        .orderBy("createdAt", descending: true)
+        .snapshots();
+  }
+
 }

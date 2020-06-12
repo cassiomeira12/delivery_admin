@@ -2,7 +2,7 @@ import '../../contracts/address/address_contract.dart';
 import '../../models/address/address.dart';
 import '../../models/address/city.dart';
 import '../../models/address/small_town.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/address/address_presenter.dart';
 import '../../strings.dart';
 import '../../widgets/primary_button.dart';
@@ -232,7 +232,7 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
 
   Address create() {
     Address address = Address()
-      ..userId = SingletonUser.instance.id
+      ..userId = UserSingleton.instance.id
       ..neighborhood = bairro
       ..street = rua
       ..number = numero

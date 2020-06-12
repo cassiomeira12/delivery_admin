@@ -1,4 +1,7 @@
-import '../../models/singleton/singleton_user.dart';
+import 'dart:async';
+
+import 'package:delivery_admin/models/singleton/company_singleton.dart';
+
 import '../../services/firebase/firebase_order_service.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/order/order.dart';
@@ -10,9 +13,20 @@ class OrdersPresenter implements OrderContractPresenter {
 
   OrderContractService service = FirebaseOrderService("orders");
 
+  StreamSubscription _streamSubscription;
+
+  void pause() {
+    if (_streamSubscription != null) _streamSubscription.pause();
+  }
+
+  void resume() {
+    if (_streamSubscription != null) _streamSubscription.resume();
+  }
+
   @override
   dispose() {
     service = null;
+    if (_streamSubscription != null) _streamSubscription.cancel();
   }
 
   @override
@@ -82,13 +96,25 @@ class OrdersPresenter implements OrderContractPresenter {
   }
 
   @override
-  listUserOrders() async {
-    return await service.findBy("userId", SingletonUser.instance.id).then((value) {
+  listAllOrders() async {
+    return await service.findBy("companyId", CompanySingleton.instance.id).then((value) {
       if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
       if (_view != null) _view.onFailure(error.toString());
       return null;
+    });
+  }
+
+  @override
+  listTodayOrders() async {
+    var day = DateTime.now();
+    _streamSubscription = service.listTodayOrders(CompanySingleton.instance.id, day).listen((event) {
+      if (_view != null) _view.listSuccess(
+        event.documentChanges.map<Order>((e) {
+          return Order.fromMap(e.document.data);
+        }).toList()
+      );
     });
   }
 

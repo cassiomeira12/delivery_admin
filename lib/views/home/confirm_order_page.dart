@@ -5,7 +5,7 @@ import '../../models/company/type_payment.dart';
 import '../../models/order/order.dart';
 import '../../models/order/order_item.dart';
 import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/order/order_presenter.dart';
 import '../../utils/log_util.dart';
 import '../../views/home/delivery_address_page.dart';

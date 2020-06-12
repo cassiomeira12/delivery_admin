@@ -1,4 +1,12 @@
+import 'package:delivery_admin/contracts/order/order_contract.dart';
+import 'package:delivery_admin/models/order/order.dart';
 import 'package:delivery_admin/models/singleton/company_singleton.dart';
+import 'package:delivery_admin/models/singleton/order_singleton.dart';
+import 'package:delivery_admin/models/singleton/user_singleton.dart';
+import 'package:delivery_admin/presenters/order/order_presenter.dart';
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:delivery_admin/views/home/order_page.dart';
+import 'package:delivery_admin/views/historico/historic_widget.dart';
 
 import '../../contracts/company/company_contract.dart';
 import '../../models/company/company.dart';
@@ -26,24 +34,74 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> implements CompanyContractView {
-  final _formKey = new GlobalKey<FormState>();
+class _HomePageState extends State<HomePage> implements OrderContractView {
+  final _formKey = GlobalKey<FormState>();
 
-  CompanyContractPresenter presenter;
+  CompanyContractPresenter companyPresenter;
+  String companyName = "";
 
-  List<Company> list;
-
+  OrdersPresenter orderPresenter;
+  List<Order> ordersList = List();
+  
   @override
   void initState() {
     super.initState();
-    presenter = CompanyPresenter(this);
-    presenter.list();
+    companyPresenter = CompanyPresenter(null);
+    orderPresenter = OrdersPresenter(this);
+    if (CompanySingleton.instance.id == null) {
+      getCompany();
+    } else {
+      companyName = CompanySingleton.instance.name;
+      orderPresenter.listTodayOrders();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    presenter.dispose();
+    companyPresenter.dispose();
+    orderPresenter.dispose();
+  }
+
+  void getCompany() async {
+    CompanySingleton.instance.id = UserSingleton.instance.companyId;
+    var result = await companyPresenter.read(CompanySingleton.instance);
+    CompanySingleton.instance.update(result);
+    setState(() {
+      companyName = result.name;
+    });
+    orderPresenter.listTodayOrders();
+  }
+
+  @override
+  listSuccess(List<Order> list) {
+    print("update list");
+//    print("antes");
+//    ordersList.forEach((element) {
+//      print(element.companyName);
+//    });
+    var temp = ordersList;
+    list.forEach((element) {
+      temp.removeWhere((item) => item.id == element.id);
+    });
+//    print("depois");
+//    temp.forEach((element) {
+//      print(element.companyName);
+//    });
+    temp.insertAll(0, list);
+    setState(() {
+      ordersList = temp;
+    });
+  }
+
+  @override
+  onFailure(String error)  {
+    print(error);
+  }
+
+  @override
+  onSuccess(Order result) {
+
   }
 
   @override
@@ -51,7 +109,7 @@ class _HomePageState extends State<HomePage> implements CompanyContractView {
     return Scaffold(
       //key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(TAB1, style: TextStyle(color: Colors.white),),
+        title: Text(companyName, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: nestedScrollView(),
@@ -121,56 +179,20 @@ class _HomePageState extends State<HomePage> implements CompanyContractView {
     );
   }
 
-  @override
-  onFailure(String error) {
-    print(error);
-  }
-
-  @override
-  onSuccess(Company result) {
-
-  }
-
-  @override
-  listSuccess(List<Company> list) {
-    setState(() {
-      this.list = [];
-      this.list.addAll(list);
-    });
-
-
-//    TypePayment p = TypePayment();
-//    p.name = "Dinheiro";
-//    p.type = Type.MONEY;
-//
-//    list[0].typePayments.add(p);
-//    for (int i=0; i<7; i++) {
-//      OpeningHour h = OpeningHour();
-//      h.weekDay = i;
-//      h.openHour = 18;
-//      h.openMinute = 0;
-//      h.closeHour = 0;
-//      h.closeMinute = 0;
-//      list[0].openHours.add(h);
-//    }
-
-    //presenter.update(list[0]);
-  }
-
   Widget body() {
     final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       onRefresh: () {
-        return presenter.list();
+        return companyPresenter.list();
       },
       child: Center(
-        child: list == null ?
+        child: ordersList == null ?
           LoadingShimmerList()
             :
-          list.isEmpty ?
+          ordersList.isEmpty ?
             EmptyListWidget(
-              message: "Nenhuma empresa foi encontrada",
+              message: "Nenhum pedido foi encontrado",
               //assetsImage: "assets/notification.png",
             )
               :
@@ -180,16 +202,10 @@ class _HomePageState extends State<HomePage> implements CompanyContractView {
   }
 
   Widget listView() {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverList(
-          delegate: SliverChildListDelegate(
-              list.map<Widget>((item) {
-                return listItem(item);
-              }).toList()
-          ),
-        ),
-      ],
+    return ListView(
+      children: ordersList.map<Widget>((item) {
+        return listItem(item);
+      }).toList(),
     );
   }
 
@@ -199,11 +215,14 @@ class _HomePageState extends State<HomePage> implements CompanyContractView {
       child: Slidable(
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
-        child: CompanyWidget(
-          item: item,
-          onPressed: (value) {
-            CompanySingleton.instance.update(item);
-            //PageRouter.push(context, CompanyPage(company: item, orderCallback: widget.orderCallback,));
+        child: GestureDetector(
+          child: HistoricWidget(
+            item: item,
+          ),
+          onTap: () async {
+            orderPresenter.pause();
+            await PageRouter.push(context, OrderPage(item: item,));
+            orderPresenter.resume();
           },
         ),
       ),

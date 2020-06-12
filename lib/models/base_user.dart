@@ -29,7 +29,7 @@ class BaseUser extends BaseModel<BaseUser> {
     phoneNumber = map["phoneNumber"] == null ? null : PhoneNumber.fromMap(map["phoneNumber"]);
   }
 
-  update(BaseUser user) {
+  update(dynamic user) {
     id = user.id;
     notificationToken = user.notificationToken;
     avatarURL = user.avatarURL;

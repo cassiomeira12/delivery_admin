@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../services/notifications/local_notifications.dart';
 import '../../utils/preferences_util.dart';
 import 'package:dio/dio.dart';
@@ -92,7 +92,7 @@ class FirebaseNotifications {
       print(title);
       print(body);
 
-      var user = SingletonUser.instance;
+      var user = UserSingleton.instance;
       if (user != null && user.notificationToken != null && user.notificationToken.active) {
         showSilentNotification(notifications, title: title, body: body);
         //showOngoingNotification(notifications, title: title, body: body);

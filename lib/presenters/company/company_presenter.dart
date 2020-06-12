@@ -17,10 +17,10 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<Company> create(Company item) async {
     return await service.create(item).then((value) {
-      _view.onSuccess(value);
+      if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }
@@ -28,10 +28,10 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<Company> read(Company item) async {
     return await service.read(item).then((value) {
-      _view.onSuccess(value);
+      if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }
@@ -39,10 +39,10 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<Company> update(Company item) async {
     return await service.update(item).then((value) {
-      _view.onSuccess(value);
+      if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }
@@ -50,10 +50,10 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<Company> delete(Company item) async {
     return await service.create(item).then((value) {
-      _view.onSuccess(value);
+      if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }
@@ -61,10 +61,10 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<List<Company>> findBy(String field, value) async {
     return await service.findBy(field, value).then((value) {
-      _view.listSuccess(value);
+      if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }
@@ -72,11 +72,11 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   Future<List<Company>> list() async {
     return await service.list().then((value) {
-      _view.listSuccess(value);
+      if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
       print(error);
-      _view.onFailure(error);
+      if (_view != null) _view.onFailure(error);
       return null;
     });
   }

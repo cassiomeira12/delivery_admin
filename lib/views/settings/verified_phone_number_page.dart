@@ -2,7 +2,7 @@ import '../../contracts/user/user_contract.dart';
 import '../../contracts/user/verified_sms_contract.dart';
 import '../../models/base_user.dart';
 import '../../models/phone_number.dart';
-import '../../models/singleton/singleton_user.dart';
+import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../presenters/user/verified_sms_presenter.dart';
 import '../../contracts/crud.dart';
@@ -71,7 +71,7 @@ class _VerifiedPhoneNumberPageState extends State<VerifiedPhoneNumberPage> imple
 
   @override
   onSuccess(BaseUser user) async {
-    SingletonUser.instance.update(user);
+    UserSingleton.instance.update(user);
     _scaffoldKey.currentState.showSnackBar(SnackBar(
       content: Text(TELEFONE_ATUALIZADO),
       backgroundColor: Colors.green,
@@ -87,8 +87,8 @@ class _VerifiedPhoneNumberPageState extends State<VerifiedPhoneNumberPage> imple
       waitingSMS = false;
     });
     widget.phoneNumber.verified = true;
-    SingletonUser.instance.phoneNumber = widget.phoneNumber;
-    crud.update(SingletonUser.instance);
+    UserSingleton.instance.phoneNumber = widget.phoneNumber;
+    crud.update(UserSingleton.instance);
   }
 
   @override
