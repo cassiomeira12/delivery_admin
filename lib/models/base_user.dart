@@ -1,3 +1,6 @@
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:flutter/cupertino.dart';
+
 import '../models/status.dart';
 import 'base_model.dart';
 import 'phone_number.dart';
@@ -72,14 +75,14 @@ class NotificationToken {
   NotificationToken.fromMap(Map<dynamic, dynamic> map) {
     token = map["token"];
     active = map["active"] as bool;
-    //topics = List.from(map["topics"]);
+    topics = map["topics"] == null ? List() : List.from(map["topics"]);
   }
 
   toMap() {
     var map = new Map<String, dynamic>();
     map["token"] = token;
     map["active"] = active;
-    //map["topics"] = topics.toString();
+    map["topics"] = topics == null ? List() : topics;
     return map;
   }
 }

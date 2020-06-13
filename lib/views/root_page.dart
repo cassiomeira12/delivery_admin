@@ -1,8 +1,9 @@
-import 'package:delivery_admin/models/base_user.dart';
-import 'package:delivery_admin/models/singleton/user_singleton.dart';
+import 'package:delivery_admin/services/notifications/firebase_push_notification.dart';
+
+import '../models/base_user.dart';
+import '../models/singleton/user_singleton.dart';
 import '../contracts/company/admin_contract.dart';
 import '../models/company/admin.dart';
-import '../models/singleton/user_singleton.dart';
 import '../models/version_app.dart';
 import '../presenters/company/admin_presenter.dart';
 import '../presenters/version_app_presenter.dart';
@@ -274,12 +275,21 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
   }
 
   void updateNotificationToken() async {
+    var pushNotifications = FirebaseNotifications();
+    await pushNotifications.setUpFirebase();
     String notificationToken = await PreferencesUtil.getNotificationToken();
     NotificationToken token = UserSingleton.instance.notificationToken;
-    if (token == null || (token.token != null && token.token != notificationToken)) {
-      UserSingleton.instance.notificationToken = NotificationToken(notificationToken);
+    if (token == null || (token.token == null || token.token != notificationToken)) {
+      if (token != null) {
+        token.token = notificationToken;
+      } else {
+        token = NotificationToken(notificationToken);
+        token.topics = List();
+      }
+      UserSingleton.instance.notificationToken = token;
       presenter.update(UserSingleton.instance);
     }
+    pushNotifications.subscribeDefaultTopics();
   }
 
 }
