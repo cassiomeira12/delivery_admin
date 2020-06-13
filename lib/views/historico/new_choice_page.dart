@@ -208,6 +208,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
                   child: AreaInputField(
                     labelText: "Descrição",
                     maxLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
                     controller: descriptionController,
                     validator: (value) => null,
                   ),

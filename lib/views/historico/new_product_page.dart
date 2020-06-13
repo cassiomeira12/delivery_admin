@@ -7,6 +7,8 @@ import 'package:delivery_admin/views/home/choice_widget.dart';
 import 'package:delivery_admin/widgets/rounded_shape.dart';
 import 'package:delivery_admin/widgets/secondary_button.dart';
 import 'package:delivery_admin/widgets/text_input_field.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 
 import '../../models/order/order_item.dart';
 import '../../models/singleton/order_singleton.dart';
@@ -44,6 +46,8 @@ class _NewProductPageState extends State<NewProductPage> {
 
   TextEditingController descriptionController;
   String name;
+  var costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
+  var discountController = MoneyMaskedTextController(leftSymbol: 'R\$ ', initialValue: 0);
   double cost, discount;
   PreparationTime preparationTime;
   List<String> imagesList = List();
@@ -72,9 +76,19 @@ class _NewProductPageState extends State<NewProductPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
           child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
         ),
-        child: SingleChildScrollView(
-          child: body(),
-        ),
+        child: keyboardDismisser(),
+      ),
+    );
+  }
+
+  Widget keyboardDismisser() {
+    return KeyboardDismisser(
+      gestures: [
+        GestureType.onTap,
+        GestureType.onVerticalDragDown
+      ],
+      child: SingleChildScrollView(
+        child: body(),
       ),
     );
   }
@@ -129,6 +143,7 @@ class _NewProductPageState extends State<NewProductPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Nome",
+                    textCapitalization: TextCapitalization.sentences,
                     onSaved: (value) => name = value.trim(),
                   ),
                 ),
@@ -146,15 +161,16 @@ class _NewProductPageState extends State<NewProductPage> {
                   child: TextInputField(
                     labelText: "Preço R\$",
                     inputType: TextInputType.number,
-                    onSaved: (value) => cost = double.parse(value.trim()),
+                    controller: costController,
+                    onSaved: (value) => cost = costController.numberValue,
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Desconto R\$",
-                    controller: TextEditingController(text: "0"),
-                    onSaved: (value) => discount = double.parse(value.trim()),
+                    controller: discountController,
+                    onSaved: (value) => discount = discountController.numberValue,
                   ),
                 ),
                 Padding(

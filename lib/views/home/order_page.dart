@@ -145,14 +145,16 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
               ],
             ),
             addressDataWidget(order.deliveryAddress),
+            SizedBox(height: 10,),
             order.status.current.name == order.status.values.last.name ?
               Column(
                 children: [
                   avaliationTextWidget(),
                   StarsWidget(stars: 5, size: 40,),
+                  avaliationComenteTextWidget(),
                 ],
               ) : Container(),
-            deliveryCurrentStatus(),
+            order.evaluation == null ? deliveryCurrentStatus() : Container(),
           ],
         ),
       ),
@@ -173,15 +175,24 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                   var now = DateTime.now();
                   int hour = now.hour;
                   int minute = now.minute;
-                  if (order.preparationTime != null) {
-                    if ((minute + order.preparationTime.minute) > 59) {
-                      hour += order.preparationTime.hour + 1;
-                      minute = (minute + order.preparationTime.minute) - 60;
+                  print("antes $hour $minute");
+                  order.items.forEach((element) {
+                    if (element.preparationTime != null) {
+                      print(element.preparationTime.toMap());
+                      if ((minute + element.preparationTime.minute) > 59) {
+                        hour += element.preparationTime.hour + 1;
+                        minute = (minute + element.preparationTime.minute) - 60;
+                      } else {
+                        minute += element.preparationTime.minute;
+                      }
+                      if (hour > 23) {
+                        hour = 0;
+                      } else {
+                        hour += element.preparationTime.hour;
+                      }
                     }
-                    if (hour > 23) {
-                      hour = 0;
-                    }
-                  }
+                  });
+                  print("depois $hour $minute");
                   showTimePicker(
                     context: context,
                     initialTime: TimeOfDay(hour: hour, minute: minute),
@@ -275,7 +286,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 ),
               ),
               Text(
-                "R\$ ${(item.amount * item.cost).toStringAsFixed(2)}",
+                "R\$ ${item.getTotal().toStringAsFixed(2)}",
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.black45,
@@ -507,6 +518,20 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           fontSize: 25,
           color: Colors.black45,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget avaliationComenteTextWidget() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+      child: Text(
+        order.evaluation.comment,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 25,
+          color: Colors.black45,
         ),
       ),
     );

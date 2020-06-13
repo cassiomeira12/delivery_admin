@@ -1,29 +1,12 @@
-import 'package:delivery_admin/models/menu/additional.dart';
-import 'package:delivery_admin/models/menu/choice.dart';
-import 'package:delivery_admin/views/home/choice_widget.dart';
-import 'package:delivery_admin/widgets/secondary_button.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 
-import '../../models/order/order_item.dart';
-import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/user_singleton.dart';
-import '../../widgets/scaffold_snackbar.dart';
+import '../../models/menu/additional.dart';
+import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
-import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import '../../models/menu/item.dart';
-import '../../models/menu/product.dart';
-import '../../strings.dart';
-import '../../views/home/additional_widget.dart';
-import '../../views/image_view_page.dart';
 import '../../widgets/area_input_field.dart';
-import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:progress_state_button/progress_button.dart';
-import '../../widgets/background_card.dart';
 import '../page_router.dart';
 
 class NewAdditionalPage extends StatefulWidget {
@@ -40,6 +23,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
 
   TextEditingController descriptionController;
   String name;
+  var costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
   double cost;
   int maxQuantity;
 
@@ -104,7 +88,8 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   child: TextInputField(
                     labelText: "Preço R\$",
                     inputType: TextInputType.number,
-                    onSaved: (value) => value.isEmpty ? cost = 0 : cost = double.parse(value.trim()),
+                    controller: costController,
+                    onSaved: (value) => cost = costController.numberValue,
                   ),
                 ),
                 Padding(

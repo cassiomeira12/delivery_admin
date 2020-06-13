@@ -1,16 +1,12 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:delivery_admin/models/menu/choice.dart';
-import 'package:delivery_admin/widgets/rounded_shape.dart';
 import 'package:delivery_admin/widgets/text_input_field.dart';
 
 import 'package:flutter/material.dart';
-import 'package:sticky_headers/sticky_headers/widget.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 import '../../models/menu/item.dart';
-import '../../strings.dart';
 import '../../widgets/area_input_field.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../page_router.dart';
 
@@ -95,6 +91,7 @@ class _NewItemPageState extends State<NewItemPage> {
                   child: TextInputField(
                     labelText: "Preço R\$",
                     inputType: TextInputType.number,
+                    controller: MoneyMaskedTextController(leftSymbol: 'R\$ '),
                     onSaved: (value) => value.isEmpty ? cost = null : cost = double.parse(value.trim()),
                     validator: (value) => null,
                   ),

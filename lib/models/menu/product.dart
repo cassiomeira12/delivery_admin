@@ -1,8 +1,6 @@
 import '../../models/menu/additional.dart';
 import '../../models/menu/choice.dart';
-
 import '../base_model.dart';
-import 'item.dart';
 
 class Product extends BaseModel<Product> {
   String name;
@@ -26,10 +24,6 @@ class Product extends BaseModel<Product> {
     images = map["images"] == null ? List() : List.from(map["images"]);
     choices = map["choices"] == null ? List() : List.from(map["choices"]).map<Choice>((e) => Choice.fromMap(e)).toList();
     additional = map["additional"] == null ? List() : List.from(map["additional"]).map<Additional>((e) => Additional.fromMap(e)).toList();
-    //images
-    //sizes
-    //ingredites
-    //cost = 10;
   }
 
   @override
@@ -44,9 +38,6 @@ class Product extends BaseModel<Product> {
     map["images"] = images == null ? List() : images;
     map["choices"] = choices == null ? List() : choices.map<Map>((e) => e.toMap()).toList();
     map["additional"] = additional == null ? List() : additional.map((e) => e.toMap()).toList();
-    //images
-    //sizes
-    //ingredientes
     return map;
   }
 
@@ -71,8 +62,8 @@ class PreparationTime extends BaseModel<PreparationTime> {
   PreparationTime();
 
   PreparationTime.fromMap(Map<dynamic, dynamic>  map) {
-    hour = map["hour"];
-    minute = map["minute"];
+    hour = map["hour"] as int;
+    minute = map["minute"] as int;
   }
 
   @override
