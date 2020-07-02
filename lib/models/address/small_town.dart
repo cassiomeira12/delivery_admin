@@ -1,45 +1,41 @@
+import 'package:latlong/latlong.dart';
 import '../base_model.dart';
 import 'city.dart';
 
 class SmallTown extends BaseModel<SmallTown> {
   String name;
-  String alias;
   City city;
-  Map location;
+  LatLng location;
 
-  SmallTown();
+  SmallTown() : super('SmallTown');
 
-  SmallTown.fromMap(Map<dynamic, dynamic>  map) {
-    id = map["id"];
+  SmallTown.fromMap(Map<dynamic, dynamic>  map) : super('SmallTown') {
+    objectId = map["objectId"];
+    id = objectId;
     name = map["name"];
-    alias = map["alias"];
-    city = City.fromMap(map["city"]);
-    location = Map.from(map["location"]);
+    city = map["city"] == null ? null : City.fromMap(map["city"]);
   }
 
   @override
   Map<String, dynamic> toMap() {
     var map = Map<String, dynamic>();
-    map["id"] = id;
+    map["objectId"] = id;
     map["name"] = name;
-    map["alias"] = alias;
-    map["city"] = city.toMap();
-    map["location"] = location;
+    map["city"] = city == null ? null : city.toMap();
     return map;
   }
 
-  @override
-  update(SmallTown item) {
-    id = item.id;
-    name = item.name;
-    alias = item.alias;
-    city = item.city;
-    location = item.location;
-  }
+//  @override
+//  update(SmallTown item) {
+//    id = item.id;
+//    name = item.name;
+//    city = item.city;
+//    location = item.location;
+//  }
 
   @override
   String toString() {
-    return alias == null ? name : "$name - $alias";
+    return name;
   }
 
 }

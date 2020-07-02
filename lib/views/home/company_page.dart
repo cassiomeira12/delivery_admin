@@ -1,4 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import '../../models/singleton/singletons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,7 +13,6 @@ import '../../models/menu/choice.dart';
 import '../../models/menu/item.dart';
 import '../../models/menu/product.dart';
 import '../../models/menu/menu.dart';
-import '../../models/singleton/order_singleton.dart';
 import '../../presenters/menu/menu_presenter.dart';
 import '../../views/home/order_slidding_widget.dart';
 import '../../views/home/product_widget.dart';
@@ -38,7 +38,7 @@ class CompanyPage extends StatefulWidget {
 }
 
 class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
-  final _formKey = new GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   MenuContractPresenter presenter;
 
@@ -66,10 +66,10 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
     bannerURL = widget.company.bannerURL;
     sliddingPage = OrderSliddingWidget(orderCallback: widget.orderCallback, updateOrders: updateOrders,);
     presenter = MenuPresenter(this);
-    menu = Menu()..id = widget.company.idMenu;
+    //menu = Menu()..id = widget.company.idMenu;
     //menu = Menu()..id = "1";
-    presenter.read(menu);
-    updateOrders();
+    //presenter.read(menu);
+    //updateOrders();
   }
 
   void updateOrders() async {
@@ -85,18 +85,16 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
 //      print(element.data);
 //    });
     setState(() {
-      orderSelected = OrderSingleton.instance.id != null;
+      orderSelected = Singletons.order().id != null;
     });
     if (orderSelected) {
-      OrderSingleton.instance.companyId = widget.company.id;
-      OrderSingleton.instance.companyName = widget.company.name;
-
-      OrderSingleton.instance.company = widget.company;
-
+      Singletons.order().company = widget.company;
+      Singletons.order().companyName = widget.company.name;
+      Singletons.order().company = widget.company;
       sliddingPage.listItens();
     }
     orderItens = 0;
-    OrderSingleton.instance.items.forEach((element) {
+    Singletons.order().items.forEach((element) {
       orderItens += element.amount;
     });
   }
@@ -124,7 +122,7 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
     if (orderSelected && _pc.isPanelOpen) {
       _pc.close();
     } else {
-      if (OrderSingleton.instance.id != null) {
+      if (Singletons.order().id != null) {
         showDialog();
       } else {
         PageRouter.pop(context);
@@ -335,7 +333,7 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
     print(error);
     setState(() {
       list = [];
-      menu.id = widget.company.idMenu;
+      //menu.id = widget.company.idMenu;
     });
   }
 
@@ -451,7 +449,7 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
       //color: Colors.red,
       alignment: Alignment.center,
       child: Text(
-        widget.company.getOpenTime(DateTime.now().weekday),
+        widget.company.getOpenTime(DateTime.now()),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -553,7 +551,7 @@ class _CompanyPageState extends State<CompanyPage> implements MenuContractView {
     );
     switch(result) {
       case OkCancelResult.ok:
-        OrderSingleton.instance.clear();
+        Singletons.order().clear();
         PageRouter.pop(context);
         break;
       case OkCancelResult.cancel:

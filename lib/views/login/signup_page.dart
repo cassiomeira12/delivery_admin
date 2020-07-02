@@ -1,4 +1,12 @@
+import '../../models/singleton/singletons.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import '../../contracts/login/login_contract.dart';
+import '../../presenters/login/login_presenter.dart';
+import '../../views/settings/phone_number_page.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import '../../widgets/secondary_button.dart';
 import '../../widgets/text_input_field.dart';
 import '../../models/base_user.dart';
 import '../../strings.dart';
@@ -18,27 +26,56 @@ class SignUpPage extends StatefulWidget {
   State<StatefulWidget> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage>{
+class _SignUpPageState extends State<SignUpPage> implements LoginContractView{
   final _formKey = new GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  LoginContractPresenter presenter;
+  bool _loading = false;
 
   String _name;
   String _email;
   String _password;
 
   @override
+  void initState() {
+    super.initState();
+    presenter = LoginPresenter(this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    presenter.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar( iconTheme: IconThemeData(color: Colors.white), elevation: 0,),
-      body: SingleChildScrollView(
-        child: Stack(
-          children: <Widget>[
-            BackgroundCard(),
-            SingleChildScrollView(
-              child: ShapeRound(
-                  _showForm()
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+        ),
+        child: SingleChildScrollView(
+          child: Stack(
+            children: <Widget>[
+              BackgroundCard(),
+              Column(
+                children: [
+                  ShapeRound(
+                      _showForm()
+                  ),
+                  //textOU(),
+                  //googleButton(),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -89,7 +126,7 @@ class _SignUpPageState extends State<SignUpPage>{
       padding: EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
       child: TextInputField(
         labelText: EMAIL,
-        inputType: TextInputType.emailAddress,
+        keyboardType: TextInputType.emailAddress,
         onSaved: (value) => _email = value.trim(),
       ),
     );
@@ -155,6 +192,52 @@ class _SignUpPageState extends State<SignUpPage>{
     );
   }
 
+  Widget textOU() {
+    return Text(
+      "--- $OU ---",
+      style: Theme.of(context).textTheme.body2,
+    );
+  }
+
+  Widget googleButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(60, 12, 60, 20),
+      child: SecondaryButton(
+        child: Row(
+          children: <Widget>[
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Image.asset(
+                  "assets/google_logo.png",
+                  width: 25,
+                ),
+              ),
+            ),
+            Flexible(
+              flex: 5,
+              child: Container(
+                alignment: Alignment.center,
+                child: AutoSizeText(
+                  "Usar conta do Google",
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.body2,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Container(),
+            ),
+          ],
+        ),
+        onPressed: () {
+          presenter.signInWithGoogle();
+        },
+      ),
+    );
+  }
+
   bool validateData() {
     final form = _formKey.currentState;
     if (form.validate()) {
@@ -167,9 +250,9 @@ class _SignUpPageState extends State<SignUpPage>{
   BaseUser createBaseUser() {
     BaseUser user = BaseUser();
     user.name = _name;
+    user.username = _email;
     user.email = _email;
     user.password = _password;
-    user.createAt = DateTime.now();
     return user;
   }
 
@@ -180,5 +263,35 @@ class _SignUpPageState extends State<SignUpPage>{
       PageRouter.push(context, CreateAccountPage(loginCallback: widget.loginCallback, user: user,));
     }
   }
+
+  @override
+  hideProgress() {
+    setState(() => _loading = false);
+  }
+
+  @override
+  showProgress() {
+    setState(() => _loading = true);
+  }
+
+  @override
+  onFailure(String error) {
+    hideProgress();
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+  }
+
+  @override
+  onSuccess(BaseUser result) async {
+    Singletons.user().updateData(result);
+    if (result.phoneNumber == null) {
+      var phoneNumber = await PageRouter.push(context, PhoneNumberPage(authenticate: false,));
+      Singletons.user().phoneNumber = phoneNumber;
+    }
+    widget.loginCallback();
+    PageRouter.pop(context);
+  }
+
+  @override
+  listSuccess(List<BaseUser> list) { }
 
 }

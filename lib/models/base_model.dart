@@ -1,5 +1,11 @@
-abstract class BaseModel<T> {
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+
+abstract class BaseModel<T> extends ParseObject {
   String id;
-  update(T item);
+  DateTime createdAt;
+  DateTime updatedAt;
+
+  BaseModel(String className) : super(className);
+  //update(BaseModel<T> item);
   Map<String, dynamic> toMap();
 }

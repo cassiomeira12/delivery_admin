@@ -16,7 +16,7 @@ class NotificationWidget extends StatefulWidget {
 }
 
 class _NotificationWidgetState extends State<NotificationWidget> {
-  
+
   Color _colorButton, _colorTextButton;
 
   @override
@@ -83,7 +83,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
       child: Text(
-        "${DateUtil.formatDateMouthHour(widget.notification.createAt)}",
+        "${DateUtil.formatDateMouthHour(widget.notification.createdAt)}",
         style: Theme.of(context).textTheme.display2,
       ),
     );

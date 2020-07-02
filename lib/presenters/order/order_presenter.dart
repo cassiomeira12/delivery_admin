@@ -1,32 +1,34 @@
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'dart:async';
-
-import 'package:delivery_admin/models/singleton/company_singleton.dart';
-
-import '../../services/firebase/firebase_order_service.dart';
+import '../../models/singleton/singletons.dart';
+import '../../services/parse/parse_order_service.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/order/order.dart';
+import '../../strings.dart';
 
 class OrdersPresenter implements OrderContractPresenter {
   final OrderContractView _view;
 
   OrdersPresenter(this._view);
 
-  OrderContractService service = FirebaseOrderService("orders");
+  OrderContractService service = ParseOrderService();
 
-  StreamSubscription _streamSubscription;
+  LiveQuery liveQuery;
+  Subscription subscription;
 
   void pause() {
-    if (_streamSubscription != null) _streamSubscription.pause();
+    if (liveQuery != null) liveQuery.client.disconnect();
   }
 
   void resume() {
-    if (_streamSubscription != null) _streamSubscription.resume();
+    if (liveQuery != null) liveQuery.client.reconnect();
   }
 
   @override
   dispose() {
     service = null;
-    if (_streamSubscription != null) _streamSubscription.cancel();
+    if (liveQuery != null) liveQuery.client.unSubscribe(subscription);
   }
 
   @override
@@ -35,7 +37,7 @@ class OrdersPresenter implements OrderContractPresenter {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
@@ -46,7 +48,7 @@ class OrdersPresenter implements OrderContractPresenter {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
@@ -57,18 +59,18 @@ class OrdersPresenter implements OrderContractPresenter {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
 
   @override
   Future<Order> delete(Order item) async {
-    return await service.create(item).then((value) {
+    return await service.delete(item).then((value) {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
@@ -79,7 +81,7 @@ class OrdersPresenter implements OrderContractPresenter {
       if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
@@ -90,32 +92,45 @@ class OrdersPresenter implements OrderContractPresenter {
       if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
+      if (_view != null) _view.onFailure(error.message);
       return null;
     });
   }
 
   @override
-  listAllOrders() async {
-    return await service.findBy("companyId", CompanySingleton.instance.id).then((value) {
-      if (_view != null) _view.listSuccess(value);
-      return value;
+  Future<List<Order>> listTodayOrders() async {
+    //liveQuery = LiveQuery();
+
+    QueryBuilder query = QueryBuilder(ParseObject("Order"))
+      ..whereEqualTo("company", Singletons.company().toPointer());
+
+//    subscription = await liveQuery.client.subscribe(query);
+//    subscription.on(LiveQueryEvent.update, (value) {
+//      if (_view != null) _view.listSuccess([Order.fromMap(value.toJson())]);
+//    });
+
+    await query.query().then((value) async {
+      if (value.success) {
+        if (value.result == null) {
+          _view.listSuccess([]);
+        } else {
+          List<ParseObject> listObj = value.result;
+          var list = listObj.map<Order>((obj) {
+            return Order.fromMap(obj.toJson());
+          }).toList();
+          _view.listSuccess(list);
+        }
+      } else {
+        throw value.error;
+      }
     }).catchError((error) {
-      if (_view != null) _view.onFailure(error.toString());
-      return null;
+      switch (error.code) {
+        case -1:
+          throw Exception(ERROR_NETWORK);
+          break;
+        default:
+          throw Exception(error.message);
+      }
     });
   }
-
-  @override
-  listTodayOrders() async {
-    var day = DateTime.now();
-    _streamSubscription = service.listTodayOrders(CompanySingleton.instance.id, day).listen((event) {
-      if (_view != null) _view.listSuccess(
-        event.documentChanges.map<Order>((e) {
-          return Order.fromMap(e.document.data);
-        }).toList()
-      );
-    });
-  }
-
 }

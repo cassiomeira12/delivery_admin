@@ -1,33 +1,23 @@
 import '../../contracts/base_result_contract.dart';
-import '../../models/company/admin.dart';
+import '../../models/base_user.dart';
 import '../base_progress_contract.dart';
 
-abstract class LoginContractView implements BaseProgressContract, BaseResultContract<Admin> {
+abstract class LoginContractView implements BaseProgressContract, BaseResultContract<BaseUser> {
 
 }
 
 abstract class LoginContractPresenter {
-  LoginContractView view;
-  LoginContractPresenter(this.view);
-
-  dispose() {
-    this.view = null;
-  }
-
+  dispose();
   signIn(String email, String password);
   signInWithGoogle();
+  signAnonymous();
   onFailure(String error);
-  onSuccess(Admin user);
+  onSuccess(BaseUser user);
 }
 
 abstract class LoginContractService {
-  LoginContractPresenter presenter;
-  LoginContractService(this.presenter);
-
-  dispose() {
-    this.presenter = null;
-  }
-
+  dispose();
   signIn(String email, String password);
+  signAnonymous();
   signInWithGoogle();
 }

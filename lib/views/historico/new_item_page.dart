@@ -90,7 +90,7 @@ class _NewItemPageState extends State<NewItemPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Preço R\$",
-                    inputType: TextInputType.number,
+                    keyboardType: TextInputType.number,
                     controller: MoneyMaskedTextController(leftSymbol: 'R\$ '),
                     onSaved: (value) => value.isEmpty ? cost = null : cost = double.parse(value.trim()),
                     validator: (value) => null,

@@ -5,47 +5,45 @@ class UserNotification extends BaseModel<UserNotification> {
   String message;
   String observacao;
   bool read = false;
-  DateTime createAt = DateTime.now();
   String avatarURL;
-  String type;
+  String paymentType;
 
-  UserNotification();
+  UserNotification() : super('UserNotification');
 
-  UserNotification.fromMap(Map map) {
-    id = map["uId"];
+  UserNotification.fromMap(Map map) : super('UserNotification') {
+    objectId = map["objectId"];
+    id = objectId;
     title = map["title"];
     message = map["message"];
     observacao = map["observacao"];
     read = map["read"] == null ? true : map["read"] as bool;
-    createAt = map["createAt"] == null ? null : DateTime.parse(map["createAt"]);
+    createdAt = map["createdAt"] == null ? null : DateTime.parse(map["createdAt"]);
     avatarURL = map["avatarURL"];
-    type = map["type"];
+    paymentType = map["type"];
   }
 
-  @override
-  update(UserNotification item) {
+  updateData(UserNotification item) {
     id = item.id;
     title = item.title;
     message = item.message;
     observacao = item.observacao;
     read = item.read;
-    createAt = item.createAt;
+    createdAt = item.createdAt;
     avatarURL = item.avatarURL;
-    type = item.type;
+    paymentType = item.paymentType;
   }
 
   @override
   toMap() {
     var map = new Map<String, dynamic>();
-    map["uId"] = id;
+    map["objectId"] = id;
     map["title"] = title;
     map["message"] = message;
     map["observacao"] = observacao;
     map["read"] = read;
-    map["createAt"] = createAt == null ? null : createAt.toString();
-    map["date"] = createAt == null ? null : createAt.millisecondsSinceEpoch;
+    map["createdAt"] = createdAt == null ? null : createdAt.toString();
     map["avatarURL"] = avatarURL;
-    map["type"] = type;
+    map["type"] = paymentType;
     return map;
   }
 

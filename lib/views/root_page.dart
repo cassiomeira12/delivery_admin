@@ -1,11 +1,10 @@
-import 'package:delivery_admin/services/notifications/firebase_push_notification.dart';
-
+import '../models/singleton/singletons.dart';
+import '../services/notifications/parse_push_notification.dart';
+import '../services/notifications/firebase_push_notification.dart';
+import '../contracts/user/user_contract.dart';
 import '../models/base_user.dart';
-import '../models/singleton/user_singleton.dart';
-import '../contracts/company/admin_contract.dart';
-import '../models/company/admin.dart';
 import '../models/version_app.dart';
-import '../presenters/company/admin_presenter.dart';
+import '../presenters/user/user_presenter.dart';
 import '../presenters/version_app_presenter.dart';
 import '../strings.dart';
 import '../themes/my_themes.dart';
@@ -18,7 +17,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'intro_page.dart';
 import 'login/login_page.dart';
 import 'login/verified_email_page.dart';
@@ -34,15 +32,20 @@ enum AuthStatus {
 }
 
 class RootPage extends StatefulWidget {
+  _RootPageState _root;
 
   @override
-  State<StatefulWidget> createState() => new _RootPageState();
+  State<StatefulWidget> createState() => _root = _RootPageState();
+
+  void init() {
+    _root.currentUser();
+  }
 }
 
-class _RootPageState extends State<RootPage> implements AdminContractView {
+class _RootPageState extends State<RootPage> {
   AuthStatus authStatus = AuthStatus.NOT_DETERMINED;
 
-  AdminContractPresenter presenter;
+  UserContractPresenter presenter;
 
   VersionApp versionApp;
   bool minimumUpdate = true;
@@ -50,9 +53,29 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
   @override
   void initState() {
     super.initState();
-    presenter = AdminPresenter(this);
-    presenter.currentUser();
+    Singletons.init();
+    presenter = UserPresenter(null);
     updateCurrentTheme();
+  }
+
+  void currentUser() async {
+    var result = await presenter.currentUser();
+    if (result == null) {
+      checkIntroDone();
+    } else {
+      Singletons.user().updateData(result);
+      if (result.emailVerified) {
+        setState(() {
+          authStatus = AuthStatus.LOGGED_IN;
+        });
+        checkLastVersionApp();
+        updateNotificationToken();
+      } else {
+        setState(() {
+          authStatus = AuthStatus.EMAIL_NOT_VERIFIED;
+        });
+      }
+    }
   }
 
   void updateCurrentTheme() async {
@@ -70,9 +93,9 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
       case AuthStatus.NOT_LOGGED_IN:
         return LoginPage(loginCallback: loginCallback,);
       case AuthStatus.LOGGED_IN:
-        return TabsPage(logoutCallback: logoutCallback,);
+        return TabsPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
       case AuthStatus.EMAIL_NOT_VERIFIED:
-        return VerifiedEmailPage(logoutCallback: logoutCallback,);
+        return VerifiedEmailPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
       case AuthStatus.UPDATE_APP:
         return updateAppScreen();
       default:
@@ -200,8 +223,9 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
                   child: PrimaryButton(
                     text: UPDATE,
                     onPressed: () async {
-                      if (await canLaunch(versionApp.url)) {
-                        launch(versionApp.url);
+                      bool valid = await canLaunch(versionApp.storeUrl);
+                      if (valid) {
+                        launch(versionApp.storeUrl);
                       }
                     },
                   ),
@@ -222,43 +246,22 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
   }
 
   void loginCallback() {
-    if (UserSingleton.instance.emailVerified) {
+    if (Singletons.user().emailVerified) {
       setState(() {
         authStatus = AuthStatus.LOGGED_IN;
       });
+      updateNotificationToken();
     } else {
       setState(() {
         authStatus = AuthStatus.EMAIL_NOT_VERIFIED;
       });
     }
-    updateNotificationToken();
   }
 
   void logoutCallback() {
     setState(() {
       authStatus = AuthStatus.NOT_LOGGED_IN;
     });
-  }
-
-  @override
-  onFailure(String error) {
-    checkIntroDone();
-  }
-
-  @override
-  onSuccess(Admin user) async {
-    UserSingleton.instance.update(user);
-    if (user.emailVerified) {
-      setState(() {
-        authStatus = AuthStatus.LOGGED_IN;
-      });
-      checkLastVersionApp();
-    } else {
-      setState(() {
-        authStatus = AuthStatus.EMAIL_NOT_VERIFIED;
-      });
-    }
-    updateNotificationToken();
   }
 
   void checkIntroDone() async {
@@ -278,7 +281,7 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
     var pushNotifications = FirebaseNotifications();
     await pushNotifications.setUpFirebase();
     String notificationToken = await PreferencesUtil.getNotificationToken();
-    NotificationToken token = UserSingleton.instance.notificationToken;
+    NotificationToken token = Singletons.user().notificationToken;
     if (token == null || (token.token == null || token.token != notificationToken)) {
       if (token != null) {
         token.token = notificationToken;
@@ -286,10 +289,12 @@ class _RootPageState extends State<RootPage> implements AdminContractView {
         token = NotificationToken(notificationToken);
         token.topics = List();
       }
-      UserSingleton.instance.notificationToken = token;
-      presenter.update(UserSingleton.instance);
+      Singletons.user().notificationToken = token;
+      PreferencesUtil.setUserData(Singletons.user().toMap());
+      presenter.update(Singletons.user());
     }
     pushNotifications.subscribeDefaultTopics();
+    ParsePushNotification();
   }
 
 }

@@ -4,10 +4,11 @@ class Country extends BaseModel<Country> {
   String name;
   String code;
 
-  Country();
+  Country() : super('Country');
 
-  Country.fromMap(Map<dynamic, dynamic>  map) {
-    id = map["id"];
+  Country.fromMap(Map<dynamic, dynamic>  map) : super('Country') {
+    objectId = map["objectId"];
+    id = objectId;
     name = map["name"];
     code = map["code"];
   }
@@ -15,17 +16,17 @@ class Country extends BaseModel<Country> {
   @override
   Map<String, dynamic> toMap() {
     var map = Map<String, dynamic>();
-    map["id"] = id;
+    map["objectId"] = id;
     map["name"] = name;
     map["code"] = code;
     return map;
   }
 
-  @override
-  update(Country item) {
-    id = item.id;
-    name = item.name;
-    code = item.code;
-  }
+//  @override
+//  update(Country item) {
+//    id = item.id;
+//    name = item.name;
+//    code = item.code;
+//  }
 
 }

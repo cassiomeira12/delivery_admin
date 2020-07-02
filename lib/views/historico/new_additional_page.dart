@@ -1,5 +1,4 @@
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-
 import '../../models/menu/additional.dart';
 import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +86,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Preço R\$",
-                    inputType: TextInputType.number,
+                    keyboardType: TextInputType.number,
                     controller: costController,
                     onSaved: (value) => cost = costController.numberValue,
                   ),
@@ -96,7 +95,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Quantidade Máxima",
-                    inputType: TextInputType.number,
+                    keyboardType: TextInputType.number,
                     onSaved: (value) => maxQuantity = int.parse(value.trim()),
                   ),
                 ),

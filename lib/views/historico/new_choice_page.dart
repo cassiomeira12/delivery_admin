@@ -241,7 +241,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Quantidade Mínima",
-                    inputType: TextInputType.number,
+                    keyboardType: TextInputType.number,
                     onSaved: (value) => maxQuantity = int.parse(value.trim()),
                   ),
                 ),
@@ -249,7 +249,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
                     labelText: "Quantidade Máxima",
-                    inputType: TextInputType.number,
+                    keyboardType: TextInputType.number,
                     onSaved: (value) => minQuantity = int.parse(value.trim()),
                   ),
                 ),

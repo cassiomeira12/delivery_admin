@@ -1,32 +1,27 @@
-import 'package:delivery_admin/contracts/order/order_contract.dart';
-import 'package:delivery_admin/models/order/order.dart';
-import 'package:delivery_admin/models/singleton/company_singleton.dart';
-import 'package:delivery_admin/models/singleton/order_singleton.dart';
-import 'package:delivery_admin/models/singleton/user_singleton.dart';
-import 'package:delivery_admin/presenters/order/order_presenter.dart';
-import 'package:delivery_admin/utils/log_util.dart';
-import 'package:delivery_admin/views/home/order_page.dart';
-import 'package:delivery_admin/views/historico/historic_widget.dart';
+import 'package:delivery_admin/models/company/company.dart';
 
+import '../../models/singleton/singletons.dart';
+import '../../contracts/order/order_contract.dart';
+import '../../models/order/order.dart';
+import '../../presenters/order/order_presenter.dart';
+import '../../views/home/order_page.dart';
+import '../../views/historico/historic_widget.dart';
 import '../../contracts/company/company_contract.dart';
-import '../../models/company/company.dart';
 import '../../presenters/company/company_presenter.dart';
-import '../../views/home/company_widget.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import '../../strings.dart';
 import '../../widgets/background_card.dart';
-
 import '../page_router.dart';
-import 'company_page.dart';
 import 'search_page.dart';
 
 class HomePage extends StatefulWidget {
+  final VoidCallback loginCallback;
   final VoidCallback orderCallback;
 
   HomePage({
+    @required this.loginCallback,
     @required this.orderCallback
   });
 
@@ -41,17 +36,17 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   String companyName = "";
 
   OrdersPresenter orderPresenter;
-  List<Order> ordersList = List();
+  List<Order> ordersList;
   
   @override
   void initState() {
     super.initState();
     companyPresenter = CompanyPresenter(null);
     orderPresenter = OrdersPresenter(this);
-    if (CompanySingleton.instance.id == null) {
+    if (Singletons.company().id == null) {
       getCompany();
     } else {
-      companyName = CompanySingleton.instance.name;
+      companyName = Singletons.company().name;
       orderPresenter.listTodayOrders();
     }
   }
@@ -64,13 +59,14 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   }
 
   void getCompany() async {
-    CompanySingleton.instance.id = UserSingleton.instance.companyId;
-    var result = await companyPresenter.read(CompanySingleton.instance);
-    CompanySingleton.instance.update(result);
-    setState(() {
-      companyName = result.name;
-    });
-    orderPresenter.listTodayOrders();
+    Company result = await companyPresenter.getFromAdmin(Singletons.user());
+    if (result != null) {
+      Singletons.company().updateData(result);
+      setState(() {
+        companyName = result.name;
+      });
+      orderPresenter.listTodayOrders();
+    }
   }
 
   @override
@@ -80,6 +76,11 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 //    ordersList.forEach((element) {
 //      print(element.companyName);
 //    });
+
+    if (ordersList == null) {
+      ordersList = List();
+    }
+
     var temp = ordersList;
     list.forEach((element) {
       temp.removeWhere((item) => item.id == element.id);
@@ -184,7 +185,8 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       onRefresh: () {
-        return companyPresenter.list();
+        setState(() => ordersList = null);
+        return orderPresenter.listTodayOrders();
       },
       child: Center(
         child: ordersList == null ?

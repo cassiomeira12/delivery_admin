@@ -1,27 +1,35 @@
+import '../../views/login/login_page.dart';
+import '../../models/singleton/singletons.dart';
+import '../../models/company/company.dart';
 import '../../models/order/order_item.dart';
-import '../../models/singleton/order_singleton.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../models/menu/item.dart';
 import '../../models/menu/product.dart';
+import '../../strings.dart';
 import '../../views/home/additional_widget.dart';
 import '../../views/image_view_page.dart';
+import '../../widgets/area_input_field.dart';
+import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:progress_state_button/progress_button.dart';
 import '../../widgets/background_card.dart';
 import '../page_router.dart';
 import 'choice_widget.dart';
 
 class ProductPage extends StatefulWidget {
+  final VoidCallback loginCallback;
   final dynamic item;
+  final Company company;
 
   const ProductPage({
+    this.loginCallback,
     this.item,
+    this.company,
   });
 
   @override
@@ -51,8 +59,6 @@ class _ProductPageState extends State<ProductPage> {
   Item escolhido;
 
   List<ChoiceWidget> selectedChoices = List();
-
-  ButtonState buttonState = ButtonState.idle;
 
   @override
   void initState() {
@@ -183,17 +189,75 @@ class _ProductPageState extends State<ProductPage> {
 
           titleTextWidget(product.name),
 
-          costWidget(product.cost),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: CountWidget(
+                  minValue: 1,
+                  maxValue: 5,
+                  changedCount: (value) {
+                    setState(() {
+                      count = value;
+                    });
+                  },
+                ),
+              ),
+              costWidget(product.cost),
+            ],
+          ),
 
-          product.description == null ? Container() : descriptionTextWidget(product.description),
+          product.description == null ? Container() :
+          descriptionTextWidget(product.description),
 
-          tempoPreparo(product.preparationTime),
+          product.preparationTime == null ? Container() : tempoPreparo(product.preparationTime),
 
           SizedBox(height: 20,),
 
           choicesWidget(),
 
           additionalWidget(),
+
+          SizedBox(height: 30,),
+
+          GestureDetector(
+            child: AbsorbPointer(
+              absorbing: true,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: AreaInputField(
+                  labelText: "Observação",
+                  maxLines: 4,
+                  controller: _observacaoController,
+                ),
+              ),
+            ),
+            onTap: () async {
+              var result = await showTextInputDialog(
+                context: context,
+                title: "Observação",
+                message: "Digite aqui sua observação",
+                cancelLabel: CANCELAR,
+                okLabel: SALVAR,
+                textFields: [
+                  DialogTextField(
+                    hintText: "Observação",
+                    initialText: _observacaoController.text,
+                  ),
+                ],
+              );
+              if (result == null) return;
+              var temp = result[0];
+              setState(() {
+                _observacaoController.text = temp;
+              });
+            },
+          ),
+
+          SizedBox(height: 20,),
+
+          adicionarButton(),
 
           SizedBox(height: 30,),
         ],
@@ -248,41 +312,24 @@ class _ProductPageState extends State<ProductPage> {
   Widget tempoPreparo(PreparationTime preparationTime) {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 0),
-      child: GestureDetector(
-        child: Row(
-          children: [
-            Text(
-              "Tempo de preparo: ",
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black54,
-              ),
+      child: Row(
+        children: [
+          Text(
+            "Tempo de preparo: ",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black54,
             ),
-            Text(
-              preparationTime == null ? "Adicionar" : preparationTime.toString(),
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black45,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          Text(
+            preparationTime.toString(),
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black45,
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
-        onTap: () {
-          showTimePicker(
-            context: context,
-            initialTime: TimeOfDay(hour: 0, minute: 0),
-          ).then((value) {
-            if (value != null) {
-              setState(() {
-                preparationTime = PreparationTime()
-                  ..hour = value.hour
-                  ..minute = value.minute;
-                product.preparationTime = preparationTime;
-              });
-            }
-          });
-        },
+          ),
+        ],
       ),
     );
   }
@@ -312,6 +359,9 @@ class _ProductPageState extends State<ProductPage> {
           });
           setState(() {
             additionalCost = temp;
+          });
+          product.additional.forEach((element) {
+            print(element.toMap());
           });
         },
       ),
@@ -348,27 +398,62 @@ class _ProductPageState extends State<ProductPage> {
             ),
           ],
         ),
-        onPressed: () {
+        onPressed: () async {
+          if (Singletons.user().isAnonymous()) {
+            final result = await showOkCancelAlertDialog(
+              context: context,
+              title: "Criar conta",
+              message: "Você precisa criar uma conta para fazer pedido",
+              okLabel: CRIAR_CONTA,
+              cancelLabel: CANCELAR,
+            );
+            switch(result) {
+              case OkCancelResult.ok:
+                PageRouter.push(context, LoginPage(loginCallback: widget.loginCallback, anonymousLogin: true,));
+                break;
+              case OkCancelResult.cancel:
+                break;
+            }
+            return;
+          }
           saveOrderItem();
         },
       ),
     );
   }
 
+  void showCompanyClosed() async {
+    String message;
+    if (widget.company.isTodayOpen()) {
+      message = "${widget.company.name} abre às ${widget.company.openTime()}";
+    } else {
+      message = "${widget.company.name} não abre hoje.";
+    }
+    await showOkAlertDialog(
+      context: context,
+      title: "Fechado",
+      okLabel: "Ok",
+      message: message,
+    );
+  }
+
   void saveOrderItem() async {
-//    final database = LocalDB.MemoryDatabaseAdapter().database();
-//    //await database.collection("orders").document(product.id).insert(data: product.toMap());
-//    var item = await database.collection("asdf").insert(data: product.toMap(), reach: LocalDB.Reach.local);
-//    print(item.documentId);
-    setState(() {
-      _loading = true;
-    });
+    setState(() => _loading = true);
 
     await Future.delayed(Duration(seconds: 1));
 
+    bool openToday = widget.company.isTodayOpen();
+    var opened = widget.company.getOpenTime(DateTime.now());
+
+    if (!openToday || opened != null) {
+      setState(() => _loading = false);
+      showCompanyClosed();
+      return;
+    }
+
     bool foundError = false;
 
-    if (OrderSingleton.instance.id == null) {
+    if (Singletons.order().id == null) {
       var order = OrderItem();
       order.id = product.id;
 
@@ -376,11 +461,12 @@ class _ProductPageState extends State<ProductPage> {
       order.description = product.description;
       order.cost = product.cost;
       order.discount = product.discount;
-      //order.preparationTime = product.preparationTime;
+      order.preparationTime = product.preparationTime;
       order.amount = count;
       order.note = _observacaoController.text;
 
       product.additional.forEach((element) {
+        print(element.toMap());
         if (element.amount > 0) {
           order.additionalSelected.add(element);
         }
@@ -403,11 +489,11 @@ class _ProductPageState extends State<ProductPage> {
         });
         ScaffoldSnackBar.failure(context, _scaffoldKey, "Selecione todas as opções obrigatórias");
       } else {
-        OrderSingleton.instance.id = product.id;
-        OrderSingleton.instance.userId = UserSingleton.instance.id;
-        OrderSingleton.instance.userName = UserSingleton.instance.name;
-        OrderSingleton.instance.items.add(order);
-        PageRouter.pop(context, OrderSingleton.instance);
+        Singletons.order().id = "temp";
+        Singletons.order().user = Singletons.user();
+        Singletons.order().userName = Singletons.user().name;
+        Singletons.order().items.add(order);
+        PageRouter.pop(context, Singletons.order());
       }
 
     } else {
@@ -418,11 +504,12 @@ class _ProductPageState extends State<ProductPage> {
       order.description = product.description;
       order.cost = product.cost;
       order.discount = product.discount;
-      //order.preparationTime = product.preparationTime;
+      order.preparationTime = product.preparationTime;
       order.amount = count;
       order.note = _observacaoController.text;
 
       product.additional.forEach((element) {
+        print(element.toMap());
         if (element.amount > 0) {
           order.additionalSelected.add(element);
         }
@@ -446,8 +533,8 @@ class _ProductPageState extends State<ProductPage> {
         });
         ScaffoldSnackBar.failure(context, _scaffoldKey, "Selecione todas as opções obrigatórias");
       } else {
-        OrderSingleton.instance.items.add(order);
-        PageRouter.pop(context, OrderSingleton.instance);
+        Singletons.order().items.add(order);
+        PageRouter.pop(context, Singletons.order());
       }
     }
   }

@@ -1,15 +1,19 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import '../../models/singleton/singletons.dart';
+import '../../utils/preferences_util.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../widgets/shape_round.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../image_view_page.dart';
 import '../page_router.dart';
 import 'change_password_page.dart';
@@ -28,18 +32,18 @@ class _UserState extends State<UserPage> implements UserContractView {
 
   String userName, userEmail, userPhoneNumber , userPhoto;
 
-  bool loading = false;
+  bool _loading = false;
   UserContractPresenter presenter;
 
   @override
   void initState() {
     super.initState();
     presenter = UserPresenter(this);
-    if (UserSingleton.instance != null) {
-      userName = UserSingleton.instance.name;
-      userEmail = UserSingleton.instance.email;
-      userPhoneNumber = UserSingleton.instance.phoneNumber == null ? NUMERO_CELULAR : UserSingleton.instance.phoneNumber.toString();
-      userPhoto = UserSingleton.instance.avatarURL;
+    if (Singletons.user() != null) {
+      userName = Singletons.user().name;
+      userEmail = Singletons.user().email;
+      userPhoneNumber = Singletons.user().phoneNumber == null ? NUMERO_CELULAR : Singletons.user().phoneNumber.toString();
+      userPhoto = Singletons.user().avatarURL;
     }
   }
 
@@ -51,16 +55,24 @@ class _UserState extends State<UserPage> implements UserContractView {
         title: Text(PERFIL, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Stack(
-          children: <Widget>[
-            BackgroundCard(),
-            SingleChildScrollView(
-              child: ShapeRound(
-                  _showForm()
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+        ),
+        child: SingleChildScrollView(
+          child: Stack(
+            children: <Widget>[
+              BackgroundCard(),
+              SingleChildScrollView(
+                child: ShapeRound(
+                    _showForm()
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -69,7 +81,7 @@ class _UserState extends State<UserPage> implements UserContractView {
   @override
   onFailure(String error) {
     setState(() {
-      loading = false;
+      _loading = false;
     });
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
@@ -77,10 +89,10 @@ class _UserState extends State<UserPage> implements UserContractView {
   @override
   onSuccess(BaseUser user) async {
     setState(() {
-      userPhoto = UserSingleton.instance.avatarURL;
-      loading = false;
+      userPhoto = Singletons.user().avatarURL;
+      _loading = false;
     });
-    ScaffoldSnackBar.success(context, _scaffoldKey, FOTO_ALTERADA);
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
 
   Widget _showForm() {
@@ -94,7 +106,7 @@ class _UserState extends State<UserPage> implements UserContractView {
             txtChangePhoto(),
             nameUser(),
             emailUser(),
-            //phoneNumberUser(),
+            phoneNumberUser(),
             changePasswordButton(),
           ],
         ),
@@ -141,7 +153,7 @@ class _UserState extends State<UserPage> implements UserContractView {
                 children: <Widget>[
                   defaultImageUser(),
                   userPhoto == null ? Container() : imageUserURL(),
-                  loading ? showLoadingProgress() : Container(),
+                  //_loading ? showLoadingProgress() : Container(),
                 ],
               ),
             ),
@@ -153,7 +165,7 @@ class _UserState extends State<UserPage> implements UserContractView {
 
   Widget showLoadingProgress() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+      padding: EdgeInsets.all(10),
       child: CircularProgressIndicator(),
     );
   }
@@ -176,64 +188,6 @@ class _UserState extends State<UserPage> implements UserContractView {
       ),
     );
   }
-
-//  Widget imageUserFile() {
-//    return Container(
-//      height: 160,
-//      width: 160,
-//      decoration: BoxDecoration(
-//        image: DecorationImage(
-//          image: FileImage(pickedImage),
-//          fit: BoxFit.cover,
-//        ),
-//      ),
-//    );
-//  }
-//
-//  Widget loadImage2() {
-//    return (userPhoto == null || userPhoto.isEmpty) ?
-//      pickedImage == null ?
-//        defaultImageUser()
-//          :
-//        imageUserFile()
-//        :
-//      imageUserURL();
-//  }
-
-//  Widget loadImage() {
-//    return (userPhoto == null || userPhoto.isEmpty) ?
-//    CircleAvatar(
-//      backgroundColor: Colors.transparent,
-//      radius: 80,
-//      child:
-//      pickedImage == null ? Image.asset("assets/user_default_img_white.png")
-//          :
-//      Container(
-//        //height: 160.0,
-//        //width: 160.0,
-//        decoration: BoxDecoration(
-//          image: DecorationImage(
-//            image: FileImage(pickedImage),
-//            fit: BoxFit.cover,
-//          ),
-//        ),
-//      ),
-//
-//    )
-//        :
-//    Image.network(userPhoto,fit: BoxFit.cover, width: 150,
-//      loadingBuilder:(BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
-//        if (loadingProgress == null) return child;
-//        return Center(
-//          child: CircularProgressIndicator(
-//            value: loadingProgress.expectedTotalBytes != null ?
-//            loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes
-//                : null,
-//          ),
-//        );
-//      },
-//    );
-//  }
 
   Widget txtChangePhoto() {
     return Padding(
@@ -276,8 +230,11 @@ class _UserState extends State<UserPage> implements UserContractView {
               ),
             ],
           ),
-          onPressed: () {
-            PageRouter.push(context, UserNamePage());
+          onPressed: () async {
+            await PageRouter.push(context, UserNamePage());
+            setState(() {
+              userName = Singletons.user().name;
+            });
           },
         ),
       ),
@@ -312,7 +269,9 @@ class _UserState extends State<UserPage> implements UserContractView {
               ),
             ],
           ),
-          onPressed: () {},
+          onPressed: () {
+
+          },
         ),
       ),
     );
@@ -346,8 +305,16 @@ class _UserState extends State<UserPage> implements UserContractView {
               ),
             ],
           ),
-          onPressed: () {
-            PageRouter.push(context, PhoneNumberPage());
+          onPressed: () async {
+            var result = await PageRouter.push(context, PhoneNumberPage(authenticate: false,));
+            if (result != null) {
+              Singletons.user().phoneNumber = result;
+              PreferencesUtil.setUserData(Singletons.user().toMap());
+              presenter.update(Singletons.user());
+            }
+            setState(() {
+              userPhoneNumber = Singletons.user().phoneNumber == null ? NUMERO_CELULAR : Singletons.user().phoneNumber.toString();
+            });
           },
         ),
       ),
@@ -360,38 +327,41 @@ class _UserState extends State<UserPage> implements UserContractView {
       child: PrimaryButton(
         text: ALTERAR_SENHA,
         onPressed: () {
-          PageRouter.push(context, ChangePasswordPage());
+          if (Singletons.user().socialProvider) {
+            ScaffoldSnackBar.failure(context, _scaffoldKey, "Você está logado com o Google");
+          } else {
+            PageRouter.push(context, ChangePasswordPage());
+          }
         },
       ),
     );
   }
 
   void changeImgUser() async {
-    final imageSource = await showDialog<ImageSource>(
+    final result = await showOkCancelAlertDialog(
       context: context,
-      builder: (context) =>
-        AlertDialog(
-          title: Text(SELECIONE_IMAGEM),
-          actions: <Widget>[
-            MaterialButton(
-              child: Text(CAMERA),
-              onPressed: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            MaterialButton(
-              child: Text(GALERIA),
-              onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            )
-          ],
-        )
+      title: SELECIONE_IMAGEM,
+      okLabel: CAMERA,
+      cancelLabel: GALERIA,
     );
-
-    if(imageSource != null) {
+    var imageSource;
+    switch(result) {
+      case OkCancelResult.ok:
+        imageSource = ImageSource.camera;
+        break;
+      case OkCancelResult.cancel:
+        imageSource = ImageSource.gallery;
+        break;
+    }
+    if (imageSource != null) {
       final file = await ImagePicker.pickImage(source: imageSource);
       if (file != null) {
-        presenter.changeUserPhoto(file);
+        var compressedFile = await FlutterNativeImage.compressImage(file.path, percentage: 50);
         setState(() {
-          loading = true;
+          _loading = true;
         });
+        await presenter.changeUserPhoto(compressedFile);
+        compressedFile.deleteSync();
       }
     }
   }

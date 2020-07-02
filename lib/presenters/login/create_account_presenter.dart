@@ -1,36 +1,39 @@
+import '../../services/parse/parse_create_account_service.dart';
 import '../../contracts/login/create_account_contract.dart';
-import '../../models/company/admin.dart';
+import '../../models/base_user.dart';
 import '../../services/firebase/firebase_create_account_service.dart';
 
 class CreateAccountPresenter extends CreateAccountContractPresenter {
+  CreateAccountContractView _view;
   CreateAccountContractService service;
 
-  CreateAccountPresenter(CreateAccountContractView view) : super(view) {
-    this.service = FirebaseCreateAccountService(this);
+  CreateAccountPresenter(this._view) {
+    //service = FirebaseCreateAccountService(this);
+    service = ParseCreateAccountService(this);
   }
 
   @override
   dispose() {
     service.dispose();
-    return super.dispose();
+    _view = null;
   }
 
   @override
-  createAccount(Admin user) {
-    view.showProgress();
-    service.createAccount(user);
+  createAccount(BaseUser user) {
+    if (_view != null) _view.showProgress();
+    if (service != null) service.createAccount(user);
   }
 
   @override
   onFailure(String error) {
-    view.hideProgress();
-    view.onFailure(error.toString());
+    if (_view != null) _view.hideProgress();
+    if (service != null) _view.onFailure(error);
   }
 
   @override
-  onSuccess(Admin user) {
-    view.hideProgress();
-    view.onSuccess(user);
+  onSuccess(BaseUser user) {
+    if (_view != null) _view.hideProgress();
+    if (service != null) _view.onSuccess(user);
   }
 
 }

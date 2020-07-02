@@ -57,7 +57,7 @@ class _HistoricWidgetState extends State<HistoricWidget> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                order.evaluation == null ? Text(order.status.current.name) : StarsWidget(stars: order.evaluation.stars, size: 30,),
+                order.evaluation == null ? Text(order.status.current.name) : StarsWidget(initialStar: order.evaluation.stars, size: 30,),
                 costTextWidget("R\$ ${total.toStringAsFixed(2)}"),
               ],
             ),

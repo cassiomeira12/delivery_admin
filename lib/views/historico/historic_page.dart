@@ -1,6 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/models/singleton/company_singleton.dart';
-import 'package:delivery_admin/utils/log_util.dart';
+import 'package:delivery_admin/models/singleton/singletons.dart';
 import 'package:delivery_admin/views/historico/new_product_page.dart';
 import 'package:delivery_admin/views/home/product_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,7 +14,6 @@ import '../../models/menu/choice.dart';
 import '../../models/menu/item.dart';
 import '../../models/menu/product.dart';
 import '../../models/menu/menu.dart';
-import '../../models/singleton/order_singleton.dart';
 import '../../presenters/menu/menu_presenter.dart';
 import '../../views/home/order_slidding_widget.dart';
 import '../../views/home/product_widget.dart';
@@ -60,14 +58,12 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   @override
   void initState() {
     super.initState();
-    company = CompanySingleton.instance;
+    company = Singletons.company();
     logoURL = company.logoURL;
     bannerURL = company.bannerURL;
-    //sliddingPage = OrderSliddingWidget(orderCallback: widget.orderCallback, updateOrders: updateOrders,);
     presenter = MenuPresenter(this);
-    menu = Menu()..id = company.idMenu;
-    //menu = Menu()..id = "1";
-    presenter.read(menu);
+    //menu = Menu()..id = company.idMenu;
+    //presenter.read(menu);
   }
 
   @override
@@ -128,7 +124,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     print(error);
     setState(() {
       list = [];
-      menu.id = company.idMenu;
+      //menu.id = company.idMenu;
     });
   }
 
@@ -399,7 +395,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       //color: Colors.red,
       alignment: Alignment.center,
       child: Text(
-        company.getOpenTime(DateTime.now().weekday),
+        company.getOpenTime(DateTime.now()),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -501,7 +497,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     );
     switch(result) {
       case OkCancelResult.ok:
-        OrderSingleton.instance.clear();
+        Singletons.order().clear();
         PageRouter.pop(context);
         break;
       case OkCancelResult.cancel:

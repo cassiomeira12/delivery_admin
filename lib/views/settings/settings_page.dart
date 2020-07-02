@@ -1,9 +1,14 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../widgets/background_card.dart';
+import '../../models/singleton/singletons.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import '../../views/image_view_page.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../strings.dart';
 import '../../themes/my_themes.dart';
@@ -14,9 +19,6 @@ import '../../views/settings/about_app_page.dart';
 import '../../views/settings/disable_account_page.dart';
 import '../../views/settings/termos_app_page.dart';
 import '../../views/settings/user_page.dart';
-import '../../widgets/background_card.dart';
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SettingsPage extends StatefulWidget {
   SettingsPage({this.logoutCallback});
@@ -28,7 +30,9 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> implements UserContractView {
-  final _formKey = new GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _loading = false;
 
   UserContractPresenter presenter;
 
@@ -39,32 +43,40 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
   void initState() {
     super.initState();
     presenter = UserPresenter(this);
-    userName = UserSingleton.instance.name;
-    userPhoto = UserSingleton.instance.avatarURL;
+    userName = Singletons.user().name;
+    userPhoto = Singletons.user().avatarURL;
   }
 
   @override
   Widget build(BuildContext context) {
     darkMode = CustomTheme.instanceOf(context).isDarkTheme();
     return Scaffold(
-      //key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(TAB4, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                BackgroundCard(height: 150,),
-                imgUser(),
-              ],
-            ),
-            textNameWidget(),
-            listConfigWidget(),
-          ],
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  BackgroundCard(height: 150,),
+                  imgUser(),
+                ],
+              ),
+              textNameWidget(),
+              listConfigWidget(),
+            ],
+          ),
         ),
       ),
     );
@@ -84,10 +96,14 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
                 child: Stack(
                   children: <Widget>[
                     defaultImageUser(),
-                    userPhoto == null ? Container() : ImageNetworkWidget(url: userPhoto, size: 120,),//imageUserURL()
+                    userPhoto == null ? Container() : ImageNetworkWidget(url: userPhoto, size: 120,),
                   ],
                 ),
                 onTap: () {
+                  if (Singletons.user().isAnonymous()) {
+                    ScaffoldSnackBar.failure(context, _scaffoldKey, USER_ANONYMOUS);
+                    return;
+                  }
                   PageRouter.push(context, UserPage());
                 },
               ),
@@ -125,8 +141,8 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
       children: <Widget>[
         perfilButton(),
         notificationsSettingsButton(),
-        darkModeButton(),
-        //aboutAppButton(),
+        //darkModeButton(),
+        aboutAppButton(),
         //termosButton(),
         //disableAccountButton(),
         signOutButton(),
@@ -180,8 +196,16 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
               ),
             ],
           ),
-          onPressed: () {
-            PageRouter.push(context, UserPage());
+          onPressed: () async {
+            if (Singletons.user().isAnonymous()) {
+              ScaffoldSnackBar.failure(context, _scaffoldKey, USER_ANONYMOUS);
+              return;
+            }
+            await PageRouter.push(context, UserPage());
+            setState(() {
+              userName = Singletons.user().name;
+              userPhoto = Singletons.user().avatarURL;
+            });
           },
         ),
       ),
@@ -221,6 +245,10 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
             ],
           ),
           onPressed: () {
+            if (Singletons.user().isAnonymous()) {
+              ScaffoldSnackBar.failure(context, _scaffoldKey, USER_ANONYMOUS);
+              return;
+            }
             PageRouter.push(context, NotificationsSettingsPage());
           },
         ),
@@ -456,8 +484,12 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
     );
     switch(result) {
       case OkCancelResult.ok:
-        presenter.signOut().whenComplete(() {
+        setState(() => _loading = true);
+        presenter.signOut().then((value) {
           widget.logoutCallback();
+        }).catchError((error) {
+          setState(() => _loading = false);
+          ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
         });
         break;
       case OkCancelResult.cancel:
@@ -467,12 +499,15 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
 
   @override
   onFailure(String error) {
-    return null;
+    setState(() {
+      _loading = false;
+    });
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
   onSuccess(BaseUser user) {
-    return null;
+
   }
 
 }

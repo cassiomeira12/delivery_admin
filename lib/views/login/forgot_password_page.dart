@@ -87,7 +87,7 @@ class _ForgotPasswordState extends State<ForgotPasswordPage> implements ForgotPa
       padding: EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
       child: TextInputField(
         labelText: EMAIL,
-        inputType: TextInputType.emailAddress,
+        keyboardType: TextInputType.emailAddress,
         onSaved: (value) => _email = value.trim(),
       ),
     );
@@ -155,15 +155,21 @@ class _ForgotPasswordState extends State<ForgotPasswordPage> implements ForgotPa
 
   @override
   onFailure(String error) {
+    setState(() {
+      _isLoading = false;
+    });
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
   onSuccess(String result) {
+    setState(() {
+      _isLoading = false;
+    });
     ScaffoldSnackBar.success(context, _scaffoldKey, result);
   }
 
   @override
-  listSuccess(List<String> list) { }
+  listSuccess(List<String> list) {}
 
 }

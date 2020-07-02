@@ -1,7 +1,8 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:delivery_admin/strings.dart';
 import 'package:delivery_admin/widgets/primary_button.dart';
 import 'package:delivery_admin/widgets/secondary_button.dart';
-import 'package:sembast/sembast.dart';
-
+import 'package:timeline_tile/timeline_tile.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/address/address.dart';
 import '../../models/order/order.dart';
@@ -68,7 +69,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
 
   @override
   onSuccess(Order result) {
-    order.update(result);
+    order.updateData(result);
     int index = 0;
     order.status.values.forEach((element) {
       if (element.name == order.status.current.name) {
@@ -146,14 +147,14 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             ),
             addressDataWidget(order.deliveryAddress),
             SizedBox(height: 10,),
-            order.status.current.name == order.status.values.last.name ?
-              Column(
-                children: [
-                  avaliationTextWidget(),
-                  StarsWidget(stars: 5, size: 40,),
-                  avaliationComenteTextWidget(),
-                ],
-              ) : Container(),
+            order.status.isLast() && order.evaluation != null ?
+            Column(
+              children: [
+                avaliationTextWidget(),
+                StarsWidget(initialStar: order.evaluation.stars, size: 40,),
+                avaliationComenteTextWidget(),
+              ],
+            ) : Container(),
             order.evaluation == null ? deliveryCurrentStatus() : Container(),
           ],
         ),
@@ -170,12 +171,11 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             children: [
               order.status.isFirst() ?
               PrimaryButton(
-                text: "Confirmar",
+                text: CONFIRMAR,
                 onPressed: () {
                   var now = DateTime.now();
                   int hour = now.hour;
                   int minute = now.minute;
-                  print("antes $hour $minute");
                   order.items.forEach((element) {
                     if (element.preparationTime != null) {
                       print(element.preparationTime.toMap());
@@ -192,7 +192,6 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                       }
                     }
                   });
-                  print("depois $hour $minute");
                   showTimePicker(
                     context: context,
                     initialTime: TimeOfDay(hour: hour, minute: minute),
@@ -356,11 +355,84 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           SliverList(
             delegate: SliverChildListDelegate(
               order.status.values.map((e) {
-                return statusItemList(e, index++);
+                return timelineItem(e, index++);
               }).toList(),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget timelineItem(Status status, int index) {
+    return TimelineTile(
+      alignment: TimelineAlign.manual,
+      lineX: 0.1,
+      isFirst: index == 0,
+      isLast: index == (order.status.values.length-1),
+      indicatorStyle: IndicatorStyle(
+        width: 20,
+        color: currentStatusIndex > index ? Colors.grey : currentStatusIndex == index ? Colors.green : Colors.grey[300],
+        padding: EdgeInsets.all(6),
+      ),
+      rightChild: Flexible(
+        flex: 1,
+        child: Container(
+          margin: EdgeInsets.only(left: 10, right: 30),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SecondaryButton(
+                child: AutoSizeText(
+                  status.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 25,
+                    color: this.currentStatusIndex > index ?
+                    Colors.grey[500]
+                        :
+                    this.currentStatusIndex == index ?
+                    Colors.green
+                        :
+                    this.currentStatusIndex + 1 == index ?
+                    Colors.black54
+                        :
+                    Colors.grey[300],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  if (currentStatusIndex + 1 == index) {
+                    setState(() {
+                      currentStatusIndex++;
+                      order.status.values[currentStatusIndex].date = DateTime.now();
+                      order.status.current = order.status.values[currentStatusIndex];
+                      presenter.update(order);
+                    });
+                  }
+                },
+              ),
+              SizedBox(height: 5,),
+              status.date != null ?
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Text(
+                  DateUtil.formatHourMinute(DateTime.now()),//DateUtil.formatHourMinute(status.date),
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black38,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ) : Container(),
+            ],
+          ),
+        ),
+      ),
+      topLineStyle: const LineStyle(
+        color: Color(0xFFDADADA),
       ),
     );
   }
@@ -410,6 +482,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
   }
 
   Widget addressDataWidget(Address address) {
+    print(address.toMap());
     return Card(
       margin: EdgeInsets.only(top: 10),
       child: Container(
@@ -433,7 +506,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             Padding(
               padding: EdgeInsets.only(left: 10, top: 5, right: 10),
               child: Text(
-                address.smallTown.toString(),
+                "",//address.smallTown.toString(),
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontSize: 20,
@@ -574,21 +647,21 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 Container(
                   margin: EdgeInsets.only(top: 10, right: 30),
                   child: SecondaryButton(
-                    child: Text(
+                    child: AutoSizeText(
                       status.name,
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 25,
                         color: this.currentStatusIndex > index ?
-                          Colors.grey[500]
+                        Colors.grey[500]
                             :
-                          this.currentStatusIndex == index ?
-                            Colors.green
-                              :
-                            this.currentStatusIndex + 1 == index ?
-                              Colors.black54
-                                :
-                              Colors.grey[300],
+                        this.currentStatusIndex == index ?
+                        Colors.green
+                            :
+                        this.currentStatusIndex + 1 == index ?
+                        Colors.black54
+                            :
+                        Colors.grey[300],
                         fontWeight: FontWeight.bold,
                       ),
                     ),

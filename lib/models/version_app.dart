@@ -1,22 +1,27 @@
-class VersionApp {
+import '../models/base_model.dart';
+
+class VersionApp extends BaseModel<VersionApp> {
   String name;
   int currentCode;
   int minimumCode;
-  String url;
+  String storeUrl;
 
-  VersionApp.fromMap(Map<dynamic, dynamic> map) {
+  VersionApp.fromMap(Map<dynamic, dynamic> map) : super('VersionApp') {
+    objectId = map["objectId"];
+    id = objectId;
     name = map["name"];
-    currentCode = map["currentCode"];
-    minimumCode = map["minimumCode"];
-    url = map["url"];
+    currentCode = (map["currentCode"] as num).toInt();
+    minimumCode = (map["minimumCode"] as num).toInt();
+    storeUrl = map["storeUrl"];
   }
 
   toMap() {
     var map = new Map<String, dynamic>();
+    map["objectId"] = id;
     map["name"] = name;
     map["currentCode"] = currentCode;
     map["minimumCode"] = minimumCode;
-    map["url"] = url;
+    map["storeUrl"] = storeUrl;
     return map;
   }
 

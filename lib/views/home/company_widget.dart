@@ -50,7 +50,7 @@ class _CompanyWidgetState extends State<CompanyWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   titleTextWidget(company.name),
-                  messageTextWidget(company.getOpenTime(DateTime.now().weekday)),
+                  messageTextWidget(company.getOpenTime(DateTime.now())),
                 ],
               ),
             ),

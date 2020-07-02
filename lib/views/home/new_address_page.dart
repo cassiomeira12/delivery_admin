@@ -1,16 +1,16 @@
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter/material.dart';
+import '../../models/singleton/singletons.dart';
+import '../../widgets/area_input_field.dart';
 import '../../contracts/address/address_contract.dart';
 import '../../models/address/address.dart';
 import '../../models/address/city.dart';
 import '../../models/address/small_town.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/address/address_presenter.dart';
 import '../../strings.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../widgets/text_input_field.dart';
-import 'package:flutter/material.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-
 import '../page_router.dart';
 
 class NewAddressPage extends StatefulWidget {
@@ -73,8 +73,8 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          textCityWidget(),
-          widget.smallTown == null ? Container() : textDistritoWidget(),
+          widget.city != null ? textCityWidget() : Container(),
+          widget.smallTown != null ? textDistritoWidget() : Container(),
           widget.smallTown == null ? cityForm() : smallTomForm(),
           saveButton(),
         ],
@@ -106,7 +106,10 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
         key: _formKey,
         child: Column(
           children: <Widget>[
-            textSmallAddress(),
+            //textSmallAddress(),
+            textInputStreet(),
+            textInputNumber(),
+            textInputReference(),
           ],
         ),
       ),
@@ -117,7 +120,7 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
     return Padding(
       padding: EdgeInsets.only(top: 20),
       child: Text(
-        "${widget.city.name}-${widget.city.codeState}",
+        widget.city.name,
         style: TextStyle(
           fontSize: 25,
           fontWeight: FontWeight.bold,
@@ -131,7 +134,7 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
     return Padding(
       padding: EdgeInsets.only(top: 10),
       child: Text(
-        widget.smallTown.alias == null ? "${widget.smallTown.name}" : "${widget.smallTown.alias}",
+        widget.smallTown.name,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -146,7 +149,6 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Bairro",
-        //inputType: TextInputType.emailAddress,
         textCapitalization: TextCapitalization.sentences,
         onSaved: (value) => bairro = value.trim(),
       ),
@@ -158,7 +160,6 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Rua",
-        //inputType: TextInputType.emailAddress,
         textCapitalization: TextCapitalization.sentences,
         onSaved: (value) => rua = value.trim(),
       ),
@@ -170,8 +171,8 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Número",
-        //inputType: TextInputType.emailAddress,
         textCapitalization: TextCapitalization.sentences,
+        validator: (value) => null,
         onSaved: (value) => numero = value.trim(),
       ),
     );
@@ -180,10 +181,11 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
   Widget textInputReference() {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-      child: TextInputField(
+      child: AreaInputField(
         labelText: "Referência",
-        //inputType: TextInputType.emailAddress,
         textCapitalization: TextCapitalization.sentences,
+        maxLines: 3,
+        validator: (value) => null,
         onSaved: (value) => referencia = value.trim(),
       ),
     );
@@ -194,7 +196,6 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Endereço",
-        //inputType: TextInputType.emailAddress,
         textCapitalization: TextCapitalization.sentences,
         onSaved: (value) => rua = value.trim(),
       ),
@@ -232,11 +233,11 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
 
   Address create() {
     Address address = Address()
-      ..userId = UserSingleton.instance.id
+      ..user = Singletons.user()
       ..neighborhood = bairro
       ..street = rua
-      ..number = numero
-      ..reference = referencia;
+      ..number = numero.isEmpty ? null : numero
+      ..reference = referencia.isEmpty ? null : referencia;
     address.city = widget.city;
     address.smallTown = widget.smallTown;
     return address;

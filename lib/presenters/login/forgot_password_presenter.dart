@@ -1,28 +1,31 @@
-import '../../strings.dart';
+import '../../services/parse/parse_forgot_password_service.dart';
 import '../../contracts/login/forgot_password_contract.dart';
 import '../../services/firebase/firebase_forgot_password_service.dart';
+import '../../strings.dart';
 
 class ForgotPasswordPresenter extends ForgotPasswordContractPresenter {
-  ForgotPasswordContractService repository = FirebaseForgotPasswordService();
+  ForgotPasswordContractView _view;
+  //ForgotPasswordContractService service = FirebaseForgotPasswordService();
+  ForgotPasswordContractService service = ParseForgotPasswordService();
 
-  ForgotPasswordPresenter(ForgotPasswordContractView view) : super(view);
+  ForgotPasswordPresenter(this._view);
 
   @override
+  dispose() {
+    service = null;
+    _view = null;
+  }
+  
+  @override
   sendEmail(String email) {
-    view.showProgress();
-    repository.sendEmail(email).then((result) {
-      view.hideProgress();
-      view.onSuccess("Email enviado com sucesso!");
-    }).catchError((error) {
-      view.hideProgress();
-      switch(error.code) {
-        case "ERROR_USER_NOT_FOUND":
-          view.onFailure(USUARIO_NAO_ENCONTRADO);
-          break;
-        default:
-          view.onFailure(error.toString());
-      }
-    });
+    if (_view != null) _view.showProgress();
+    if (service != null) {
+      service.sendEmail(email).then((result) {
+        if (_view != null) _view.onSuccess(SUCCESS_EMAIL_SEND);
+      }).catchError((error) {
+        _view.onFailure(error.message);
+      });
+    }
   }
 
 }

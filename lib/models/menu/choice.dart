@@ -9,12 +9,9 @@ class Choice extends BaseModel<Choice> {
   int minQuantity;
   List<Item> itens;
 
-  Choice() {
-    itens = List();
-    required = false;
-  }
+  Choice() : super('Choice');
 
-  Choice.fromMap(Map<dynamic, dynamic>  map) {
+  Choice.fromMap(Map<dynamic, dynamic>  map) : super('Choice') {
     name = map["name"];
     description = map["description"];
     required = map["required"] == true;
@@ -35,14 +32,14 @@ class Choice extends BaseModel<Choice> {
     return map;
   }
 
-  @override
-  update(Choice item) {
-    name = item.name;
-    description = item.description;
-    required = item.required;
-    maxQuantity = item.maxQuantity;
-    minQuantity = item.minQuantity;
-    itens = item.itens;
-  }
+//  @override
+//  update(Choice item) {
+//    name = item.name;
+//    description = item.description;
+//    required = item.required;
+//    maxQuantity = item.maxQuantity;
+//    minQuantity = item.minQuantity;
+//    itens = item.itens;
+//  }
 
 }

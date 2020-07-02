@@ -1,3 +1,4 @@
+import '../../models/singleton/singletons.dart';
 import '../../contracts/user/notification_contract.dart';
 import '../../models/user_notification.dart';
 import '../../presenters/user/notification_presenter.dart';
@@ -28,7 +29,12 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
   void initState() {
     super.initState();
     presenter = NotificationPresenter(this);
-    presenter.list();
+    var temp = Singletons.notifications();
+    if (temp.isEmpty) {
+      presenter.list();
+    } else {
+      setState(() => notificationsList = temp);
+    }
   }
 
   @override
@@ -39,6 +45,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
 
   @override
   listSuccess(List<UserNotification> list) {
+    Singletons.notifications().addAll(list);
     setState(() {
       notificationsList = list;
     });
@@ -78,6 +85,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: () {
+          Singletons.notifications().clear();
           return presenter.list();
         },
         child: Center(
@@ -91,9 +99,9 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
             slivers: <Widget>[
               SliverList(
                 delegate: SliverChildListDelegate(
-                  notificationsList.map<Widget>((item) {
-                    return listItem(item);
-                  }).toList()
+                    notificationsList.map<Widget>((item) {
+                      return listItem(item);
+                    }).toList()
                 ),
               ),
             ],

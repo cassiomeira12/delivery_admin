@@ -12,10 +12,11 @@ class Product extends BaseModel<Product> {
   List<Choice> choices;
   List<Additional> additional;
 
-  Product();
+  Product() : super('Product');
 
-  Product.fromMap(Map<dynamic, dynamic>  map) {
-    id = map["id"];
+  Product.fromMap(Map<dynamic, dynamic>  map) : super('Product') {
+    objectId = map["objectId"];
+    id = objectId;
     name = map["name"];
     description = map["description"];
     cost = (map["cost"] as num).toDouble();
@@ -29,7 +30,7 @@ class Product extends BaseModel<Product> {
   @override
   Map<String, dynamic> toMap() {
     var map = Map<String, dynamic>();
-    map["id"] = id;
+    map["objectId"] = id;
     map["name"] = name;
     map["description"] = description;
     map["cost"] = cost;
@@ -41,27 +42,27 @@ class Product extends BaseModel<Product> {
     return map;
   }
 
-  @override
-  update(Product item) {
-    id = item.id;
-    name = item.name;
-    description = item.description;
-    cost = item.cost;
-    discount = item.discount;
-    preparationTime = item.preparationTime;
-    images = item.images;
-    choices = item.choices;
-    additional = item.additional;
-  }
+//  @override
+//  update(Product item) {
+//    id = item.id;
+//    name = item.name;
+//    description = item.description;
+//    cost = item.cost;
+//    discount = item.discount;
+//    preparationTime = item.preparationTime;
+//    images = item.images;
+//    choices = item.choices;
+//    additional = item.additional;
+//  }
 
 }
 
 class PreparationTime extends BaseModel<PreparationTime> {
   int hour, minute;
 
-  PreparationTime();
+  PreparationTime() : super('PreparationTime');
 
-  PreparationTime.fromMap(Map<dynamic, dynamic>  map) {
+  PreparationTime.fromMap(Map<dynamic, dynamic>  map) : super('PreparationTime') {
     hour = map["hour"] as int;
     minute = map["minute"] as int;
   }
@@ -74,11 +75,11 @@ class PreparationTime extends BaseModel<PreparationTime> {
     return map;
   }
 
-  @override
-  update(PreparationTime item) {
-    hour = item.hour;
-    minute = item.minute;
-  }
+//  @override
+//  update(PreparationTime item) {
+//    hour = item.hour;
+//    minute = item.minute;
+//  }
 
   @override
   String toString() {

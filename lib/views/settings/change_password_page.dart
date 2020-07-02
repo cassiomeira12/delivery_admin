@@ -1,6 +1,7 @@
+import '../../models/singleton/singletons.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/primary_button.dart';
@@ -16,7 +17,7 @@ class ChangePasswordPage extends StatefulWidget {
 }
 
 class _ChangePasswordState extends State<ChangePasswordPage> implements UserContractView {
-  final _formKey = new GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool _isLoading = false;
@@ -62,10 +63,7 @@ class _ChangePasswordState extends State<ChangePasswordPage> implements UserCont
     setState(() {
       _isLoading = false;
     });
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(error),
-      backgroundColor: Theme.of(context).errorColor,
-    ));
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
@@ -76,10 +74,7 @@ class _ChangePasswordState extends State<ChangePasswordPage> implements UserCont
     setState(() {
       _isLoading = false;
     });
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(SENHA_ALTERADA_SUCESSO),
-      backgroundColor: Colors.green,
-    ));
+    ScaffoldSnackBar.success(context, _scaffoldKey, SENHA_ALTERADA_SUCESSO);
   }
 
   Widget _showForm() {
@@ -254,8 +249,7 @@ class _ChangePasswordState extends State<ChangePasswordPage> implements UserCont
       setState(() {
         _isLoading = true;
       });
-      String email = UserSingleton.instance.email;
-      presenter.changePassword(email, _currentPassword, _newPassword);
+      presenter.changePassword(Singletons.user().email, _currentPassword, _newPassword);
     }
   }
 

@@ -1,11 +1,12 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import '../../models/singleton/singletons.dart';
+import '../../views/settings/phone_number_page.dart';
 import 'package:flutter/material.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:progress_dialog/progress_dialog.dart';
 import '../../widgets/text_input_field.dart';
 import '../../contracts/login/login_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/login/login_presenter.dart';
 import '../../views/page_router.dart';
 import '../../widgets/background_card.dart';
@@ -20,16 +21,20 @@ import 'forgot_password_page.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({this.loginCallback});
-
   final VoidCallback loginCallback;
+  final bool anonymousLogin;
+
+  LoginPage({
+    this.loginCallback,
+    this.anonymousLogin = false,
+  });
 
   @override
   State<StatefulWidget> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> implements LoginContractView {
-  final _formKey = new GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   LoginContractPresenter presenter;
@@ -38,12 +43,10 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
   String _password;
 
   bool _loading = false;
-  ProgressDialog pr;
 
   @override
   void initState() {
     super.initState();
-    pr = ProgressDialog(context);
     presenter = LoginPresenter(this);
   }
 
@@ -55,13 +58,11 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   @override
   hideProgress() {
-    //pr.hide();
     setState(() => _loading = false);
   }
 
   @override
   showProgress() {
-    //pr.show();
     setState(() => _loading = true);
   }
 
@@ -72,9 +73,19 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
   }
 
   @override
-  onSuccess(BaseUser result) {
-    UserSingleton.instance.update(result);
-    widget.loginCallback();
+  onSuccess(BaseUser result) async {
+    Singletons.user().updateData(result);
+    if (result.emailVerified) {
+      if (result.phoneNumber == null && !result.isAnonymous()) {
+        var phoneNumber = await PageRouter.push(context, PhoneNumberPage(authenticate: false,));
+        Singletons.user().phoneNumber = phoneNumber;
+      }
+    }
+    if (widget.anonymousLogin) {
+      PageRouter.pop(context);
+    } else {
+      widget.loginCallback();
+    }
   }
 
   @override
@@ -122,8 +133,9 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
               _showForm()
           ),
           textOU(),
-          googleButton(),
+          //googleButton(),
           signupButton(),
+          //anonymousButton(),
         ],
       ),
     );
@@ -175,7 +187,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
       padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
       child: TextInputField(
         labelText: EMAIL,
-        inputType: TextInputType.emailAddress,
+        keyboardType: TextInputType.emailAddress,
         onSaved: (value) => _email = value.trim(),
       ),
     );
@@ -186,7 +198,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
       padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
       child: TextInputField(
         labelText: SENHA,
-        inputType: TextInputType.text,
+        keyboardType: TextInputType.text,
         obscureText: true,
         onSaved: (value) => _password = value.trim(),
       ),
@@ -225,7 +237,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   Widget googleButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(60.0, 12.0, 60.0, 0.0),
+      padding: EdgeInsets.fromLTRB(60, 12, 60, 0),
       child: SecondaryButton(
         child: Row(
           children: <Widget>[
@@ -242,8 +254,10 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
               flex: 5,
               child: Container(
                 alignment: Alignment.center,
-                child: Text(
+                child: AutoSizeText(
                   LOGAR_COM_GOOGLE,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.body2,
                 ),
               ),
@@ -262,11 +276,23 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   Widget signupButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(60, 12, 60, 16),
+      padding: EdgeInsets.fromLTRB(60, 12, 60, 0),
       child: SecondaryButton(
         text: CRIAR_CONTA,
         onPressed: () {
           PageRouter.push(context, SignUpPage(loginCallback: widget.loginCallback,));
+        },
+      ),
+    );
+  }
+
+  Widget anonymousButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(10, 12, 10, 30),
+      child: LightButton(
+        text: "Entrar como convidado".toUpperCase(),
+        onPressed: () {
+          presenter.signAnonymous();
         },
       ),
     );

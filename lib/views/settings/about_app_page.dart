@@ -126,8 +126,8 @@ class _AboutAppState extends State<AboutAppPage> {
           ),
         ),
         onPressed: () async {
-          if (await canLaunch(versionApp.url)) {
-            launch(versionApp.url);
+          if (await canLaunch(versionApp.storeUrl)) {
+            launch(versionApp.storeUrl);
           }
         },
       ),

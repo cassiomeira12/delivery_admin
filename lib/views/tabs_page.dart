@@ -1,6 +1,6 @@
 import 'dart:io';
+import '../models/singleton/singletons.dart';
 import '../contracts/order/order_contract.dart';
-import '../models/singleton/order_singleton.dart';
 import '../presenters/order/order_presenter.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,17 +12,19 @@ import '../views/notifications/notifications_page.dart';
 import '../views/settings/settings_page.dart';
 
 class TabsPage extends StatefulWidget {
-  TabsPage({this.logoutCallback});
-
+  final VoidCallback loginCallback;
   final VoidCallback logoutCallback;
+
+  TabsPage({
+    this.loginCallback,
+    this.logoutCallback
+  });
 
   @override
   _TabsPageState createState() => _TabsPageState();
 }
 
 class _TabsPageState extends State<TabsPage> {
-  final PageStorageBucket bucket = PageStorageBucket();
-
   TabsView tabsView;
 
   int currentTab = 0;
@@ -35,7 +37,7 @@ class _TabsPageState extends State<TabsPage> {
   void initState() {
     super.initState();
     screens = [
-      HomePage(orderCallback: orderCallback,),
+      HomePage(loginCallback: widget.loginCallback, orderCallback: orderCallback,),
       NotificationsPage(),
       ComandaPage(),
       HistoricPage(),
@@ -46,15 +48,26 @@ class _TabsPageState extends State<TabsPage> {
     listOrders();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    presenter.dispose();
+  }
+
   void listOrders() async {
-    var result = await presenter.list();
-//    var temp = 0;
-//    result.forEach((element) {
-//
-//    });
-//    setState(() {
-//      orderCount = result.length;
-//    });
+    var result = await presenter.findBy("user", Singletons.user().toPointer());
+    if (result != null) {
+      Singletons.orders().addAll(result);
+      var temp = 0;
+      result.forEach((element) {
+        if (!element.status.isLast()) {
+          temp++;
+        }
+      });
+      setState(() {
+        orderCount = temp;
+      });
+    }
   }
 
   void orderCallback() {
@@ -67,11 +80,11 @@ class _TabsPageState extends State<TabsPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onBackPressed,
-      child: Scaffold(
-        body: tabsView,
-        bottomNavigationBar: customBottomNavigationBar(),
-      )
+        onWillPop: _onBackPressed,
+        child: Scaffold(
+          body: tabsView,
+          bottomNavigationBar: customBottomNavigationBar(),
+        )
     );
   }
 
@@ -188,7 +201,7 @@ class _TabsPageState extends State<TabsPage> {
                       FaIcon(FontAwesomeIcons.shoppingCart, color: currentTab == 3 ? Theme.of(context).backgroundColor : Colors.grey,),
                       Padding(
                         padding: EdgeInsets.fromLTRB(15, 5, 0, 0),
-                        child: notificationCount( OrderSingleton.instance.id == null ? orderCount : OrderSingleton.instance.items.length ),
+                        child: notificationCount(Singletons.orders().length),
                       ),
                     ],
                   ),
@@ -234,17 +247,17 @@ class _TabsPageState extends State<TabsPage> {
 
   Widget notificationCount(int notifications) {
     return notifications > 0 ?
-      Align(
-        alignment: Alignment.topCenter,
-        child: ClipOval(
-          child: Container(
-            height: 20, width: 20,
-            color: Colors.red,
-            alignment: Alignment.center,
-            child: Text(notifications.toString(), style: TextStyle(color: Colors.white,),),
-          ),
+    Align(
+      alignment: Alignment.topCenter,
+      child: ClipOval(
+        child: Container(
+          height: 20, width: 20,
+          color: Colors.red,
+          alignment: Alignment.center,
+          child: Text(notifications.toString(), style: TextStyle(color: Colors.white,),),
         ),
-      ) : Container();
+      ),
+    ) : Container();
   }
 
 }

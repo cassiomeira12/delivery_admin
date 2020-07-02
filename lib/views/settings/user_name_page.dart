@@ -1,14 +1,14 @@
+import '../../utils/preferences_util.dart';
+import 'package:flutter/material.dart';
+import '../../models/singleton/singletons.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../widgets/scaffold_snackbar.dart';
-import 'package:flutter/material.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/shape_round.dart';
-
 import '../page_router.dart';
 
 class UserNamePage extends StatefulWidget {
@@ -60,7 +60,8 @@ class _UserNamePageState extends State<UserNamePage> implements UserContractView
     setState(() {
       _loading = false;
     });
-    UserSingleton.instance.update(user);
+    Singletons.user().name = user.name;
+    PreferencesUtil.setUserData(Singletons.user().toMap());
     ScaffoldSnackBar.success(context, _scaffoldKey, CHANGE_NAME_SUCCESS);
     await Future.delayed(const Duration(seconds: 2));
     PageRouter.pop(context);

@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
+import '../../models/singleton/singletons.dart';
+import '../../widgets/loading_widget.dart';
 import '../../contracts/login/create_account_contract.dart';
 import '../../models/base_user.dart';
-import '../../models/singleton/user_singleton.dart';
 import '../../presenters/login/create_account_presenter.dart';
 import '../../widgets/background_card.dart';
 import '../../widgets/shape_round.dart';
-import 'package:flutter/material.dart';
-
 import '../../strings.dart';
 import '../page_router.dart';
 
@@ -65,7 +65,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> implements Create
         child: Column(
           children: <Widget>[
             textTitle(),
-            _isLoading ? showCircularProgress() : imagem(), textMensagem(),
+            _isLoading ? LoadingWidget() : imagem(), textMensagem(),
           ],
         ),
       ),
@@ -92,13 +92,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> implements Create
           child: Image.asset(_imgURL),
         ),
       ),
-    );
-  }
-
-  Widget showCircularProgress() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
-      child: CircularProgressIndicator(),
     );
   }
 
@@ -135,7 +128,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> implements Create
       _imgURL = "assets/sucesso.png";
       _textMessage = CONTA_CRIADA_SUCESSO;
     });
-    UserSingleton.instance.update(user);
+    Singletons.user().updateData(user);
     await Future.delayed(const Duration(seconds: 2));
     PageRouter.pop(context);
     widget.loginCallback();
