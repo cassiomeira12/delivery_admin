@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:delivery_admin/strings.dart';
-import 'package:delivery_admin/widgets/primary_button.dart';
-import 'package:delivery_admin/widgets/secondary_button.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import '../../strings.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/secondary_button.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/address/address.dart';
 import '../../models/order/order.dart';

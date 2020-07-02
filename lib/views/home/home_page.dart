@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 //    temp.forEach((element) {
 //      print(element.companyName);
 //    });
-    temp.insertAll(0, list);
+    temp.addAll(list);
     setState(() {
       ordersList = temp;
     });
