@@ -37,11 +37,14 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
   int currentStatusIndex = 0;
   List<Widget> statusItems = List();
 
+  String title = "";
+
   @override
   void initState() {
     super.initState();
     presenter = OrdersPresenter(this);
-    this.order = widget.item as Order;
+    order = widget.item as Order;
+    title = order.id;
     total = order.deliveryCost;
     order.items.forEach((element) {
       total += element.getTotal();
@@ -87,7 +90,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Pedido", style: TextStyle(color: Colors.white),),
+        title: Text(title, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: nestedScrollView(),

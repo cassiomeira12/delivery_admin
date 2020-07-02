@@ -99,16 +99,16 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<List<Order>> listTodayOrders() async {
-    //liveQuery = LiveQuery();
+    liveQuery = LiveQuery();
 
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
       ..whereEqualTo("company", Singletons.company().toPointer())
       ..orderByDescending("createdAt");
 
-//    subscription = await liveQuery.client.subscribe(query);
-//    subscription.on(LiveQueryEvent.update, (value) {
-//      if (_view != null) _view.listSuccess([Order.fromMap(value.toJson())]);
-//    });
+    subscription = await liveQuery.client.subscribe(query);
+    subscription.on(LiveQueryEvent.update, (value) {
+      if (_view != null) _view.listSuccess([Order.fromMap(value.toJson())]);
+    });
 
     await query.query().then((value) async {
       if (value.success) {

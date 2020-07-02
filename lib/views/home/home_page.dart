@@ -71,28 +71,23 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   @override
   listSuccess(List<Order> list) {
-    print("update list");
-//    print("antes");
-//    ordersList.forEach((element) {
-//      print(element.companyName);
-//    });
-
-    if (ordersList == null) {
-      ordersList = List();
+    if (ordersList != null && ordersList.isNotEmpty) {
+      list.forEach((item) {
+        var temp = ordersList.singleWhere((element) => element.id == item.id, orElse: null);
+        setState(() {
+          if (temp == null) {
+            ordersList.add(item);
+          } else {
+            temp.updateData(item);
+          }
+        });
+      });
+    } else {
+      setState(() {
+        ordersList = list;
+      });
+      Singletons.orders().addAll(list);
     }
-
-    var temp = ordersList;
-    list.forEach((element) {
-      temp.removeWhere((item) => item.id == element.id);
-    });
-//    print("depois");
-//    temp.forEach((element) {
-//      print(element.companyName);
-//    });
-    temp.addAll(list);
-    setState(() {
-      ordersList = temp;
-    });
   }
 
   @override
