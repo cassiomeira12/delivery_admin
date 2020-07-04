@@ -1,4 +1,8 @@
+import 'package:delivery_admin/contracts/user/user_contract.dart';
 import 'package:delivery_admin/models/company/company.dart';
+import 'package:delivery_admin/presenters/user/user_presenter.dart';
+import 'package:delivery_admin/services/notifications/firebase_push_notification.dart';
+import 'package:delivery_admin/utils/preferences_util.dart';
 
 import '../../models/singleton/singletons.dart';
 import '../../contracts/order/order_contract.dart';
@@ -32,6 +36,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> implements OrderContractView {
   final _formKey = GlobalKey<FormState>();
 
+  UserContractPresenter userPresenter;
   CompanyContractPresenter companyPresenter;
   String companyName = "";
 
@@ -41,6 +46,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   @override
   void initState() {
     super.initState();
+    userPresenter = UserPresenter(null);
     companyPresenter = CompanyPresenter(null);
     orderPresenter = OrdersPresenter(this);
     if (Singletons.company().id == null) {
@@ -54,6 +60,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   @override
   void dispose() {
     super.dispose();
+    userPresenter.dispose();
     companyPresenter.dispose();
     orderPresenter.dispose();
   }
@@ -62,10 +69,17 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     Company result = await companyPresenter.getFromAdmin(Singletons.user());
     if (result != null) {
       Singletons.company().updateData(result);
-      setState(() {
-        companyName = result.name;
-      });
+      setState(() => companyName = result.name);
       orderPresenter.listTodayOrders();
+      var companyTopic = result.id;
+      if (!Singletons.user().notificationToken.topics.contains(companyTopic)) {
+        var saved = await FirebaseNotifications.subscribeToTopic(companyTopic);
+        if (saved) {
+          Singletons.user().notificationToken.topics.add(companyTopic);
+          PreferencesUtil.setUserData(Singletons.user().toMap());
+          userPresenter.update(Singletons.user());
+        }
+      }
     }
   }
 
@@ -76,9 +90,13 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         var temp = ordersList.singleWhere((element) => element.id == item.id, orElse: null);
         setState(() {
           if (temp == null) {
-            ordersList.add(item);
+            setState(() {
+              ordersList.insert(0, item);
+            });
           } else {
-            temp.updateData(item);
+            setState(() {
+              temp.updateData(item);
+            });
           }
         });
       });

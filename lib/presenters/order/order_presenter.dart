@@ -115,6 +115,7 @@ class OrdersPresenter implements OrderContractPresenter {
         if (value.result == null) {
           _view.listSuccess([]);
         } else {
+          Log.d(value.result);
           List<ParseObject> listObj = value.result;
           var list = listObj.map<Order>((obj) {
             return Order.fromMap(obj.toJson());

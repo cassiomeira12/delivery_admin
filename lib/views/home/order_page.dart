@@ -1,5 +1,8 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../strings.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/secondary_button.dart';
@@ -92,9 +95,49 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
       appBar: AppBar(
         title: Text(title, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return ["Contato", "Cancelar"].map((String choice) {
+                return PopupMenuItem(value: choice, child: Text(choice),);
+              }).toList();
+            },
+            onSelected: (value) async {
+              switch (value) {
+                case "Contato":
+                  var whatsAppLink = order.companyPhoneNumber.whatsAppLink();
+                  if (await canLaunch(whatsAppLink)) {
+                    await launch(whatsAppLink);
+                  }
+                  break;
+                case "Cancelar":
+                  showDialogCancelOrder();
+                  break;
+              }
+            },
+          ),
+        ],
       ),
       body: nestedScrollView(),
     );
+  }
+
+  void showDialogCancelOrder() async {
+    final result = await showOkCancelAlertDialog(
+      context: context,
+      title: CANCELAR,
+      okLabel: CANCELAR,
+      cancelLabel: "Fechar",
+      message: "Deseja realmente cancelar esse pedido?",
+    );
+    switch(result) {
+      case OkCancelResult.ok:
+        setState(() => order.canceled = true);
+        presenter.update(order);
+        break;
+      case OkCancelResult.cancel:
+        break;
+    }
   }
 
   Widget nestedScrollView() {
@@ -132,14 +175,15 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                titleTextWidget(order.userName),
+                Flexible(
+                  flex: 1,
+                  child: titleTextWidget(order.userName),
+                ),
                 dateTextWidget(DateUtil.formatDateMouthHour(order.createdAt)),
               ],
             ),
             SizedBox(height: 5,),
-            Column(
-              children: ordersItems,
-            ),
+            Column(children: ordersItems,),
             textDelivery(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,6 +192,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 costTextWidget("R\$ ${total.toStringAsFixed(2)}"),
               ],
             ),
+            textPaymentType(),
             addressDataWidget(order.deliveryAddress),
             SizedBox(height: 10,),
             order.status.isLast() && order.evaluation != null ?
@@ -170,73 +215,76 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
       padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Column(
         children: [
-          Column(
-            children: [
-              order.status.isFirst() ?
-              PrimaryButton(
-                text: CONFIRMAR,
-                onPressed: () {
-                  var now = DateTime.now();
-                  int hour = now.hour;
-                  int minute = now.minute;
-                  order.items.forEach((element) {
-                    if (element.preparationTime != null) {
-                      print(element.preparationTime.toMap());
-                      if ((minute + element.preparationTime.minute) > 59) {
-                        hour += element.preparationTime.hour + 1;
-                        minute = (minute + element.preparationTime.minute) - 60;
-                      } else {
-                        minute += element.preparationTime.minute;
+          order.canceled ?
+            orderCanceled()
+              :
+            Column(
+              children: [
+                order.status.isFirst() ?
+                PrimaryButton(
+                  text: CONFIRMAR,
+                  onPressed: () {
+                    var now = DateTime.now();
+                    int hour = now.hour;
+                    int minute = now.minute;
+                    order.items.forEach((element) {
+                      if (element.preparationTime != null) {
+                        print(element.preparationTime.toMap());
+                        if ((minute + element.preparationTime.minute) > 59) {
+                          hour += element.preparationTime.hour + 1;
+                          minute = (minute + element.preparationTime.minute) - 60;
+                        } else {
+                          minute += element.preparationTime.minute;
+                        }
+                        if (hour > 23) {
+                          hour = 0;
+                        } else {
+                          hour += element.preparationTime.hour;
+                        }
                       }
-                      if (hour > 23) {
-                        hour = 0;
-                      } else {
-                        hour += element.preparationTime.hour;
-                      }
-                    }
-                  });
-                  showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(hour: hour, minute: minute),
-                  ).then((value) {
-                    if (value != null) {
-                      order.deliveryForecast = DeliveryForecast();
-                      order.deliveryForecast.hour = value.hour;
-                      order.deliveryForecast.minute = value.minute;
+                    });
+                    showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(hour: hour, minute: minute),
+                    ).then((value) {
+                      if (value != null) {
+                        order.deliveryForecast = DeliveryForecast();
+                        order.deliveryForecast.hour = value.hour;
+                        order.deliveryForecast.minute = value.minute;
 
-                      order.status.values[1].date = DateTime.now();
-                      setState(() {
-                        order.status.current = order.status.values[1];
-                      });
-                      presenter.update(order);
-                    }
-                  });
-                },
-              ) : Column(
-                children: [
-                  Text(
-                    "Previsão de entrega",
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 25,
-                      color: Colors.black45,
-                      fontWeight: FontWeight.bold,
+                        order.status.values[1].date = DateTime.now();
+                        setState(() {
+                          order.status.current = order.status.values[1];
+                        });
+                        presenter.update(order);
+                      }
+                    });
+                  },
+                ) : Column(
+                  children: [
+                    Text(
+                      "Previsão de entrega",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 25,
+                        color: Colors.black45,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 10,),
-                  Text(
-                    order.deliveryForecast.toString(),
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 35,
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
+                    SizedBox(height: 10,),
+                    Text(
+                      order.deliveryForecast.toString(),
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 35,
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -267,6 +315,50 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget textPaymentType() {
+    return Padding(
+      padding: EdgeInsets.only(top: 15, bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            flex: 1,
+            child: AutoSizeText(
+              order.typePayment.getType(),
+              maxLines: 1,
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.black45,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Text(
+            order.changeMoney,
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black45,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget orderCanceled() {
+    return Text(
+      "Esse pedido foi cancelado",
+      style: TextStyle(
+        fontSize: 22,
+        color: Colors.red,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -378,60 +470,57 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
         color: currentStatusIndex > index ? Colors.grey : currentStatusIndex == index ? Colors.green : Colors.grey[300],
         padding: EdgeInsets.all(6),
       ),
-      rightChild: Flexible(
-        flex: 1,
-        child: Container(
-          margin: EdgeInsets.only(left: 10, right: 30),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SecondaryButton(
-                child: AutoSizeText(
-                  status.name,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: this.currentStatusIndex > index ?
-                    Colors.grey[500]
-                        :
-                    this.currentStatusIndex == index ?
-                    Colors.green
-                        :
-                    this.currentStatusIndex + 1 == index ?
-                    Colors.black54
-                        :
-                    Colors.grey[300],
-                    fontWeight: FontWeight.bold,
-                  ),
+      rightChild: Container(
+        margin: EdgeInsets.only(left: 10, right: 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SecondaryButton(
+              child: AutoSizeText(
+                status.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 25,
+                  color: this.currentStatusIndex > index ?
+                  Colors.grey[500]
+                      :
+                  this.currentStatusIndex == index ?
+                  Colors.green
+                      :
+                  this.currentStatusIndex + 1 == index ?
+                  Colors.black54
+                      :
+                  Colors.grey[300],
+                  fontWeight: FontWeight.bold,
                 ),
-                onPressed: () {
-                  if (currentStatusIndex + 1 == index) {
-                    setState(() {
-                      currentStatusIndex++;
-                      order.status.values[currentStatusIndex].date = DateTime.now();
-                      order.status.current = order.status.values[currentStatusIndex];
-                      presenter.update(order);
-                    });
-                  }
-                },
               ),
-              SizedBox(height: 5,),
-              status.date != null ?
-              Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                child: Text(
-                  DateUtil.formatHourMinute(DateTime.now()),//DateUtil.formatHourMinute(status.date),
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.black38,
-                      fontWeight: FontWeight.bold
-                  ),
+              onPressed: () {
+                if (currentStatusIndex + 1 == index) {
+                  setState(() {
+                    currentStatusIndex++;
+                    order.status.values[currentStatusIndex].date = DateTime.now();
+                    order.status.current = order.status.values[currentStatusIndex];
+                    presenter.update(order);
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 5,),
+            status.date != null ?
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Text(
+                DateUtil.formatDateMouthHour(status.date),
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.black38,
+                    fontWeight: FontWeight.bold
                 ),
-              ) : Container(),
-            ],
-          ),
+              ),
+            ) : Container(),
+          ],
         ),
       ),
       topLineStyle: const LineStyle(
@@ -485,9 +574,10 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
   }
 
   Widget addressDataWidget(Address address) {
-    print(address.toMap());
     return Card(
+      elevation: 5,
       margin: EdgeInsets.only(top: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
       child: Container(
         width: MediaQuery.of(context).size.width,
         child: Column(
@@ -505,18 +595,6 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 ),
               ),
             ),
-            address.smallTown != null ?
-            Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                "",//address.smallTown.toString(),
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black54,
-                ),
-              ),
-            ) : Container(),
             Padding(
               padding: EdgeInsets.only(left: 10, top: 5, right: 10),
               child: Text(
@@ -563,6 +641,32 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
               ),
             ) : Container(),
             SizedBox(height: 10,),
+            order.deliveryAddress.location != null ?
+            GestureDetector(
+              child: Container(
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                width: MediaQuery.of(context).size.width,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColorLight,
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+                ),
+                child: Text(
+                  "Abrir o Mapa",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              onTap: () async {
+                var address = order.deliveryAddress;
+                if (address != null) {
+                  MapsLauncher.launchCoordinates(address.location.latitude, address.location.longitude);
+                }
+              },
+            ) : Container(),
           ],
         ),
       ),

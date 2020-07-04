@@ -106,7 +106,6 @@ class _NewAddressPageState extends State<NewAddressPage> implements AddressContr
         key: _formKey,
         child: Column(
           children: <Widget>[
-            //textSmallAddress(),
             textInputStreet(),
             textInputNumber(),
             textInputReference(),

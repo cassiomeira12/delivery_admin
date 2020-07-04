@@ -1,10 +1,10 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:package_info/package_info.dart';
 import 'dart:io';
 import '../../models/singleton/singletons.dart';
 import '../../services/notifications/local_notifications.dart';
 import '../../utils/preferences_util.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:package_info/package_info.dart';
 
 class FirebaseNotifications {
   FirebaseMessaging _firebaseMessaging;
@@ -14,10 +14,10 @@ class FirebaseNotifications {
   FirebaseNotifications() {
     var settingsAndroid = AndroidInitializationSettings("ic_stat_notification");
     var settingsIOS = IOSInitializationSettings(
-      onDidReceiveLocalNotification: (id, title, body, payload) => onSelectNotification(payload)
+        onDidReceiveLocalNotification: (id, title, body, payload) => onSelectNotification(payload)
     );
     notifications.initialize(
-      InitializationSettings(settingsAndroid, settingsIOS), onSelectNotification: onSelectNotification
+        InitializationSettings(settingsAndroid, settingsIOS), onSelectNotification: onSelectNotification
     );
   }
 
@@ -120,7 +120,7 @@ class FirebaseNotifications {
 
   void iOSPermission() {
     _firebaseMessaging.requestNotificationPermissions(
-      IosNotificationSettings(sound: true, badge: true, alert: true)
+        IosNotificationSettings(sound: true, badge: true, alert: true)
     );
     _firebaseMessaging.onIosSettingsRegistered.listen((IosNotificationSettings settings) {
       print("Settings registered: $settings");
@@ -150,5 +150,5 @@ class FirebaseNotifications {
 }
 
 enum Topics {
-  ALL
+  ALL,
 }
