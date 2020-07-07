@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:delivery_admin/models/base_user.dart';
+import 'package:delivery_admin/models/singleton/singletons.dart';
 import 'package:delivery_admin/utils/log_util.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import '../../contracts/company/company_contract.dart';
@@ -249,6 +252,78 @@ class ParseCompanyService extends CompanyContractService {
       }
     });
 
+  }
+
+  @override
+  Future<String> changeLogoPhoto(File image) async {
+    image = image.renameSync(image.path);
+
+    var file = ParseFile(image);
+    var object = ParseObject("Company");
+    object.objectId = Singletons.company().id;
+
+    return await file.save().then((value) async {
+      if (value.success) {
+        var result = value.result;
+        object.set("logo", result);
+        return await object.update().then((value) {
+          if (value.success) {
+            Singletons.company().logoURL = result.url;
+            return result.url;
+          } else {
+            throw value.error;
+          }
+        }).catchError((error) {
+          throw Exception(ERROR_NETWORK);
+        });
+      } else {
+        throw value.error;
+      }
+    }).catchError((error) {
+      switch (error.code) {
+        case -1:
+          throw Exception(ERROR_NETWORK);
+          break;
+        default:
+          throw error;
+      }
+    });
+  }
+
+  @override
+  Future<String> changeBannerPhoto(File image) async {
+    image = image.renameSync(image.path);
+
+    var file = ParseFile(image);
+    var object = ParseObject("Company");
+    object.objectId = Singletons.company().id;
+
+    return await file.save().then((value) async {
+      if (value.success) {
+        var result = value.result;
+        object.set("banner", result);
+        return await object.update().then((value) {
+          if (value.success) {
+            Singletons.company().bannerURL = result.url;
+            return result.url;
+          } else {
+            throw value.error;
+          }
+        }).catchError((error) {
+          throw Exception(ERROR_NETWORK);
+        });
+      } else {
+        throw value.error;
+      }
+    }).catchError((error) {
+      switch (error.code) {
+        case -1:
+          throw Exception(ERROR_NETWORK);
+          break;
+        default:
+          throw error;
+      }
+    });
   }
 
 }

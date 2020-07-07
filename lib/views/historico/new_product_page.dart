@@ -19,7 +19,6 @@ import '../../widgets/background_card.dart';
 import '../page_router.dart';
 
 class NewProductPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _NewProductPageState();
 }
@@ -33,7 +32,8 @@ class _NewProductPageState extends State<NewProductPage> {
   TextEditingController descriptionController;
   String name;
   var costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
-  var discountController = MoneyMaskedTextController(leftSymbol: 'R\$ ', initialValue: 0);
+  var discountController =
+      MoneyMaskedTextController(leftSymbol: 'R\$ ', initialValue: 0);
   double cost, discount;
   PreparationTime preparationTime;
   List<String> imagesList = List();
@@ -59,8 +59,13 @@ class _NewProductPageState extends State<NewProductPage> {
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: keyboardDismisser(),
       ),
@@ -69,10 +74,7 @@ class _NewProductPageState extends State<NewProductPage> {
 
   Widget keyboardDismisser() {
     return KeyboardDismisser(
-      gestures: [
-        GestureType.onTap,
-        GestureType.onVerticalDragDown
-      ],
+      gestures: [GestureType.onTap, GestureType.onVerticalDragDown],
       child: SingleChildScrollView(
         child: body(),
       ),
@@ -94,7 +96,9 @@ class _NewProductPageState extends State<NewProductPage> {
                       Stack(
                         alignment: Alignment.topCenter,
                         children: <Widget>[
-                          BackgroundCard(height: 200,),
+                          BackgroundCard(
+                            height: 200,
+                          ),
                           //slidesImages(),
                         ],
                       ),
@@ -120,7 +124,6 @@ class _NewProductPageState extends State<NewProductPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Form(
             key: _formKey,
             child: Column(
@@ -137,9 +140,10 @@ class _NewProductPageState extends State<NewProductPage> {
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: AreaInputField(
                     labelText: "Descrição",
-                    maxLines: 4,
+                    maxLines: 6,
                     textCapitalization: TextCapitalization.sentences,
                     controller: descriptionController,
+                    validator: (value) => null,
                   ),
                 ),
                 Padding(
@@ -156,7 +160,8 @@ class _NewProductPageState extends State<NewProductPage> {
                   child: TextInputField(
                     labelText: "Desconto R\$",
                     controller: discountController,
-                    onSaved: (value) => discount = discountController.numberValue,
+                    onSaved: (value) =>
+                        discount = discountController.numberValue,
                   ),
                 ),
                 Padding(
@@ -166,7 +171,9 @@ class _NewProductPageState extends State<NewProductPage> {
                       padding: EdgeInsets.only(left: 10, top: 15, bottom: 15),
                       color: Colors.transparent,
                       child: Text(
-                        preparationTime == null ? "Tempo de preparo" : "Tempo de preparo: ${preparationTime.toString()}",
+                        preparationTime == null
+                            ? "Tempo de preparo"
+                            : "Tempo de preparo: ${preparationTime.toString()}",
                         style: Theme.of(context).textTheme.body2,
                       ),
                     ),
@@ -189,14 +196,12 @@ class _NewProductPageState extends State<NewProductPage> {
               ],
             ),
           ),
-
           choicesWidget(),
-
           additionalWidget(),
-
           saveProductButton(),
-
-          SizedBox(height: 30,),
+          SizedBox(
+            height: 30,
+          ),
         ],
       ),
     );
@@ -214,12 +219,18 @@ class _NewProductPageState extends State<NewProductPage> {
               return GestureDetector(
                 child: ChoiceWidget(e),
                 onTap: () async {
-                  var result = await PageRouter.push(context, NewChoicePage(choice: e,));
+                  var result = await PageRouter.push(
+                      context,
+                      NewChoicePage(
+                        choice: e,
+                      ));
                 },
               );
             }).toList(),
           ),
-          SizedBox(height: 15,),
+          SizedBox(
+            height: 15,
+          ),
           SecondaryButton(
             text: "Nova Opção",
             onPressed: () async {
@@ -255,7 +266,9 @@ class _NewProductPageState extends State<NewProductPage> {
 //              });
             },
           ),
-          SizedBox(height: 15,),
+          SizedBox(
+            height: 15,
+          ),
           SecondaryButton(
             text: "Novo Adicional",
             onPressed: () async {
@@ -298,17 +311,16 @@ class _NewProductPageState extends State<NewProductPage> {
     if (validateAndSave()) {
       var product = Product()
         ..name = name
-        ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
+        ..description = descriptionController.value.text.isEmpty
+            ? null
+            : descriptionController.value.text
         ..cost = cost
         ..discount = discount
         ..preparationTime = preparationTime
         ..images = imagesList
         ..choices = choiceList
         ..additional = additionalList;
-
-      Log.d(product.toMap());
       PageRouter.pop(context, product);
     }
   }
-
 }

@@ -1,5 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -98,16 +100,18 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
         actions: [
           PopupMenuButton(
             itemBuilder: (BuildContext context) {
-              return ["Contato", "Cancelar"].map((String choice) {
+              return ["WhatsApp", "Cancelar"].map((String choice) {
                 return PopupMenuItem(value: choice, child: Text(choice),);
               }).toList();
             },
             onSelected: (value) async {
               switch (value) {
-                case "Contato":
-                  var whatsAppLink = order.companyPhoneNumber.whatsAppLink();
+                case "WhatsApp":
+                  var whatsAppLink = order.userPhoneNumber.whatsAppLink();
                   if (await canLaunch(whatsAppLink)) {
                     await launch(whatsAppLink);
+                  } else {
+                    ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
                   }
                   break;
                 case "Cancelar":
@@ -203,7 +207,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 avaliationComenteTextWidget(),
               ],
             ) : Container(),
-            order.evaluation == null ? deliveryCurrentStatus() : Container(),
+            deliveryCurrentStatus(),
           ],
         ),
       ),
@@ -223,34 +227,111 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 order.status.isFirst() ?
                 PrimaryButton(
                   text: CONFIRMAR,
-                  onPressed: () {
-                    var now = DateTime.now();
-                    int hour = now.hour;
-                    int minute = now.minute;
-                    order.items.forEach((element) {
-                      if (element.preparationTime != null) {
-                        print(element.preparationTime.toMap());
-                        if ((minute + element.preparationTime.minute) > 59) {
-                          hour += element.preparationTime.hour + 1;
-                          minute = (minute + element.preparationTime.minute) - 60;
+                  onPressed: () async {
+                    List<Map> times = List();
+                    times.add({"hour": 0, "minute": 0, "key": 0, "message": "Está pronto"},);
+                    times.add({"hour": 0, "minute": 5, "key": 1, "message": "Daqui 5 minutos"});
+                    times.add({"hour": 0, "minute": 10, "key": 2, "message": "Daqui 10 minutos"});
+                    times.add({"hour": 0, "minute": 15, "key": 3, "message": "Daqui 15 minutos"});
+                    times.add({"hour": 0, "minute": 30, "key": 4, "message": "Daqui 30 minutos"});
+                    times.add({"hour": 0, "minute": 45, "key": 5, "message": "Daqui 45 minutos"});
+                    times.add({"hour": 1, "minute": 0, "key": 6, "message": "Daqui 1 hora"});
+                    times.add({"hour": 1, "minute": 15, "key": 7, "message": "Daqui 1 hora e 15 minutos"});
+                    times.add({"hour": 1, "minute": 30, "key": 8, "message": "Daqui 1 hora e 30 minutos"});
+                    times.add({"hour": 1, "minute": 45, "key": 9, "message": "Daqui 1 hora e 45 minutos"});
+                    times.add({"hour": 2, "minute": 0, "key": 10, "message": "Daqui 2 horas"});
+                    times.add({"hour": -1, "minute": -1, "key": 11, "message": "Escolher horário"});
+                    final result = await showConfirmationDialog<int>(
+                      context: context,
+                      title: "Quando o pedido ficará pronto?",
+                      okLabel: "Ok",
+                      cancelLabel: CANCELAR,
+                      barrierDismissible: false,
+                      actions: times.map((e) {
+                        return AlertDialogAction<int>(
+                            label: e["message"],
+                            key: e["key"]
+                        );
+                      }).toList(),
+                    );
+                    if (result != null) {
+                      var now = DateTime.now();
+                      int hour = now.hour;
+                      int minute = now.minute;
+
+                      if (result == 1) {
+                        order.items.forEach((element) {
+                          if (element.preparationTime != null) {
+                            if ((minute + element.preparationTime.minute) > 59) {
+                              hour += element.preparationTime.hour + 1;
+                              minute = (minute + element.preparationTime.minute) - 60;
+                            } else {
+                              minute += element.preparationTime.minute;
+                            }
+                            if (hour > 23) {
+                              hour = 0;
+                            } else {
+                              hour += element.preparationTime.hour;
+                            }
+                          }
+                        });
+                        order.deliveryForecast = DeliveryForecast();
+                        order.deliveryForecast.hour = hour;
+                        order.deliveryForecast.minute = minute;
+
+                        order.status.values[1].date = DateTime.now();
+                        setState(() {
+                          order.status.current = order.status.values[1];
+                        });
+                        presenter.update(order);
+                      } else if (result == 11) {
+                        order.items.forEach((element) {
+                          if (element.preparationTime != null) {
+                            if ((minute + element.preparationTime.minute) > 59) {
+                              hour += element.preparationTime.hour + 1;
+                              minute = (minute + element.preparationTime.minute) - 60;
+                            } else {
+                              minute += element.preparationTime.minute;
+                            }
+                            if (hour > 23) {
+                              hour = 0;
+                            } else {
+                              hour += element.preparationTime.hour;
+                            }
+                          }
+                        });
+                        showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay(hour: hour, minute: minute),
+                        ).then((value) {
+                          if (value != null) {
+                            order.deliveryForecast = DeliveryForecast();
+                            order.deliveryForecast.hour = value.hour;
+                            order.deliveryForecast.minute = value.minute;
+
+                            order.status.values[1].date = DateTime.now();
+                            setState(() {
+                              order.status.current = order.status.values[1];
+                            });
+                            presenter.update(order);
+                          }
+                        });
+                      } else {
+                        if ((minute + times[result]["minute"]) > 59) {
+                          hour += times[result]["hour"] + 1;
+                          minute = (minute + times[result]["minute"]) - 60;
                         } else {
-                          minute += element.preparationTime.minute;
+                          minute += times[result]["minute"];
                         }
                         if (hour > 23) {
                           hour = 0;
                         } else {
-                          hour += element.preparationTime.hour;
+                          hour += times[result]["hour"];
                         }
-                      }
-                    });
-                    showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(hour: hour, minute: minute),
-                    ).then((value) {
-                      if (value != null) {
+
                         order.deliveryForecast = DeliveryForecast();
-                        order.deliveryForecast.hour = value.hour;
-                        order.deliveryForecast.minute = value.minute;
+                        order.deliveryForecast.hour = hour;
+                        order.deliveryForecast.minute = minute;
 
                         order.status.values[1].date = DateTime.now();
                         setState(() {
@@ -258,7 +339,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                         });
                         presenter.update(order);
                       }
-                    });
+                    }
                   },
                 ) : Column(
                   children: [
@@ -339,7 +420,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             ),
           ),
           Text(
-            order.changeMoney,
+            order.changeMoney == null ? "Sem troco" : order.changeMoney,
             textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 20,
@@ -583,64 +664,77 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                "Endereço",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: order.delivery ? FaIcon(FontAwesomeIcons.motorcycle,) : FaIcon(FontAwesomeIcons.running,),
                 ),
-              ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 5, right: 10),
+                      child: Text(
+                        order.delivery ? "Endereço de entrega" : "Endereço de retirada",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 5, right: 10),
+                      child: Text(
+                        "${address.street}" + (address.number == null ? "" : ", ${address.number}"),
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    address.neighborhood != null ? Padding(
+                      padding: EdgeInsets.only(top: 5, right: 10),
+                      child: Text(
+                        address.neighborhood,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ) : Container(),
+                    address.reference != null ? Padding(
+                      padding: EdgeInsets.only(top: 5, right: 10),
+                      child: Text(
+                        address.reference,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black38,
+                        ),
+                      ),
+                    ) : Container(),
+                    order.note != null && order.note.isNotEmpty ?
+                    Padding(
+                      padding: EdgeInsets.only(top: 5, right: 10),
+                      child: Text(
+                        order.note,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
+                          //fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ) : Container(),
+                    SizedBox(height: 10,),
+                  ],
+                ),
+              ],
             ),
-            Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                "${address.street}" + (address.number == null ? "" : ", ${address.number}"),
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-            address.neighborhood != null ? Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                address.neighborhood,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black54,
-                ),
-              ),
-            ) : Container(),
-            address.reference != null ? Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                address.reference,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black38,
-                ),
-              ),
-            ) : Container(),
-            order.note != null && order.note.isNotEmpty ?
-            Padding(
-              padding: EdgeInsets.only(left: 10, top: 5, right: 10),
-              child: Text(
-                order.note,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                  //fontWeight: FontWeight.bold,
-                ),
-              ),
-            ) : Container(),
-            SizedBox(height: 10,),
             order.deliveryAddress.location != null ?
             GestureDetector(
               child: Container(
@@ -664,6 +758,8 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 var address = order.deliveryAddress;
                 if (address != null) {
                   MapsLauncher.launchCoordinates(address.location.latitude, address.location.longitude);
+                } else {
+                  ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
                 }
               },
             ) : Container(),

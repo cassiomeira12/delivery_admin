@@ -115,7 +115,6 @@ class OrdersPresenter implements OrderContractPresenter {
         if (value.result == null) {
           _view.listSuccess([]);
         } else {
-          Log.d(value.result);
           List<ParseObject> listObj = value.result;
           var list = listObj.map<Order>((obj) {
             return Order.fromMap(obj.toJson());
@@ -128,10 +127,10 @@ class OrdersPresenter implements OrderContractPresenter {
     }).catchError((error) {
       switch (error.code) {
         case -1:
-          throw Exception(ERROR_NETWORK);
+          _view.onFailure(ERROR_NETWORK);
           break;
         default:
-          throw Exception(error.message);
+          _view.onFailure(SOME_ERROR);
       }
     });
   }

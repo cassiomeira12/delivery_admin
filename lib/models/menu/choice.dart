@@ -9,7 +9,9 @@ class Choice extends BaseModel<Choice> {
   int minQuantity;
   List<Item> itens;
 
-  Choice() : super('Choice');
+  Choice() : super('Choice') {
+    itens = List();
+  }
 
   Choice.fromMap(Map<dynamic, dynamic>  map) : super('Choice') {
     name = map["name"];

@@ -1,4 +1,11 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:delivery_admin/views/settings/company_address_page.dart';
+import 'package:delivery_admin/views/settings/company_page.dart';
+import 'package:delivery_admin/views/settings/company_phone_number_page.dart';
+import 'package:delivery_admin/views/settings/delivery_page.dart';
+import 'package:delivery_admin/views/settings/opening_hours_page.dart';
+import 'package:delivery_admin/views/settings/payment_type_page.dart';
+import 'package:delivery_admin/views/settings/plan_page.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -141,10 +148,17 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
       children: <Widget>[
         perfilButton(),
         notificationsSettingsButton(),
-        //darkModeButton(),
+        darkModeButton(),
         aboutAppButton(),
-        //termosButton(),
+        termosButton(),
         //disableAccountButton(),
+        companyButton(),
+        planButton(),
+        companyAddressButton(),
+        openingHoursButton(),
+        phonesNumbersButton(),
+        deliveryButton(),
+        paymentTypeButton(),
         signOutButton(),
         Padding(padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 40),),
       ],
@@ -468,6 +482,286 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
           ),
           onPressed: () {
             showDialogLogOut();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget companyButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.solidBuilding, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Estabelecimento",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, CompanyPage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget planButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.idCard, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Plano de assinatura",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, PlanPage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget openingHoursButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.solidClock, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Horários de funcionamento",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, OpenningHoursPage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget deliveryButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.motorcycle, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Formas de delivery",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, DeliveryPage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget paymentTypeButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.moneyBill, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Formas de pagamento",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, PaymentTypePage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget phonesNumbersButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.phoneAlt, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Telefone de contato",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, CompanyPhoneNumberPage());
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget companyAddressButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0.0, 1.0, 0.0, 0.0),
+      child: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: RaisedButton(
+          elevation: 0.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0.0),
+            //side: BorderSide(color: Colors.black26),
+          ),
+          color: Theme.of(context).backgroundColor,
+          child: Row(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                child: FaIcon(FontAwesomeIcons.home, color: Theme.of(context).iconTheme.color,),
+              ),
+              Expanded(
+                child: Text(
+                  "Endereço do estabelecimento",
+                  style: Theme.of(context).textTheme.body2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                child: Icon(Icons.chevron_right, color: Theme.of(context).iconTheme.color,),
+              ),
+            ],
+          ),
+          onPressed: () {
+            PageRouter.push(context, CompanyAddressPage());
           },
         ),
       ),

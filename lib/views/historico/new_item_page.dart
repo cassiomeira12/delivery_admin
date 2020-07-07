@@ -1,6 +1,5 @@
-import 'package:delivery_admin/models/menu/choice.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
-
+import '../../models/menu/choice.dart';
+import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import '../../models/menu/item.dart';
@@ -26,14 +25,15 @@ class _NewItemPageState extends State<NewItemPage> {
   bool _loading = false;
 
   TextEditingController descriptionController;
+  MoneyMaskedTextController costController;
   String name;
   bool required = false;
-  double cost;
 
   @override
   void initState() {
     super.initState();
     descriptionController = TextEditingController();
+    costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
   }
 
   @override
@@ -91,8 +91,7 @@ class _NewItemPageState extends State<NewItemPage> {
                   child: TextInputField(
                     labelText: "Preço R\$",
                     keyboardType: TextInputType.number,
-                    controller: MoneyMaskedTextController(leftSymbol: 'R\$ '),
-                    onSaved: (value) => value.isEmpty ? cost = null : cost = double.parse(value.trim()),
+                    controller: costController,
                     validator: (value) => null,
                   ),
                 ),
@@ -130,7 +129,7 @@ class _NewItemPageState extends State<NewItemPage> {
       var item = Item()
           ..name = name
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
-          ..cost = cost;
+          ..cost = costController.numberValue;
       PageRouter.pop(context, item);
     }
   }

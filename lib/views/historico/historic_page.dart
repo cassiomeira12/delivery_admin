@@ -1,7 +1,12 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/models/singleton/singletons.dart';
-import 'package:delivery_admin/views/historico/new_product_page.dart';
-import 'package:delivery_admin/views/home/product_page.dart';
+import 'package:delivery_admin/presenters/company/company_presenter.dart';
+import 'package:delivery_admin/presenters/file_presenter.dart';
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../models/singleton/singletons.dart';
+import '../../views/historico/new_product_page.dart';
+import '../../views/home/product_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -36,7 +41,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
 
   Company company;
 
-  MenuContractPresenter presenter;
+  CompanyPresenter companyPresenter;
+  MenuContractPresenter menuPresenter;
 
   Menu menu;
 
@@ -44,11 +50,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   String bannerURL;
   bool favotito = false;
 
-  //var menu = ['Remover'];
-
   List<Product> list;
-
-  PanelController _pc = new PanelController();
 
   bool orderSelected = false;
   int orderItens = 0;
@@ -61,15 +63,15 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     company = Singletons.company();
     logoURL = company.logoURL;
     bannerURL = company.bannerURL;
-    presenter = MenuPresenter(this);
-    //menu = Menu()..id = company.idMenu;
-    //presenter.read(menu);
+    menuPresenter = MenuPresenter(this);
+    companyPresenter = CompanyPresenter(null);
+    menuPresenter.findBy("company", Singletons.company().toPointer());
   }
 
   @override
   void dispose() {
     super.dispose();
-    presenter.dispose();
+    menuPresenter.dispose();
   }
 
   @override
@@ -90,7 +92,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             barrierDismissible: false,
             //message: "Deseja sair do $APP_NAME ?",
             actions: menu.categories.map((e) {
-              return AlertDialogAction<String>(label: e.name, key: e.id);
+              return AlertDialogAction<String>(label: e.name, key: e.name);
             }).toList(),
           );
 
@@ -98,13 +100,13 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             var newProduct = await PageRouter.push(context, NewProductPage());
             if (newProduct != null) {
               menu.categories.forEach((element) {
-                if (element.id == categoriesSelected) {
+                if (element.name == categoriesSelected) {
                   element.products.add(newProduct);
                   return;
                 }
               });
             }
-            presenter.update(menu);
+            menuPresenter.update(menu);
           }
 
         },
@@ -114,8 +116,22 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
 
   @override
   listSuccess(List<Menu> list) {
-    list.forEach((element) {
-      print(element.toMap());
+    if (list == null || list.isEmpty) {
+      setState(() {
+        this.list = List();
+      });
+      return;
+    }
+
+    List<Product> temp = List();
+
+    list[0].categories.forEach((product) {
+      temp.addAll(product.products);
+    });
+
+    setState(() {
+      menu = list[0];
+      this.list = temp;
     });
   }
 
@@ -124,34 +140,22 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     print(error);
     setState(() {
       list = [];
-      //menu.id = company.idMenu;
     });
   }
 
   @override
   onSuccess(Menu result) {
+    print("update");
     List<Product> temp = List();
-
-//    if (menu.categories.isEmpty) {
-//      menu.categories.add(adicionar());
-//      presenter.update(menu);
-//    }
 
     result.categories.forEach((product) {
       temp.addAll(product.products);
     });
 
-//    if (temp.length == 2) {
-//      var p = adicionar();
-//      menu.categories[0].products.add(p);
-//      presenter.update(menu);
-//    }
-
     setState(() {
       menu = result;
-      list = temp;
+      this.list = temp;
     });
-
   }
 
   Widget notificationCount(int notifications) {
@@ -210,7 +214,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                               ),
                             ),
                           ),
-                          imageUser(logoURL),
+                          //imageUser(logoURL),
+                          imageCircle(),
                         ],
                       ),
                     ],
@@ -229,7 +234,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
     return RefreshIndicator(
       key: _refreshIndicatorKey,
-      onRefresh: () => presenter.read(menu),
+      onRefresh: () => menuPresenter.read(menu),
       child: Center(
         child: list == null ?
         LoadingShimmerList()
@@ -301,7 +306,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                 }
               });
               categoryProduct.products.remove(item);
-              presenter.update(menu);
+              menuPresenter.update(menu);
             },
           ),
         ],
@@ -446,6 +451,61 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             ),
           ),
 
+        ],
+      ),
+    );
+  }
+
+  void changeImgUser() async {
+    final result = await showOkCancelAlertDialog(
+      context: context,
+      title: SELECIONE_IMAGEM,
+      okLabel: CAMERA,
+      cancelLabel: GALERIA,
+    );
+    var imageSource;
+    switch(result) {
+      case OkCancelResult.ok:
+        imageSource = ImageSource.camera;
+        break;
+      case OkCancelResult.cancel:
+        imageSource = ImageSource.gallery;
+        break;
+    }
+    if (imageSource != null) {
+      final file = await ImagePicker.pickImage(source: imageSource);
+      if (file != null) {
+        var compressedFile = await FlutterNativeImage.compressImage(file.path, percentage: 50);
+//        setState(() {
+//          _loading = true;
+//        });
+        await companyPresenter.changeLogoPhoto(compressedFile);
+        compressedFile.deleteSync();
+      }
+    }
+  }
+
+  Widget imageCircle() {
+    return Container(
+      width: 180,
+      height: 150,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          imageUser(logoURL),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: RawMaterialButton(
+              child: Icon(Icons.camera_alt, color: Colors.white,),
+              shape: CircleBorder(),
+              elevation: 2.0,
+              fillColor: Theme.of(context).primaryColorDark,
+              padding: const EdgeInsets.all(10),
+              onPressed: () {
+                changeImgUser();
+              },
+            ),
+          ),
         ],
       ),
     );

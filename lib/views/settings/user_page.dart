@@ -102,7 +102,7 @@ class _UserState extends State<UserPage> implements UserContractView {
         key: _formKey,
         child: Column(
           children: <Widget>[
-            user(),
+            imageCircle(),
             txtChangePhoto(),
             nameUser(),
             emailUser(),
@@ -114,7 +114,7 @@ class _UserState extends State<UserPage> implements UserContractView {
     );
   }
 
-  Widget user() {
+  Widget imageCircle() {
     return Container(
       width: 180,
       child: Stack(

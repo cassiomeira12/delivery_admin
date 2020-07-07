@@ -3,6 +3,7 @@ import 'package:delivery_admin/models/company/company.dart';
 import 'package:delivery_admin/presenters/user/user_presenter.dart';
 import 'package:delivery_admin/services/notifications/firebase_push_notification.dart';
 import 'package:delivery_admin/utils/preferences_util.dart';
+import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
 
 import '../../models/singleton/singletons.dart';
 import '../../contracts/order/order_contract.dart';
@@ -35,6 +36,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> implements OrderContractView {
   final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   UserContractPresenter userPresenter;
   CompanyContractPresenter companyPresenter;
@@ -110,7 +112,10 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   @override
   onFailure(String error)  {
-    print(error);
+    setState(() {
+      ordersList = List();
+    });
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
@@ -121,7 +126,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(companyName, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
@@ -146,7 +151,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                         alignment: Alignment.topCenter,
                         children: <Widget>[
                           BackgroundCard(height: 100,),
-                          search(),
+                          //search(),
                         ],
                       ),
                     ],

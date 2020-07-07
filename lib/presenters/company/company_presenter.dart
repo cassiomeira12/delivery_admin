@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:delivery_admin/models/base_user.dart';
 
 import '../../services/parse/parse_company_service.dart';
@@ -110,6 +112,28 @@ class CompanyPresenter implements CompanyContractPresenter {
   @override
   getFromAdmin(BaseUser user) {
     return service.getFromAdmin(user);
+  }
+
+  @override
+  changeLogoPhoto(File file) async {
+    return await service.changeLogoPhoto(file).then((value) {
+      if (_view != null) _view.listSuccess(value);
+      return value;
+    }).catchError((error) {
+      if (_view != null) _view.onFailure(error.message);
+      return null;
+    });
+  }
+
+  @override
+  changeBannerPhoto(File file) async {
+    return await service.changeBannerPhoto(file).then((value) {
+      if (_view != null) _view.listSuccess(value);
+      return value;
+    }).catchError((error) {
+      if (_view != null) _view.onFailure(error.message);
+      return null;
+    });
   }
 
 }
