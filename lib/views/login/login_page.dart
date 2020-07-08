@@ -36,13 +36,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> implements LoginContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _loading = false;
 
   LoginContractPresenter presenter;
 
   String _email;
   String _password;
 
-  bool _loading = false;
 
   @override
   void initState() {

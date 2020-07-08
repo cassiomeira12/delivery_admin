@@ -46,8 +46,9 @@ class _AboutAppState extends State<AboutAppPage> {
                 _showForm(),
               ],
             ),
+            txtAppName(),
             versionAppWidget(),
-            txtAboutApp(),
+            //txtAboutApp(),
           ],
         ),
       ),
@@ -99,27 +100,23 @@ class _AboutAppState extends State<AboutAppPage> {
               Padding(
                 padding: EdgeInsets.fromLTRB(5, 5, 10, 5),
                 child: CircularProgressIndicator(),
-              )
-                :
-              Icon(
-                icon,
-                color: colorIcon,
-                size: 50,
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      statusVersionApp,
-                      style: Theme.of(context).textTheme.body1,
-                    ),
-                    Text(
-                      currentVersion,
-                      style: Theme.of(context).textTheme.body1,
-                    ),
-                  ],
+              ) : Icon(icon, color: colorIcon, size: 50,),
+              Flexible(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        statusVersionApp,
+                        style: Theme.of(context).textTheme.body1,
+                      ),
+                      Text(
+                        currentVersion,
+                        style: Theme.of(context).textTheme.body1,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -141,7 +138,6 @@ class _AboutAppState extends State<AboutAppPage> {
         child: Column(
           children: <Widget>[
             imgApp(),
-            txtAppName(),
           ],
         ),
       ),
@@ -169,12 +165,12 @@ class _AboutAppState extends State<AboutAppPage> {
 
   Widget txtAppName() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+      padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Center(
         child: Text(
           APP_NAME,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.body1,
+          style: Theme.of(context).textTheme.subtitle,
         ),
       ),
     );

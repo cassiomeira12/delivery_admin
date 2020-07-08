@@ -58,7 +58,7 @@ class Company extends BaseModel<Company> {
     map["logoURL"] = logoURL;
     map["bannerURL"] = bannerURL;
     map["openHours"] = openHours.map<Map>((e) => e.toMap()).toList();
-    map["address"] = address.toMap();
+    map["address"] = address.toPointer();
     map["typePayments"] = typePayments.map<Map>((e) => e.toMap()).toList();
     map["delivery"] = delivery == null ? null : delivery.toMap();
     map["phoneNumber"] = phoneNumber == null ? null : phoneNumber.toMap();

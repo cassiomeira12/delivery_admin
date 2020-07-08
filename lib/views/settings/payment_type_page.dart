@@ -1,27 +1,57 @@
-import 'package:delivery_admin/widgets/primary_button.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:delivery_admin/contracts/company/company_contract.dart';
+import 'package:delivery_admin/models/company/company.dart';
+import 'package:delivery_admin/models/singleton/singletons.dart';
+import 'package:delivery_admin/presenters/company/company_presenter.dart';
+import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
-import '../../models/version_app.dart';
-import '../../presenters/version_app_presenter.dart';
-import '../../strings.dart';
-import '../../widgets/background_card.dart';
+import '../../models/company/type_payment.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../strings.dart';
+import '../page_router.dart';
 
 class PaymentTypePage extends StatefulWidget {
 
   @override
-  State<StatefulWidget> createState() => _PaymentTypePageState();
+  _PaymentTypePageState createState() => _PaymentTypePageState();
 }
 
-class _PaymentTypePageState extends State<PaymentTypePage> {
+class _PaymentTypePageState extends State<PaymentTypePage> implements CompanyContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _loading = false;
+
+  List<TypePayment> paymentsType;
+
+  var paymentTypeList = List();
+
+  CompanyContractPresenter companyPresenter;
 
   @override
   void initState() {
     super.initState();
+    companyPresenter = CompanyPresenter(this);
+    paymentTypeList.add({
+      "key": 0,
+      "name": "Dinheiro",
+      "type": Type.MONEY.toString().split('.').last,
+      "taxa": 0.0,
+      "maxInstallments": 1
+    });
+    paymentTypeList.add({
+      "key": 1,
+      "name": "Cartão",
+      "type": Type.CARD.toString().split('.').last,
+      "taxa": 0.0,
+      "maxInstallments": 1
+    });
+    if (Singletons.company().typePayments == null) {
+      Singletons.company().typePayments = List();
+    }
+    paymentsType = Singletons.company().typePayments;
   }
 
   @override
@@ -29,104 +59,192 @@ class _PaymentTypePageState extends State<PaymentTypePage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Formas de pagamento", style: TextStyle(color: Colors.white),),
+        title: Text("Forma de pagamento", style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                BackgroundCard(height: 200,),
-                _showForm(),
-              ],
-            ),
-            txtAboutApp(),
-          ],
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
         ),
+        child: body(),
       ),
-    );
-  }
-
-  Widget _showForm() {
-    return Container(
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            imgApp(),
-            txtAppName(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget imgApp() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-      child: Center(
-        child: Hero(
-          tag: "about",
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.transparent,
-              radius: 80.0,
-              child: Image.asset("assets/logo_app.png"),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget txtAppName() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-      child: Center(
-        child: Text(
-          APP_NAME,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.body1,
-        ),
-      ),
-    );
-  }
-
-  Widget txtAboutApp() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
-      width: double.maxFinite,
-      child: Text(
-        "About App",
-        style: Theme.of(context).textTheme.body1,
-      ),
-    );
-  }
-
-  Widget showEmailInput() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-      child: TextInputField(
-        labelText: EMAIL,
-        keyboardType: TextInputType.emailAddress,
-        onSaved: (value) => value = value.trim(),
-      ),
-    );
-  }
-
-  Widget changePasswordButton() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(12, 16.0, 12, 0.0),
-      child: PrimaryButton(
-        text: ALTERAR_SENHA,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add, color: Colors.white,),
         onPressed: () {
-
+          showConfirmationDialog<int>(
+            context: context,
+            title: "Escolha uma forma de pagamento",
+            okLabel: "Ok",
+            cancelLabel: CANCELAR,
+            barrierDismissible: false,
+            actions: paymentTypeList.map((e) {
+              return AlertDialogAction<int>(label: e["name"], key: e["key"]);
+            }).toList(),
+          ).then((value) {
+            var typeJson = paymentTypeList[value];
+            var typePayment = TypePayment.fromMap(typeJson);
+            setState(() {
+              paymentsType.add(typePayment);
+              _loading = true;
+            });
+            var result = companyPresenter.update(Singletons.company());
+            if (result == null) {
+              setState(() {
+                paymentsType.remove(typePayment);
+              });
+            }
+          });
         },
       ),
     );
   }
+
+  Widget body() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          textTitleWidget(),
+          paymentListView(),
+        ],
+      ),
+    );
+  }
+
+  Widget textTitleWidget() {
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: Text(
+        "Pagar na entrega",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.black54,
+        ),
+      ),
+    );
+  }
+
+  Widget paymentListView() {
+    return ListView(
+      physics: NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: paymentsType.map((e) {
+        return Padding(
+          padding: EdgeInsets.only(left: 10, top: 5, right: 10, bottom: 5),
+          child: listItem(e),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget listItem(TypePayment payment) {
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      child: paymentListItem(payment),
+      secondaryActions: <Widget>[
+        IconSlideAction(
+          caption: DELETAR,
+          color: Colors.red,
+          icon: Icons.delete,
+          onTap: () {
+            setState(() {
+              paymentsType.remove(payment);
+              _loading = true;
+            });
+            var result = companyPresenter.update(Singletons.company());
+            if (result == null) {
+              setState(() {
+                paymentsType.add(payment);
+              });
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget paymentListItem(TypePayment payment) {
+    IconData icon = findIcon(payment.paymentType);
+    String name = payment.getType();
+    return Card(
+      margin: EdgeInsets.all(0),
+      child: FlatButton(
+        child: Container(
+          padding: EdgeInsets.fromLTRB(0, 25, 15, 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    alignment: Alignment.center,
+                    child: FaIcon(icon, color: Colors.green,),
+                  ),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black45,
+                    ),
+                  ),
+                ],
+              ),
+//              Container(
+//                child: Checkbox(
+//                  value: false,
+//                ),
+//              ),
+            ],
+          ),
+        ),
+        onPressed: () {
+          //PageRouter.pop(context, payment);
+        },
+      ),
+    );
+  }
+
+  IconData findIcon(Type type) {
+    IconData icon;
+    switch(type) {
+      case Type.MONEY:
+        icon = FontAwesomeIcons.moneyBill;
+        break;
+      case Type.CARD:
+        icon = FontAwesomeIcons.creditCard;
+        break;
+      case Type.APP_PAYMENT:
+        icon = FontAwesomeIcons.mobileAlt;
+        break;
+      case Type.CASHBACK:
+        icon = FontAwesomeIcons.handHoldingUsd;
+        break;
+    }
+    return icon;
+  }
+
+  @override
+  listSuccess(List<Company> list) {
+
+  }
+
+  @override
+  onFailure(String error)  {
+    setState(() => _loading = false);
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+  }
+
+  @override
+  onSuccess(Company result) {
+    setState(() => _loading = false);
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
+  }
+
 
 }

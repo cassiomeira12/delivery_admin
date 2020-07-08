@@ -64,7 +64,9 @@ class _OpeningHourDialogState extends State<OpeningHourDialog> {
               ),
               SizedBox(height: 10,),
               SecondaryButton(
-                text: "Dia da semana",
+                text: openingHour.weekDay == null ?
+                  "Dia da semana" :
+                  weekList[openingHour.weekDay - 1]["title"],
                 onPressed: () async {
                   final result = await showConfirmationDialog<int>(
                     context: context,
@@ -85,7 +87,9 @@ class _OpeningHourDialogState extends State<OpeningHourDialog> {
               ),
               SizedBox(height: 20,),
               SecondaryButton(
-                text: "Horário abertura",
+                text: openingHour.openHour == null ?
+                  "Horário de abertura" :
+                  openingHour.openTime(),
                 onPressed: () {
                   showTimePicker(
                     context: context,
@@ -102,7 +106,9 @@ class _OpeningHourDialogState extends State<OpeningHourDialog> {
               ),
               SizedBox(height: 20,),
               SecondaryButton(
-                text: "Horário fechamento",
+                text: openingHour.closeHour == null ?
+                "Horário de fechamento" :
+                openingHour.closeTime(),
                 onPressed: () {
                   showTimePicker(
                     context: context,
@@ -119,7 +125,7 @@ class _OpeningHourDialogState extends State<OpeningHourDialog> {
               ),
               SizedBox(height: 30,),
               PrimaryButton(
-                text: "Salvar",
+                text: SALVAR,
                 onPressed: () async {
                   if (openingHour.weekDay == null) {
                     return;

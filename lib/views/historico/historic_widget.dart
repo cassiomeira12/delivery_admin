@@ -57,7 +57,17 @@ class _HistoricWidgetState extends State<HistoricWidget> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                order.evaluation == null ? Text(order.status.current.name) : StarsWidget(initialStar: order.evaluation.stars, size: 30,),
+                order.evaluation == null ?
+                Flexible(
+                  flex: 1,
+                  child: Text(
+                    order.canceled ? "Esse pedido foi cancelado" : order.status.current.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.body2,
+                  ),
+                )
+                    :
+                StarsWidget(initialStar: order.evaluation.stars, size: 30,),
                 costTextWidget("R\$ ${total.toStringAsFixed(2)}"),
               ],
             ),
