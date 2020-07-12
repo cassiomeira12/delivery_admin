@@ -4,6 +4,7 @@ import 'package:delivery_admin/presenters/file_presenter.dart';
 import 'package:delivery_admin/utils/log_util.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../models/singleton/singletons.dart';
 import '../../views/historico/new_product_page.dart';
 import '../../views/home/product_page.dart';
@@ -44,6 +45,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   CompanyPresenter companyPresenter;
   MenuContractPresenter menuPresenter;
 
+  bool _loading = false;
+
   Menu menu;
 
   String logoURL;
@@ -80,7 +83,15 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       appBar: AppBar(
         title: Text("Cardápio"),
       ),
-      body: nestedScrollView(),
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+        ),
+        child: nestedScrollView(),
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, color: Colors.white,),
         onPressed: () async {
@@ -106,6 +117,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                 }
               });
             }
+            setState(() => _loading = true);
             menuPresenter.update(menu);
           }
 
@@ -130,6 +142,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     });
 
     setState(() {
+      _loading = false;
       menu = list[0];
       this.list = temp;
     });
@@ -139,6 +152,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   onFailure(String error)  {
     print(error);
     setState(() {
+      _loading = false;
       list = [];
     });
   }
@@ -153,6 +167,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     });
 
     setState(() {
+      _loading = false;
       menu = result;
       this.list = temp;
     });
@@ -281,10 +296,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         child: ProductWidget(
           item: item,
           onPressed: (value) async {
-            var result = await PageRouter.push(context, ProductPage(item: item,));
-            if (result != null) {
-              //updateOrders();
-            }
+            var result = await PageRouter.push(context, ProductPage(item: item, menu: menu,));
+            onSuccess(menu);
           },
         ),
         secondaryActions: <Widget>[
@@ -476,10 +489,12 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       final file = await ImagePicker.pickImage(source: imageSource);
       if (file != null) {
         var compressedFile = await FlutterNativeImage.compressImage(file.path, percentage: 50);
-//        setState(() {
-//          _loading = true;
-//        });
-        await companyPresenter.changeLogoPhoto(compressedFile);
+        setState(() => _loading = true);
+        var result = await companyPresenter.changeLogoPhoto(compressedFile);
+        setState(() {
+          logoURL = result;
+          _loading = false;
+        });
         compressedFile.deleteSync();
       }
     }

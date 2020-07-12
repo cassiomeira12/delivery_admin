@@ -84,6 +84,23 @@ class Company extends BaseModel<Company> {
     pickupStatus = company.pickupStatus;
   }
 
+  void clear() {
+    id = null;
+    objectId = null;
+    topic = null;
+    name = null;
+    cnpj = null;
+    logoURL = null;
+    bannerURL = null;
+    openHours = null;
+    address = null;
+    typePayments = null;
+    delivery = null;
+    phoneNumber = null;
+    deliveryStatus = null;
+    pickupStatus = null;
+  }
+
   bool isTodayOpen() {
     OpeningHour openingHourToday;
     openHours.forEach((element) {

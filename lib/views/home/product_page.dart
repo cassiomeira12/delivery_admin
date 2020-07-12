@@ -1,3 +1,12 @@
+import 'package:delivery_admin/contracts/menu/menu_contract.dart';
+import 'package:delivery_admin/models/menu/menu.dart';
+import 'package:delivery_admin/presenters/file_presenter.dart';
+import 'package:delivery_admin/presenters/menu/menu_presenter.dart';
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:delivery_admin/widgets/secondary_button.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../views/login/login_page.dart';
 import '../../models/singleton/singletons.dart';
 import '../../models/company/company.dart';
@@ -25,18 +34,20 @@ class ProductPage extends StatefulWidget {
   final VoidCallback loginCallback;
   final dynamic item;
   final Company company;
+  final Menu menu;
 
   const ProductPage({
     this.loginCallback,
     this.item,
     this.company,
+    this.menu,
   });
 
   @override
   State<StatefulWidget> createState() => _ProductPageState();
 }
 
-class _ProductPageState extends State<ProductPage> {
+class _ProductPageState extends State<ProductPage> implements MenuContractView {
   final _formKey = new GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -60,9 +71,14 @@ class _ProductPageState extends State<ProductPage> {
 
   List<ChoiceWidget> selectedChoices = List();
 
+  MenuContractPresenter menuPresenter;
+  FilePresenter filePresenter;
+
   @override
   void initState() {
     super.initState();
+    menuPresenter = MenuPresenter(this);
+    filePresenter = FilePresenter();
     product = widget.item as Product;
     _observacaoController = TextEditingController();
     selectedChoices = product.choices.map((e) => ChoiceWidget(e)).toList();
@@ -103,19 +119,6 @@ class _ProductPageState extends State<ProductPage> {
                         alignment: Alignment.topCenter,
                         children: <Widget>[
                           BackgroundCard(height: 200,),
-//                          bannerURL == null ?
-//                            Container()
-//                                :
-//                            Container(
-//                              height: 100,
-//                              decoration: BoxDecoration(
-//                                shape: BoxShape.rectangle,
-//                                image: DecorationImage(
-//                                  fit: BoxFit.fitWidth,
-//                                  image: NetworkImage(bannerURL),
-//                                ),
-//                              ),
-//                            ),
                           slidesImages(),
                         ],
                       ),
@@ -187,6 +190,14 @@ class _ProductPageState extends State<ProductPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
+          Padding(
+            padding: EdgeInsets.all(10),
+            child: SecondaryButton(
+              text: "Adicionar foto",
+              onPressed: addProductImage,
+            ),
+          ),
+
           titleTextWidget(product.name),
 
           Row(
@@ -208,8 +219,7 @@ class _ProductPageState extends State<ProductPage> {
             ],
           ),
 
-          product.description == null ? Container() :
-          descriptionTextWidget(product.description),
+          product.description == null ? Container() : descriptionTextWidget(product.description),
 
           product.preparationTime == null ? Container() : tempoPreparo(product.preparationTime),
 
@@ -263,6 +273,45 @@ class _ProductPageState extends State<ProductPage> {
         ],
       ),
     );
+  }
+
+  void addProductImage() async {
+    final result = await showOkCancelAlertDialog(
+      context: context,
+      title: SELECIONE_IMAGEM,
+      okLabel: CAMERA,
+      cancelLabel: GALERIA,
+    );
+    var imageSource;
+    switch(result) {
+      case OkCancelResult.ok:
+        imageSource = ImageSource.camera;
+        break;
+      case OkCancelResult.cancel:
+        imageSource = ImageSource.gallery;
+        break;
+    }
+    if (imageSource != null) {
+      final file = await ImagePicker.pickImage(source: imageSource);
+      if (file != null) {
+        var compressedFile = await FlutterNativeImage.compressImage(file.path, percentage: 50);
+        setState(() {
+          _loading = true;
+        });
+        try {
+          var fileResult = await filePresenter.save(file);
+          setState(() {
+            product.images.add(fileResult);
+          });
+          menuPresenter.update(widget.menu);
+        } catch (error) {
+          setState(() => _loading = false);
+          ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+        } finally {
+          compressedFile.deleteSync();
+        }
+      }
+    }
   }
 
   Widget titleTextWidget(String title) {
@@ -537,6 +586,27 @@ class _ProductPageState extends State<ProductPage> {
         PageRouter.pop(context, Singletons.order());
       }
     }
+  }
+
+  @override
+  listSuccess(List<Menu> list) {
+
+  }
+
+  @override
+  onFailure(String error)  {
+    setState(() {
+      _loading = false;
+    });
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+  }
+
+  @override
+  onSuccess(Menu result) {
+    setState(() {
+      _loading = false;
+    });
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
 
 }

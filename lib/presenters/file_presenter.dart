@@ -7,12 +7,12 @@ class FilePresenter {
 
   var service = ParseFileService();
 
-  void save(File file) {
-    service.save(file);
+  Future<String> save(File file) {
+    return service.save(file);
   }
 
-  void delete() {
-    service.delete();
+  Future<bool> delete({File file, String url}) {
+    return service.delete(file, url);
   }
 
 }
