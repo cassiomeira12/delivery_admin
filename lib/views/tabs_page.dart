@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:delivery_admin/utils/date_util.dart';
+
 import '../models/singleton/singletons.dart';
 import '../contracts/order/order_contract.dart';
 import '../presenters/order/order_presenter.dart';
@@ -44,31 +46,31 @@ class _TabsPageState extends State<TabsPage> {
       SettingsPage(logoutCallback: widget.logoutCallback,),
     ];
     tabsView = TabsView(currentTab: currentTab, screens: screens,);
-    presenter = OrdersPresenter(null);
-    listOrders();
+    //presenter = OrdersPresenter(null);
+    //listOrders();
   }
 
   @override
   void dispose() {
     super.dispose();
-    presenter.dispose();
+    //presenter.dispose();
   }
 
-  void listOrders() async {
-    var result = await presenter.findBy("user", Singletons.user().toPointer());
-    if (result != null) {
-      Singletons.orders().addAll(result);
-      var temp = 0;
-      result.forEach((element) {
-        if (!element.status.isLast()) {
-          temp++;
-        }
-      });
-      setState(() {
-        orderCount = temp;
-      });
-    }
-  }
+//  void listOrders() async {
+//    var result = await presenter.listDayOrders(DateUtil.todayTime(0, 0));
+//    if (result != null) {
+//      Singletons.orders().addAll(result);
+//      var temp = 0;
+//      result.forEach((element) {
+//        if (!element.status.isLast()) {
+//          temp++;
+//        }
+//      });
+//      setState(() {
+//        orderCount = temp;
+//      });
+//    }
+//  }
 
   void orderCallback() {
     setState(() {
@@ -201,7 +203,7 @@ class _TabsPageState extends State<TabsPage> {
                       FaIcon(FontAwesomeIcons.shoppingCart, color: currentTab == 3 ? Theme.of(context).backgroundColor : Colors.grey,),
                       Padding(
                         padding: EdgeInsets.fromLTRB(15, 5, 0, 0),
-                        child: notificationCount(Singletons.orders().length),
+                        child: notificationCount(0),
                       ),
                     ],
                   ),

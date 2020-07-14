@@ -128,15 +128,26 @@ class ParseCompanyService extends CompanyContractService {
           List<ParseObject> listObj = value.result;
 
           return listObj.map<Company>((obj) {
-            var companyJson = obj.toJson();
-            var addressJson = obj.get("address").toJson();
-            var cityJson = obj.get("address").get("city").toJson();
-            var delivertStatus = obj.get("deliveryStatus").toJson();
-            var pickupStatus = obj.get("pickupStatus").toJson();
+            var companyJson, addressJson, cityJson, deliveryStatus, pickupStatus;
+
+            companyJson = obj.toJson();
+
+            try {
+              addressJson = obj.get("address").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              cityJson = obj.get("address").get("city").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              deliveryStatus = obj.get("deliveryStatus").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              pickupStatus = obj.get("pickupStatus").toJson();
+            } catch (error) {Log.e(error);}
 
             addressJson["city"] = cityJson;
             companyJson["address"] = addressJson;
-            companyJson["deliveryStatus"] = delivertStatus;
+            companyJson["deliveryStatus"] = deliveryStatus;
             companyJson["pickupStatus"] = pickupStatus;
 
             return Company.fromMap(companyJson);
@@ -177,17 +188,30 @@ class ParseCompanyService extends CompanyContractService {
           List<ParseObject> listObj = value.result;
 
           return listObj.map<Company>((obj) {
-            var companyJson = obj.toJson();
-            var addressJson = obj.get("address").toJson();
-            var smallTownJson = obj.get("address").get("smallTown").toJson();
-            var cityJson = obj.get("address").get("smallTown").get("city").toJson();
-            var delivertStatus = obj.get("deliveryStatus").toJson();
-            var pickupStatus = obj.get("pickupStatus").toJson();
+            var companyJson, addressJson, smallTownJson, cityJson, deliveryStatus, pickupStatus;
+
+            companyJson = obj.toJson();
+
+            try {
+              addressJson = obj.get("address").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              smallTownJson = obj.get("address").get("smallTown").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              cityJson = obj.get("address").get("smallTown").get("city").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              deliveryStatus = obj.get("deliveryStatus").toJson();
+            } catch (error) {Log.e(error);}
+            try {
+              pickupStatus = obj.get("pickupStatus").toJson();
+            } catch (error) {Log.e(error);}
 
             smallTownJson["city"] = cityJson;
             addressJson["smallTown"] = smallTownJson;
             companyJson["address"] = addressJson;
-            companyJson["deliveryStatus"] = delivertStatus;
+            companyJson["deliveryStatus"] = deliveryStatus;
             companyJson["pickupStatus"] = pickupStatus;
 
             return Company.fromMap(companyJson);
@@ -224,17 +248,33 @@ class ParseCompanyService extends CompanyContractService {
         } else {
           var obj = value.result[0];
 
-          var companyJson = obj.get("company").toJson();
-          var addressJson = obj.get("company").get("address").toJson();
-          var smallTownJson = obj.get("company").get("address").get("smallTown").toJson();
-          var cityJson = obj.get("company").get("address").get("smallTown").get("city").toJson();
-          var delivertStatus = obj.get("company").get("deliveryStatus").toJson();
-          var pickupStatus = obj.get("company").get("pickupStatus").toJson();
+          var companyJson, addressJson, smallTownJson, cityJson, deliveryStatus, pickupStatus;
+
+          companyJson = obj.toJson();
+
+          try {
+            companyJson = obj.get("company").toJson();
+          } catch (error) {Log.e(error);}
+          try {
+            addressJson = obj.get("company").get("address").toJson();
+          } catch (error) {Log.e(error);}
+          try {
+            smallTownJson = obj.get("company").get("address").get("smallTown").toJson();
+          } catch (error) {Log.e(error);}
+          try {
+            cityJson = obj.get("company").get("address").get("smallTown").get("city").toJson();
+          } catch (error) {Log.e(error);}
+          try {
+            deliveryStatus = obj.get("company").get("deliveryStatus").toJson();
+          } catch (error) {Log.e(error);}
+          try {
+            pickupStatus = obj.get("company").get("pickupStatus").toJson();
+          } catch (error) {Log.e(error);}
 
           smallTownJson["city"] = cityJson;
           addressJson["smallTown"] = smallTownJson;
           companyJson["address"] = addressJson;
-          companyJson["deliveryStatus"] = delivertStatus;
+          companyJson["deliveryStatus"] = deliveryStatus;
           companyJson["pickupStatus"] = pickupStatus;
 
           return Company.fromMap(companyJson);

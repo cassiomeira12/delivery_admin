@@ -36,12 +36,12 @@ class Order extends BaseModel<Order> {
   Order.fromMap(Map<dynamic, dynamic>  map) : super('Order') {
     objectId = map["objectId"];
     id = objectId;
+    createdAt = map["createdAt"] == null ? null : DateTime.parse(map["createdAt"]).toLocal();
+    updatedAt = map["updatedAt"] == null ? null : DateTime.parse(map["updatedAt"]).toLocal();
     user = map["user"] == null ? null : BaseUser.fromMap(map["user"]);
     userName = map["userName"];
     company = map["company"] == null ? null : Company.fromMap(map["company"]);
     companyName = map["companyName"];
-    createdAt = map["createdAt"] == null ? null : DateTime.parse(map["createdAt"]).toLocal();
-    updatedAt = map["updatedAt"] == null ? null : DateTime.parse(map["updatedAt"]).toLocal();
     note = map["note"];
     evaluation = map["evaluation"] == null ? null : Evaluation.fromMap(map["evaluation"]);
     deliveryAddress = map["deliveryAddress"] == null ? null : Address.fromMap(map["deliveryAddress"]);

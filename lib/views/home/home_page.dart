@@ -1,10 +1,14 @@
-import 'package:delivery_admin/contracts/user/user_contract.dart';
-import 'package:delivery_admin/models/company/company.dart';
-import 'package:delivery_admin/presenters/user/user_presenter.dart';
-import 'package:delivery_admin/services/notifications/firebase_push_notification.dart';
-import 'package:delivery_admin/utils/preferences_util.dart';
-import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
+import 'package:delivery_admin/utils/date_util.dart';
+import 'package:delivery_admin/utils/log_util.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 
+import '../../contracts/user/user_contract.dart';
+import '../../models/company/company.dart';
+import '../../presenters/user/user_presenter.dart';
+import '../../services/notifications/firebase_push_notification.dart';
+import '../../utils/preferences_util.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../models/singleton/singletons.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/order/order.dart';
@@ -42,8 +46,11 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   CompanyContractPresenter companyPresenter;
   String companyName = "";
 
+  bool _loading = false;
   OrdersPresenter orderPresenter;
-  List<Order> ordersList;
+  //List<Order> ordersList;
+
+  static DateTime date = DateUtil.todayTime(0, 0);
   
   @override
   void initState() {
@@ -52,10 +59,17 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     companyPresenter = CompanyPresenter(null);
     orderPresenter = OrdersPresenter(this);
     if (Singletons.company().id == null) {
+      setState(() => _loading = true);
       getCompany();
     } else {
       companyName = Singletons.company().name;
-      orderPresenter.listTodayOrders();
+      if (Singletons.orders().isEmpty) {
+        setState(() => _loading = true);
+        orderPresenter.listDayOrdersSnapshot(date);
+        orderPresenter.listDayOrders(date);
+      } else {
+        listSuccess(Singletons.orders());
+      }
     }
   }
 
@@ -72,10 +86,11 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     if (result != null) {
       Singletons.company().updateData(result);
       setState(() => companyName = result.name);
-      orderPresenter.listTodayOrders();
+      orderPresenter.listDayOrdersSnapshot(date);
+      orderPresenter.listDayOrders(date);
       var companyTopic = result.id;
       if (!Singletons.user().notificationToken.topics.contains(companyTopic)) {
-        var saved = await FirebaseNotifications.subscribeToTopic(companyTopic);
+        var saved = await FirebasePushNotifications.subscribeToTopic(companyTopic);
         if (saved) {
           Singletons.user().notificationToken.topics.add(companyTopic);
           PreferencesUtil.setUserData(Singletons.user().toMap());
@@ -87,40 +102,48 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   @override
   listSuccess(List<Order> list) {
-    if (ordersList != null && ordersList.isNotEmpty) {
+    if (Singletons.orders().isNotEmpty) {
       list.forEach((item) {
-        var temp = ordersList.singleWhere((element) => element.id == item.id, orElse: null);
-        setState(() {
-          if (temp == null) {
-            setState(() {
-              ordersList.insert(0, item);
-            });
-          } else {
-            setState(() {
-              temp.updateData(item);
-            });
+        var temp;
+        for (var element in Singletons.orders()) {
+          print("${item.id} - ${element.id}");
+          if (item.id == element.id) {
+            temp = element;
+            break;
           }
-        });
+        }
+        print("passou");
+        print(item);
+        if (temp == null) {
+          setState(() {
+            Singletons.orders().insert(0, item);
+          });
+        } else {
+          setState(() {
+            temp.updateData(item);
+          });
+        }
       });
     } else {
       setState(() {
-        ordersList = list;
+        Singletons.orders().addAll(list);
       });
-      Singletons.orders().addAll(list);
     }
+    setState(() => _loading = false);
   }
 
   @override
   onFailure(String error)  {
     setState(() {
-      ordersList = List();
+      Singletons.orders().clear();
     });
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+    setState(() => _loading = false);
   }
 
   @override
   onSuccess(Order result) {
-
+    setState(() => _loading = false);
   }
 
   @override
@@ -150,8 +173,20 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                       Stack(
                         alignment: Alignment.topCenter,
                         children: <Widget>[
-                          BackgroundCard(height: 100,),
-                          //search(),
+                          BackgroundCard(height: 120,),
+                          Column(
+                            children: [
+                              search(),
+                              Text(
+                                Singletons.company().getOpenTime(date),
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).backgroundColor
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ],
@@ -178,20 +213,41 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
           color: Colors.white,
           child: Row(
             children: <Widget>[
-              Icon(Icons.search, color: Colors.grey,),
+              FaIcon(FontAwesomeIcons.calendarAlt, color: Colors.grey,),
               SizedBox(width: 10,),
-              Text(
-                "Pesquise aqui",
-                style: TextStyle(
-                  fontSize: 18.0,
-                  color: Colors.grey,
-                  //fontWeight: FontWeight.bold,
-                )
-              )
+              Flexible(
+                flex: 1,
+                child: Text(
+                  "Pedidos ${DateUtil.getWeekDat(date)} - ${date.day} de ${DateUtil.getMounth(date)}",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
             ],
           ),
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchPage()));
+            showDatePicker(
+              context: context,
+              initialDate: date,
+              firstDate: date.subtract(Duration(days: 365)),
+              lastDate: date.add(Duration(days: 365)),
+              builder: (BuildContext context, Widget child) {
+                return Theme(data: Theme.of(context), child: child,);
+              },
+            ).then((value) {
+              if (value != null) {
+                orderPresenter.unSubscribe();
+                setState(() {
+                  _loading = true;
+                  date = value;
+                  Singletons.orders().clear();
+                });
+                orderPresenter.listDayOrdersSnapshot(date);
+                orderPresenter.listDayOrders(date);
+              }
+            });
           },
         ),
       ),
@@ -203,14 +259,17 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       onRefresh: () {
-        setState(() => ordersList = null);
-        return orderPresenter.listTodayOrders();
+        setState(() {
+          _loading = true;
+          Singletons.orders().clear();
+        });
+        return orderPresenter.listDayOrders(date);
       },
       child: Center(
-        child: ordersList == null ?
+        child: _loading ?
           LoadingShimmerList()
             :
-          ordersList.isEmpty ?
+          Singletons.orders().isEmpty ?
             EmptyListWidget(
               message: "Nenhum pedido foi encontrado",
               //assetsImage: "assets/notification.png",
@@ -223,7 +282,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   Widget listView() {
     return ListView(
-      children: ordersList.map<Widget>((item) {
+      children: Singletons.orders().map<Widget>((item) {
         return listItem(item);
       }).toList(),
     );

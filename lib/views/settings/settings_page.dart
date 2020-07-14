@@ -1,11 +1,11 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/views/settings/company_address_page.dart';
-import 'package:delivery_admin/views/settings/company_page.dart';
-import 'package:delivery_admin/views/settings/company_phone_number_page.dart';
-import 'package:delivery_admin/views/settings/delivery_page.dart';
-import 'package:delivery_admin/views/settings/opening_hours_page.dart';
-import 'package:delivery_admin/views/settings/payment_type_page.dart';
-import 'package:delivery_admin/views/settings/plan_page.dart';
+import '../../views/settings/company_address_page.dart';
+import '../../views/settings/company_page.dart';
+import '../../views/settings/company_phone_number_page.dart';
+import '../../views/settings/delivery_page.dart';
+import '../../views/settings/opening_hours_page.dart';
+import '../../views/settings/payment_type_page.dart';
+import '../../views/settings/plan_page.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -148,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
       children: <Widget>[
         perfilButton(),
         notificationsSettingsButton(),
-        darkModeButton(),
+        //darkModeButton(),
         aboutAppButton(),
         termosButton(),
         //disableAccountButton(),

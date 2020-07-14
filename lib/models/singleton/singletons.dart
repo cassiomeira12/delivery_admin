@@ -1,3 +1,4 @@
+import 'package:delivery_admin/services/notifications/push_notification.dart';
 import 'package:get_it/get_it.dart';
 import 'order_list_singleton.dart';
 import 'company_list_singleton.dart';
@@ -19,6 +20,7 @@ class Singletons {
     GetIt.instance.registerSingleton<CompanyListSingleton>(CompanyListSingleton());
     GetIt.instance.registerSingleton<MenuMapSingleton>(MenuMapSingleton());
     GetIt.instance.registerSingleton<Company>(Company());
+    GetIt.instance.registerSingleton<PushNotification>(PushNotification());
   }
 
   static BaseUser user() {
@@ -47,6 +49,10 @@ class Singletons {
 
   static Company company() {
     return GetIt.instance<Company>();
+  }
+
+  static PushNotification pushNotification() {
+    return GetIt.instance<PushNotification>();
   }
 
 }

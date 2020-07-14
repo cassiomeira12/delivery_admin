@@ -1,4 +1,5 @@
 import 'package:delivery_admin/contracts/menu/menu_contract.dart';
+import 'package:delivery_admin/models/menu/choice_selected.dart';
 import 'package:delivery_admin/models/menu/menu.dart';
 import 'package:delivery_admin/presenters/file_presenter.dart';
 import 'package:delivery_admin/presenters/menu/menu_presenter.dart';
@@ -528,7 +529,14 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
             return;
           }
         } else {
-          order.choicesSelected.add(element.choice.name + " - " + element.selectedItem.toString());
+          var choiceSelected = ChoiceSelected()
+            ..name = element.choice.name
+            ..description = element.choice.description
+            ..required = element.choice.required
+            ..maxQuantity = element.choice.maxQuantity
+            ..minQuantity = element.choice.minQuantity;
+          choiceSelected.choiceSelected.add(element.selectedItem);
+          order.choicesSelected.add(choiceSelected);
         }
       });
 
@@ -571,7 +579,14 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
             return;
           }
         } else {
-          order.choicesSelected.add(element.choice.name + " - " + element.selectedItem.toString());
+          var choiceSelected = ChoiceSelected()
+            ..name = element.choice.name
+            ..description = element.choice.description
+            ..required = element.choice.required
+            ..maxQuantity = element.choice.maxQuantity
+            ..minQuantity = element.choice.minQuantity;
+          choiceSelected.choiceSelected.add(element.selectedItem);
+          order.choicesSelected.add(choiceSelected);
         }
       });
 

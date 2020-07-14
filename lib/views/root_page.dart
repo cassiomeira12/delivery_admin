@@ -56,6 +56,12 @@ class _RootPageState extends State<RootPage> {
     Singletons.init();
     presenter = UserPresenter(null);
     updateCurrentTheme();
+    initPushNotification();
+  }
+
+  void initPushNotification() async {
+    Singletons.pushNotification();
+    await Singletons.pushNotification().init();
   }
 
   void currentUser() async {
@@ -250,6 +256,7 @@ class _RootPageState extends State<RootPage> {
       setState(() {
         authStatus = AuthStatus.LOGGED_IN;
       });
+      checkCurrentVersion();
       updateNotificationToken();
     } else {
       setState(() {
@@ -278,23 +285,10 @@ class _RootPageState extends State<RootPage> {
   }
 
   void updateNotificationToken() async {
-    var pushNotifications = FirebaseNotifications();
-    await pushNotifications.setUpFirebase();
-    String notificationToken = await PreferencesUtil.getNotificationToken();
-    NotificationToken token = Singletons.user().notificationToken;
-    if (token == null || (token.token == null || token.token != notificationToken)) {
-      if (token != null) {
-        token.token = notificationToken;
-      } else {
-        token = NotificationToken(notificationToken);
-        token.topics = List();
-      }
-      Singletons.user().notificationToken = token;
-      PreferencesUtil.setUserData(Singletons.user().toMap());
-      presenter.update(Singletons.user());
-    }
-    pushNotifications.subscribeDefaultTopics();
-    ParsePushNotification();
+    var notificationToken = await Singletons.pushNotification().updateNotificationToken();
+    Singletons.user().notificationToken = notificationToken;
+    PreferencesUtil.setUserData(Singletons.user().toMap());
+    presenter.update(Singletons.user());
   }
 
 }

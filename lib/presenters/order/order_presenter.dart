@@ -25,6 +25,10 @@ class OrdersPresenter implements OrderContractPresenter {
     if (liveQuery != null) liveQuery.client.reconnect();
   }
 
+  void unSubscribe() {
+    if (liveQuery != null) liveQuery.client.unSubscribe(subscription);
+  }
+
   @override
   dispose() {
     service = null;
@@ -98,33 +102,62 @@ class OrdersPresenter implements OrderContractPresenter {
   }
 
   @override
-  Future<List<Order>> listTodayOrders() async {
+  Future<List<Order>> listDayOrdersSnapshot(DateTime day) async {
     liveQuery = LiveQuery();
 
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
       ..whereEqualTo("company", Singletons.company().toPointer())
+      ..whereGreaterThanOrEqualsTo("createdAt", day)
+      ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");
 
     subscription = await liveQuery.client.subscribe(query);
-    subscription.on(LiveQueryEvent.update, (value) {
-      if (_view != null) _view.listSuccess([Order.fromMap(value.toJson())]);
+
+    subscription.on(LiveQueryEvent.create, (value) {
+      var order = Order.fromMap(value.toJson());
+      print(order.toMap());
+      if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
+        print("passou aqui");
+        if (_view != null) _view.listSuccess([order]);
+      }
     });
+
+    subscription.on(LiveQueryEvent.update, (value) {
+      var order = Order.fromMap(value.toJson());
+      print(order.toMap());
+      if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
+        print("passou aqui");
+        if (_view != null) _view.listSuccess([order]);
+      }
+    });
+  }
+
+  @override
+  Future<List<Order>> listDayOrders(DateTime day) async {
+    QueryBuilder query = QueryBuilder(ParseObject("Order"))
+      ..whereEqualTo("company", Singletons.company().toPointer())
+      ..whereGreaterThanOrEqualsTo("createdAt", day)
+      ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+      ..orderByDescending("createdAt");
 
     await query.query().then((value) async {
       if (value.success) {
         if (value.result == null) {
-          _view.listSuccess([]);
+          if(_view != null) _view.listSuccess([]);
         } else {
           List<ParseObject> listObj = value.result;
           var list = listObj.map<Order>((obj) {
             return Order.fromMap(obj.toJson());
           }).toList();
-          _view.listSuccess(list);
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          if(_view != null) _view.listSuccess(list);
+          return list;
         }
       } else {
         throw value.error;
       }
     }).catchError((error) {
+      Log.e(error);
       switch (error.code) {
         case -1:
           _view.onFailure(ERROR_NETWORK);
@@ -134,4 +167,5 @@ class OrdersPresenter implements OrderContractPresenter {
       }
     });
   }
+
 }

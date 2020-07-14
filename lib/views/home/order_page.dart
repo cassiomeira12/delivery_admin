@@ -262,7 +262,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                       int hour = now.hour;
                       int minute = now.minute;
 
-                      if (result == 1) {
+                      if (result == 0) {
                         order.items.forEach((element) {
                           if (element.preparationTime != null) {
                             if ((minute + element.preparationTime.minute) > 59) {
