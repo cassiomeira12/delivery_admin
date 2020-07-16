@@ -35,6 +35,7 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
       Singletons.company().openHours = List();
     }
     openingHourList = Singletons.company().openHours;
+    openingHourList.sort((a, b) => a.weekDay.compareTo(b.weekDay));
   }
 
   @override
@@ -75,6 +76,7 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
           ).then((value) {
             setState(() {
               openingHourList.add(value);
+              openingHourList.sort((a, b) => a.weekDay.compareTo(b.weekDay));
               _loading = true;
             });
             var result = companyPresenter.update(Singletons.company());
