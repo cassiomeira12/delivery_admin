@@ -237,7 +237,8 @@ class ParseCompanyService extends CompanyContractService {
       ..whereEqualTo("user", user.toPointer())
       ..keysToReturn(["company"])
       ..includeObject([
-        "company.address", "company.address.smallTown", "company.address.smallTown.city",
+        "company.address",
+        "company.address.city", "company.address.smallTown", "company.address.smallTown.city",
         "company.deliveryStatus", "company.pickupStatus"
       ]);
 
@@ -259,6 +260,9 @@ class ParseCompanyService extends CompanyContractService {
             addressJson = obj.get("company").get("address").toJson();
           } catch (error) {Log.e(error);}
           try {
+            cityJson = obj.get("company").get("address").get("city").toJson();
+          } catch (error) {Log.e(error);}
+          try {
             smallTownJson = obj.get("company").get("address").get("smallTown").toJson();
           } catch (error) {Log.e(error);}
           try {
@@ -271,7 +275,7 @@ class ParseCompanyService extends CompanyContractService {
             pickupStatus = obj.get("company").get("pickupStatus").toJson();
           } catch (error) {Log.e(error);}
 
-          smallTownJson["city"] = cityJson;
+          smallTownJson == null ? addressJson["city"] = cityJson : smallTownJson["city"] = cityJson;
           addressJson["smallTown"] = smallTownJson;
           companyJson["address"] = addressJson;
           companyJson["deliveryStatus"] = deliveryStatus;
