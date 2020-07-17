@@ -34,24 +34,41 @@ class _PaymentTypePageState extends State<PaymentTypePage> implements CompanyCon
   void initState() {
     super.initState();
     companyPresenter = CompanyPresenter(this);
-    paymentTypeList.add({
-      "key": 0,
-      "name": "Dinheiro",
-      "type": Type.MONEY.toString().split('.').last,
-      "taxa": 0.0,
-      "maxInstallments": 1
-    });
-    paymentTypeList.add({
-      "key": 1,
-      "name": "Cartão",
-      "type": Type.CARD.toString().split('.').last,
-      "taxa": 0.0,
-      "maxInstallments": 1
-    });
+    paymentsType = Singletons.company().typePayments;
     if (Singletons.company().typePayments == null) {
       Singletons.company().typePayments = List();
     }
-    paymentsType = Singletons.company().typePayments;
+    listPaymentType();
+  }
+
+  void listPaymentType() {
+    paymentTypeList.clear();
+
+    int index = 0;
+
+    try {
+      paymentsType.firstWhere((element) => element.paymentType == Type.MONEY, orElse: null);
+    } catch (error) {
+      paymentTypeList.add({
+        "key": index++,
+        "name": "Dinheiro",
+        "type": Type.MONEY.toString().split('.').last,
+        "taxa": 7,
+        "maxInstallments": 1
+      });
+    }
+
+    try {
+      paymentsType.firstWhere((element) => element.paymentType == Type.CARD, orElse: null);
+    } catch (error) {
+      paymentTypeList.add({
+        "key": index++,
+        "name": "Cartão",
+        "type": Type.CARD.toString().split('.').last,
+        "taxa": 7,
+        "maxInstallments": 1
+      });
+    }
   }
 
   @override
@@ -84,17 +101,19 @@ class _PaymentTypePageState extends State<PaymentTypePage> implements CompanyCon
               return AlertDialogAction<int>(label: e["name"], key: e["key"]);
             }).toList(),
           ).then((value) {
-            var typeJson = paymentTypeList[value];
-            var typePayment = TypePayment.fromMap(typeJson);
-            setState(() {
-              paymentsType.add(typePayment);
-              _loading = true;
-            });
-            var result = companyPresenter.update(Singletons.company());
-            if (result == null) {
+            if (value != null) {
+              var typeJson = paymentTypeList[value];
+              var typePayment = TypePayment.fromMap(typeJson);
               setState(() {
-                paymentsType.remove(typePayment);
+                paymentsType.add(typePayment);
+                _loading = true;
               });
+              var result = companyPresenter.update(Singletons.company());
+              if (result == null) {
+                setState(() {
+                  paymentsType.remove(typePayment);
+                });
+              }
             }
           });
         },
@@ -195,11 +214,6 @@ class _PaymentTypePageState extends State<PaymentTypePage> implements CompanyCon
                   ),
                 ],
               ),
-//              Container(
-//                child: Checkbox(
-//                  value: false,
-//                ),
-//              ),
             ],
           ),
         ),
@@ -238,13 +252,14 @@ class _PaymentTypePageState extends State<PaymentTypePage> implements CompanyCon
   onFailure(String error)  {
     setState(() => _loading = false);
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+    listPaymentType();
   }
 
   @override
   onSuccess(Company result) {
     setState(() => _loading = false);
     ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
+    listPaymentType();
   }
-
 
 }

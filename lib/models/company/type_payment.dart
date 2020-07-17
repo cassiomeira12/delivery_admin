@@ -1,3 +1,5 @@
+import 'package:delivery_admin/utils/log_util.dart';
+
 import '../base_model.dart';
 
 enum Type {
@@ -7,11 +9,11 @@ enum Type {
 class TypePayment extends BaseModel<TypePayment> {
   String name;
   Type paymentType;
-  double taxa;// 0.0 - 1.0
+  int taxa;// 0 - 100 - Taxa pelo uso do aplicativo
   int maxInstallments;//Max prestação
 
   TypePayment() : super('TypePayment') {
-    taxa = 0;
+    taxa = 7;
     maxInstallments = 1;
   }
 
@@ -19,13 +21,15 @@ class TypePayment extends BaseModel<TypePayment> {
     //id = map["id"];
     name = map["name"];
     var typeTemp = map["type"];
+    Log.d(typeTemp);
     Type.values.forEach((element) {
       if (element.toString().split('.').last == typeTemp) {
         paymentType = element;
         return;
       }
     });
-    taxa = (map["taxa"] as num).toDouble();
+    Log.d(paymentType);
+    taxa = (map["taxa"] as num).toInt();
     maxInstallments = map["maxInstallments"] as int;
   }
 
@@ -39,15 +43,6 @@ class TypePayment extends BaseModel<TypePayment> {
     map["maxInstallments"] = maxInstallments;
     return map;
   }
-
-//  @override
-//  update(TypePayment item) {
-//    id = item.id;
-//    name = item.name;
-//    paymentType = item.paymentType;
-//    taxa = item.taxa;
-//    maxInstallments = item.maxInstallments;
-//  }
 
   String getType() {
     switch (paymentType) {
