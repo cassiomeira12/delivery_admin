@@ -1,17 +1,15 @@
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/contracts/company/company_contract.dart';
-import 'package:delivery_admin/models/company/company.dart';
-import 'package:delivery_admin/models/singleton/singletons.dart';
-import 'package:delivery_admin/presenters/company/company_presenter.dart';
-import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-
+import '../../contracts/company/company_contract.dart';
+import '../../models/company/company.dart';
+import '../../models/singleton/singletons.dart';
+import '../../presenters/company/company_presenter.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import '../../models/company/type_payment.dart';
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../strings.dart';
-import '../page_router.dart';
 
 class PaymentTypePage extends StatefulWidget {
 

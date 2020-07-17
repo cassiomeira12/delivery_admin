@@ -1,3 +1,4 @@
+import 'package:delivery_admin/utils/log_util.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import '../../models/singleton/singletons.dart';
@@ -29,10 +30,27 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
 
   bool loading = false;
 
+  TextEditingController neighborhoodController, streetController, numberController, referenceController;
+
   @override
   void initState() {
     super.initState();
     presenter = AddressPresenter(this);
+    neighborhoodController = TextEditingController();
+    streetController = TextEditingController();
+    numberController = TextEditingController();
+    referenceController = TextEditingController();
+    if (Singletons.company().address != null) {
+      setCurrentAddress(Singletons.company().address);
+    }
+    Log.d(Singletons.company().address.toMap());
+  }
+
+  void setCurrentAddress(Address address) {
+    neighborhoodController.text = address.neighborhood;
+    streetController.text = address.street;
+    numberController.text = address.number;
+    referenceController.text = address.reference;
   }
 
   @override
@@ -69,6 +87,7 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
           SizedBox(height: 10,),
           Singletons.company().address.city != null ? textCityWidget() : Container(),
           Singletons.company().address.smallTown != null ? textDistritoWidget() : Container(),
+
           Singletons.company().address.smallTown == null ? cityForm() : smallTomForm(),
           saveButton(),
         ],
@@ -100,7 +119,6 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
         key: _formKey,
         child: Column(
           children: <Widget>[
-            //textSmallAddress(),
             textInputStreet(),
             textInputNumber(),
             textInputReference(),
@@ -143,6 +161,7 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Bairro",
+        controller: neighborhoodController,
         textCapitalization: TextCapitalization.sentences,
         onSaved: (value) => bairro = value.trim(),
       ),
@@ -154,6 +173,7 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Rua",
+        controller: streetController,
         textCapitalization: TextCapitalization.sentences,
         onSaved: (value) => rua = value.trim(),
       ),
@@ -165,6 +185,7 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: TextInputField(
         labelText: "Número",
+        controller: numberController,
         textCapitalization: TextCapitalization.sentences,
         validator: (value) => null,
         onSaved: (value) => numero = value.trim(),
@@ -177,21 +198,11 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
       child: AreaInputField(
         labelText: "Referência",
+        controller: referenceController,
         textCapitalization: TextCapitalization.sentences,
         maxLines: 3,
         validator: (value) => null,
         onSaved: (value) => referencia = value.trim(),
-      ),
-    );
-  }
-
-  Widget textSmallAddress() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-      child: TextInputField(
-        labelText: "Endereço",
-        textCapitalization: TextCapitalization.sentences,
-        onSaved: (value) => rua = value.trim(),
       ),
     );
   }
@@ -221,7 +232,13 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       setState(() {
         loading = true;
       });
-      presenter.create(address);
+      if (Singletons.company().address == null) {
+        presenter.create(address);
+      } else {
+        address.id = Singletons.company().address.id;
+        address.objectId = Singletons.company().address.objectId;
+        presenter.update(address);
+      }
     }
   }
 
@@ -232,8 +249,10 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
       ..street = rua
       ..number = numero.isEmpty ? null : numero
       ..reference = referencia.isEmpty ? null : referencia;
-    address.city = Singletons.company().address.city;
-    address.smallTown = Singletons.company().address.smallTown;
+    if (Singletons.company().address != null) {
+      address.city = Singletons.company().address.city;
+      address.smallTown = Singletons.company().address.smallTown;
+    }
     return address;
   }
 
@@ -252,10 +271,17 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
 
   @override
   onSuccess(Address result) {
+    var city = Singletons.company().address.city;
+    var smallTown = Singletons.company().address.smallTown;
+    result.city = city;
+    result.smallTown = smallTown;
+    setState(() {
+      Singletons.company().address = result;
+    });
     setState(() {
       loading = false;
     });
-    PageRouter.pop(context, result);
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
 
 }

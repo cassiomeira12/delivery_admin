@@ -1,5 +1,3 @@
-import 'package:delivery_admin/utils/log_util.dart';
-
 import '../base_model.dart';
 
 enum Type {
@@ -21,14 +19,12 @@ class TypePayment extends BaseModel<TypePayment> {
     //id = map["id"];
     name = map["name"];
     var typeTemp = map["type"];
-    Log.d(typeTemp);
     Type.values.forEach((element) {
       if (element.toString().split('.').last == typeTemp) {
         paymentType = element;
         return;
       }
     });
-    Log.d(paymentType);
     taxa = (map["taxa"] as num).toInt();
     maxInstallments = map["maxInstallments"] as int;
   }
