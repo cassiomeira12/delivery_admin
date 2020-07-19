@@ -50,7 +50,7 @@ class ParseCompanyService extends CompanyContractService {
   Future<Company> update(Company item) {
     return service.update(item).then((response) {
       item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : Company.fromMap(response);
+      return response == null ? null : item;
     }).catchError((error) {
       switch (error.code) {
         case -1:
