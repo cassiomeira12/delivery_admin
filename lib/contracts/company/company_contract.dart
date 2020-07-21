@@ -15,6 +15,7 @@ abstract class CompanyContractPresenter extends Crud<Company> {
   getFromAdmin(BaseUser user);
   changeLogoPhoto(File file);
   changeBannerPhoto(File file);
+  createAdminCompany(String userId, String companyId);
 }
 
 abstract class CompanyContractService extends Crud<Company> {
@@ -23,4 +24,5 @@ abstract class CompanyContractService extends Crud<Company> {
   getFromAdmin(BaseUser user);
   changeLogoPhoto(File file);
   changeBannerPhoto(File file);
+  createAdminCompany(String userId, String companyId);
 }

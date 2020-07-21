@@ -4,6 +4,7 @@ import 'package:delivery_admin/models/menu/menu.dart';
 import 'package:delivery_admin/presenters/file_presenter.dart';
 import 'package:delivery_admin/presenters/menu/menu_presenter.dart';
 import 'package:delivery_admin/utils/log_util.dart';
+import 'package:delivery_admin/views/historico/new_product_page.dart';
 import 'package:delivery_admin/widgets/secondary_button.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -58,8 +59,6 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
 
   bool favotito = false;
 
-  var menu = ['Remover'];
-
   List list = [1,2,3];
 
   int count = 1;
@@ -91,6 +90,22 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(product.name),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return ["Editar"].map((String choice) {
+                return PopupMenuItem(value: choice, child: Text(choice),);
+              }).toList();
+            },
+            onSelected: (value) async {
+              Product productUpdate = await PageRouter.push(context, NewProductPage(product: product,));
+              if (productUpdate != null) {
+                setState(() => _loading = true);
+                menuPresenter.update(widget.menu);
+              }
+            },
+          ),
+        ],
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,

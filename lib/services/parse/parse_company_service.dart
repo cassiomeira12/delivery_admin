@@ -369,4 +369,27 @@ class ParseCompanyService extends CompanyContractService {
     });
   }
 
+  @override
+  createAdminCompany(String userId, String companyId) async {
+    var adminCompnay = ParseObject("AdminCompany");
+
+    var user = ParseObject("_User");
+    user.objectId = userId;
+
+    var company = ParseObject("Company");
+    company.objectId = companyId;
+
+    var companyObject = await company.getObject(companyId);
+
+    if (companyObject == null) {
+      return false;
+    } else {
+      adminCompnay.set("user", user.toPointer());
+      adminCompnay.set("company", company.toPointer());
+      return await adminCompnay.create().then((value) {
+        return value.success ? true : throw value.error;
+      });
+    }
+  }
+
 }

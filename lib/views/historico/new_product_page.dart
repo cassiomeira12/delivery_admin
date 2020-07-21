@@ -19,6 +19,10 @@ import '../../widgets/background_card.dart';
 import '../page_router.dart';
 
 class NewProductPage extends StatefulWidget {
+  final Product product;
+
+  NewProductPage({this.product});
+
   @override
   State<StatefulWidget> createState() => _NewProductPageState();
 }
@@ -29,11 +33,12 @@ class _NewProductPageState extends State<NewProductPage> {
 
   bool _loading = false;
 
-  TextEditingController descriptionController;
-  String name;
+  var nameController = TextEditingController();
+  var descriptionController = TextEditingController();
   var costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
-  var discountController =
-      MoneyMaskedTextController(leftSymbol: 'R\$ ', initialValue: 0);
+  var discountController = MoneyMaskedTextController(leftSymbol: 'R\$ ', initialValue: 0);
+
+  String name;
   double cost, discount;
   PreparationTime preparationTime;
   List<String> imagesList = List();
@@ -45,7 +50,20 @@ class _NewProductPageState extends State<NewProductPage> {
   @override
   void initState() {
     super.initState();
-    descriptionController = TextEditingController();
+    if (widget.product != null) {
+      setProductData(widget.product);
+    }
+  }
+
+  void setProductData(Product product) {
+    nameController.text = product.name;
+    descriptionController.text = product.description;
+    costController.updateValue(product.cost);
+    discountController.updateValue(product.discount);
+    preparationTime = product.preparationTime;
+    imagesList = product.images;
+    choiceList = product.choices;
+    additionalList = product.additional;
   }
 
   @override
@@ -133,7 +151,8 @@ class _NewProductPageState extends State<NewProductPage> {
                   child: TextInputField(
                     labelText: "Nome",
                     textCapitalization: TextCapitalization.sentences,
-                    onSaved: (value) => name = value.trim(),
+                    controller: nameController,
+                    onSaved: (value) => name = nameController.text,
                   ),
                 ),
                 Padding(
@@ -309,18 +328,32 @@ class _NewProductPageState extends State<NewProductPage> {
 
   void save() async {
     if (validateAndSave()) {
-      var product = Product()
-        ..name = name
-        ..description = descriptionController.value.text.isEmpty
+      if (widget.product == null) {
+        var product = Product()
+          ..name = name
+          ..description = descriptionController.value.text.isEmpty
+              ? null
+              : descriptionController.value.text
+          ..cost = cost
+          ..discount = discount
+          ..preparationTime = preparationTime
+          ..images = imagesList
+          ..choices = choiceList
+          ..additional = additionalList;
+        PageRouter.pop(context, product);
+      } else {
+        widget.product.name = name;
+        widget.product.description = descriptionController.value.text.isEmpty
             ? null
-            : descriptionController.value.text
-        ..cost = cost
-        ..discount = discount
-        ..preparationTime = preparationTime
-        ..images = imagesList
-        ..choices = choiceList
-        ..additional = additionalList;
-      PageRouter.pop(context, product);
+            : descriptionController.value.text;
+        widget.product.cost = cost;
+        widget.product.discount = discount;
+        widget.product.preparationTime = preparationTime;
+        widget.product.images = imagesList;
+        widget.product.choices = choiceList;
+        widget.product.additional = additionalList;
+        PageRouter.pop(context, widget.product);
+      }
     }
   }
 }

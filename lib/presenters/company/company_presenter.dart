@@ -138,4 +138,14 @@ class CompanyPresenter implements CompanyContractPresenter {
     });
   }
 
+  @override
+  createAdminCompany(String userId, String companyId) async {
+    return await service.createAdminCompany(userId, companyId).then((value) {
+      return value;
+    }).catchError((error) {
+      if (_view != null) _view.onFailure(error.message);
+      return null;
+    });
+  }
+
 }

@@ -1,3 +1,5 @@
+import 'package:delivery_admin/views/new_company_page.dart';
+
 import '../models/singleton/singletons.dart';
 import '../services/notifications/parse_push_notification.dart';
 import '../services/notifications/firebase_push_notification.dart';
@@ -29,6 +31,7 @@ enum AuthStatus {
   EMAIL_NOT_VERIFIED,
   LOGGED_IN,
   UPDATE_APP,
+  NOT_COMPANY,
 }
 
 class RootPage extends StatefulWidget {
@@ -71,9 +74,16 @@ class _RootPageState extends State<RootPage> {
     } else {
       Singletons.user().updateData(result);
       if (result.emailVerified) {
-        setState(() {
-          authStatus = AuthStatus.LOGGED_IN;
-        });
+        String companyId = await PreferencesUtil.getAdminCompany();
+        if (companyId == null) {
+          setState(() {
+            authStatus = AuthStatus.NOT_COMPANY;
+          });
+        } else {
+          setState(() {
+            authStatus = AuthStatus.LOGGED_IN;
+          });
+        }
         checkLastVersionApp();
         updateNotificationToken();
       } else {
@@ -104,6 +114,8 @@ class _RootPageState extends State<RootPage> {
         return VerifiedEmailPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
       case AuthStatus.UPDATE_APP:
         return updateAppScreen();
+      case AuthStatus.NOT_COMPANY:
+        return NewCompanyPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
       default:
         return buildWaitingScreen();
     }
@@ -251,11 +263,18 @@ class _RootPageState extends State<RootPage> {
     });
   }
 
-  void loginCallback() {
+  void loginCallback() async {
     if (Singletons.user().emailVerified) {
-      setState(() {
-        authStatus = AuthStatus.LOGGED_IN;
-      });
+      String companyId = await PreferencesUtil.getAdminCompany();
+      if (companyId == null) {
+          setState(() {
+            authStatus = AuthStatus.NOT_COMPANY;
+          });
+      } else {
+        setState(() {
+          authStatus = AuthStatus.LOGGED_IN;
+        });
+      }
       checkCurrentVersion();
       updateNotificationToken();
     } else {

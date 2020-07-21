@@ -9,6 +9,7 @@ class PreferencesUtil {
   static String _INTRO_DONE = "intro_done";
   static String _USER_DATA = "user_data";
   static String _ORDER_FILTER = "order_filter";
+  static String _ADMIN_COMPANY = "admin_company";
 
   static Future<SharedPreferences> getInstance() {
     return SharedPreferences.getInstance();
@@ -75,6 +76,16 @@ class PreferencesUtil {
   static Future<int> getOrderFilter() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_ORDER_FILTER);
+  }
+
+  static void setAdminCompany(String value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(_ADMIN_COMPANY, value);
+  }
+
+  static Future<String> getAdminCompany() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_ADMIN_COMPANY);
   }
 
 }
