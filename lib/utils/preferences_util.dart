@@ -8,6 +8,7 @@ class PreferencesUtil {
   static String _LAST_CHECK_UPDATE = "last_check_update";
   static String _INTRO_DONE = "intro_done";
   static String _USER_DATA = "user_data";
+  static String _ORDER_FILTER = "order_filter";
 
   static Future<SharedPreferences> getInstance() {
     return SharedPreferences.getInstance();
@@ -64,6 +65,16 @@ class PreferencesUtil {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var result = prefs.getString(_USER_DATA);
     return result == null ? null : json.decode(result);
+  }
+
+  static void setOrderFilter(int value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt(_ORDER_FILTER, value);
+  }
+
+  static Future<int> getOrderFilter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_ORDER_FILTER);
   }
 
 }

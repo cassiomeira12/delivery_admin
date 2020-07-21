@@ -1,9 +1,8 @@
-import 'dart:io';
-
-import 'package:delivery_admin/models/base_user.dart';
-import 'package:delivery_admin/models/singleton/singletons.dart';
-import 'package:delivery_admin/utils/log_util.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'dart:io';
+import '../../models/base_user.dart';
+import '../../models/singleton/singletons.dart';
+import '../../utils/log_util.dart';
 import '../../contracts/company/company_contract.dart';
 import '../../models/company/company.dart';
 import '../../services/parse/base_parse_service.dart';
@@ -49,7 +48,7 @@ class ParseCompanyService extends CompanyContractService {
   @override
   Future<Company> update(Company item) {
     return service.update(item).then((response) {
-      item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      //item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
       return response == null ? null : item;
     }).catchError((error) {
       switch (error.code) {

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:delivery_admin/models/base_user.dart';
+import 'package:delivery_admin/utils/log_util.dart';
 
 import '../../services/parse/parse_company_service.dart';
 import '../../services/firebase/firebase_company_service.dart';
@@ -49,6 +50,7 @@ class CompanyPresenter implements CompanyContractPresenter {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
+      Log.e(error);
       if (_view != null) _view.onFailure(error.message);
       return null;
     });

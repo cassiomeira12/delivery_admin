@@ -1,11 +1,14 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:delivery_admin/utils/date_util.dart';
 import 'package:delivery_admin/utils/log_util.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 import '../../contracts/user/user_contract.dart';
 import '../../models/company/company.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../services/notifications/firebase_push_notification.dart';
+import '../../strings.dart';
 import '../../utils/preferences_util.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -51,10 +54,13 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   //List<Order> ordersList;
 
   static DateTime date = DateUtil.todayTime(0, 0);
-  
+
+  String filterName;
+
   @override
   void initState() {
     super.initState();
+    getFilter();
     userPresenter = UserPresenter(null);
     companyPresenter = CompanyPresenter(null);
     orderPresenter = OrdersPresenter(this);
@@ -81,6 +87,25 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     orderPresenter.dispose();
   }
 
+  void getFilter() async {
+    int filter = await PreferencesUtil.getOrderFilter();
+    if (filter == null) {
+      filterName = "Todos";
+    } else {
+      switch(filter) {
+        case 0:
+          filterName = "Todos";
+          break;
+        case 1:
+          filterName = "Cozinha";
+          break;
+        case 2:
+          filterName = "Entrega";
+          break;
+      }
+    }
+  }
+
   void getCompany() async {
     Company result = await companyPresenter.getFromAdmin(Singletons.user());
     if (result != null) {
@@ -98,6 +123,17 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         }
       }
     }
+  }
+
+  @override
+  removeOrder(Order order) {
+    print("remover");
+    try {
+      var item = Singletons.orders().singleWhere((element) => element.id == order.id);
+      setState(() {
+        Singletons.orders().remove(item);
+      });
+    } catch (error) { }
   }
 
   @override
@@ -153,9 +189,70 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       appBar: AppBar(
         title: Text(companyName, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return ["Filtro"].map((String choice) {
+                return PopupMenuItem(value: choice, child: Text(choice),);
+              }).toList();
+            },
+            onSelected: (value) async {
+              switch (value) {
+                case "Filtro":
+                  filterOrders();
+                  break;
+              }
+            },
+          ),
+        ],
       ),
       body: nestedScrollView(),
     );
+  }
+
+  void filterOrders() async {
+    List<Map> times = List();
+    times.add({"key": 0, "title": "Todos"},);
+    times.add({"key": 1, "title": "Cozinha"});
+    times.add({"key": 2, "title": "Entrega/Retirada"});
+    times.add({"key": 3, "title": "Finalizados"});
+    final result = await showConfirmationDialog<int>(
+      context: context,
+      title: "Escolha um filtro dos pedidos?",
+      okLabel: "Ok",
+      cancelLabel: CANCELAR,
+      barrierDismissible: false,
+      actions: times.map((e) {
+        return AlertDialogAction<int>(
+            label: e["title"],
+            key: e["key"]
+        );
+      }).toList(),
+    );
+    if (result != null) {
+      PreferencesUtil.setOrderFilter(result);
+      switch(result) {
+        case 0:
+          setState(() => filterName = "Todos");
+          break;
+        case 1:
+          setState(() => filterName = "Cozinha");
+          break;
+        case 2:
+          setState(() => filterName = "Entrega/Retirada");
+          break;
+        case 3:
+          setState(() => filterName = "Finalizados");
+      }
+      setState(() {
+        _loading = true;
+        Singletons.orders().clear();
+      });
+      orderPresenter.unSubscribe();
+      await Future.delayed(Duration(milliseconds: 500));
+      orderPresenter.listDayOrders(date);
+      orderPresenter.listDayOrdersSnapshot(date);
+    }
   }
 
   Widget nestedScrollView() {
@@ -168,28 +265,35 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
               Stack(
                 //alignment: Alignment.bottomCenter,
                 children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      Stack(
-                        alignment: Alignment.topCenter,
-                        children: <Widget>[
-                          BackgroundCard(height: 120,),
-                          Column(
-                            children: [
-                              search(),
-                              Text(
-                                Singletons.company().getOpenTime(date),
-                                style: TextStyle(
+                  Container(
+                    color: Theme.of(context).primaryColor,
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Stack(
+                      alignment: Alignment.topCenter,
+                      children: <Widget>[
+                        Column(
+                          children: [
+                            search(),
+                            Text(
+                              Singletons.company().getOpenTime(date),
+                              style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).backgroundColor
-                                ),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                            ),
+                            filterName != null ? Text(
+                              "Filtro - $filterName",
+                              style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).backgroundColor
+                              ),
+                            ) : Container(),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

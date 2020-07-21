@@ -1,4 +1,5 @@
 import 'package:delivery_admin/utils/log_util.dart';
+import 'package:delivery_admin/utils/preferences_util.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'dart:async';
 import '../../models/singleton/singletons.dart';
@@ -115,19 +116,52 @@ class OrdersPresenter implements OrderContractPresenter {
 
     subscription.on(LiveQueryEvent.create, (value) {
       var order = Order.fromMap(value.toJson());
-      print(order.toMap());
       if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
-        print("passou aqui");
-        if (_view != null) _view.listSuccess([order]);
+        if (_view != null) {
+          _view.listSuccess([order]);
+        }
       }
     });
+
+    int filter = await PreferencesUtil.getOrderFilter();
 
     subscription.on(LiveQueryEvent.update, (value) {
       var order = Order.fromMap(value.toJson());
       print(order.toMap());
       if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
-        print("passou aqui");
-        if (_view != null) _view.listSuccess([order]);
+        var current = order.status.current;
+        var index = order.status.getIndex(current);
+
+        if (filter == null) {
+          filter = 0;
+        }
+
+        switch (filter) {
+          case 0:
+            _view != null ? _view.listSuccess([order]) : null;
+            break;
+          case 1:
+            if (index > 0 && index < 3) {
+              _view != null ? _view.listSuccess([order]) : null;
+            } else {
+              _view != null ? _view.removeOrder(order) : null;
+            }
+            break;
+          case 2:
+            if (index > 2 && index < 5) {
+              _view != null ? _view.listSuccess([order]) : null;
+            } else {
+              _view != null ? _view.removeOrder(order) : null;
+            }
+            break;
+          case 3:
+            if (index > 4) {
+              _view != null ? _view.listSuccess([order]) : null;
+            } else {
+              _view != null ? _view.removeOrder(order) : null;
+            }
+            break;
+        }
       }
     });
   }
@@ -140,6 +174,8 @@ class OrdersPresenter implements OrderContractPresenter {
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");
 
+    int filter = await PreferencesUtil.getOrderFilter();
+
     await query.query().then((value) async {
       if (value.success) {
         if (value.result == null) {
@@ -149,9 +185,26 @@ class OrdersPresenter implements OrderContractPresenter {
           var list = listObj.map<Order>((obj) {
             return Order.fromMap(obj.toJson());
           }).toList();
-          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          if(_view != null) _view.listSuccess(list);
-          return list;
+
+          if (filter == null) {
+            filter = 0;
+          }
+
+          var filterList = list.where((order) {
+            var current = order.status.current;
+            var index = order.status.getIndex(current);
+            switch (filter) {
+              case 0: return true;
+              case 1: return index > 0 && index < 3;
+              case 2: return index > 2 && index < 5;
+              case 3: return index > 4;
+            }
+            return false;
+          }).toList();
+
+          filterList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          if(_view != null) _view.listSuccess(filterList);
+          return filterList;
         }
       } else {
         throw value.error;

@@ -43,7 +43,6 @@ class _CompanyAddressPageState extends State<CompanyAddressPage> implements Addr
     if (Singletons.company().address != null) {
       setCurrentAddress(Singletons.company().address);
     }
-    Log.d(Singletons.company().address.toMap());
   }
 
   void setCurrentAddress(Address address) {

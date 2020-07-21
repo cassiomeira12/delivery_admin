@@ -1,7 +1,7 @@
 import '../base_model.dart';
 
 enum Type {
-  CARD, MONEY, APP_PAYMENT, CASHBACK
+  CARD, MONEY, APP_PAYMENT, CASHBACK, PICK_PAY
 }
 
 class TypePayment extends BaseModel<TypePayment> {
@@ -9,6 +9,8 @@ class TypePayment extends BaseModel<TypePayment> {
   Type paymentType;
   int taxa;// 0 - 100 - Taxa pelo uso do aplicativo
   int maxInstallments;//Max prestação
+
+  String url;
 
   TypePayment() : super('TypePayment') {
     taxa = 7;
@@ -27,6 +29,8 @@ class TypePayment extends BaseModel<TypePayment> {
     });
     taxa = (map["taxa"] as num).toInt();
     maxInstallments = map["maxInstallments"] as int;
+
+    url = map["url"];
   }
 
   @override
@@ -37,6 +41,8 @@ class TypePayment extends BaseModel<TypePayment> {
     map["type"] = paymentType.toString().split('.').last;
     map["taxa"] = taxa;
     map["maxInstallments"] = maxInstallments;
+
+    map["url"] = url;
     return map;
   }
 
@@ -50,6 +56,8 @@ class TypePayment extends BaseModel<TypePayment> {
         return "Pagamento no Aplicativo";
       case Type.CASHBACK:
         return "Cashback";
+      case Type.PICK_PAY:
+        return "PicPay";
       default:
         return "";
     }

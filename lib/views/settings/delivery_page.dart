@@ -3,6 +3,7 @@ import 'package:delivery_admin/models/company/company.dart';
 import 'package:delivery_admin/models/company/delivery.dart';
 import 'package:delivery_admin/models/singleton/singletons.dart';
 import 'package:delivery_admin/presenters/company/company_presenter.dart';
+import 'package:delivery_admin/utils/log_util.dart';
 import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
 import 'package:delivery_admin/widgets/shape_round.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,7 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar( iconTheme: IconThemeData(color: Colors.white), elevation: 0,),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
@@ -180,18 +182,14 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
                   value: deliveryType,
                   activeColor: Theme.of(context).accentColor,
                   onChanged: (value) {
-                    setState(() {
-                      deliveryType = value;
-                    });
+                    setState(() => deliveryType = value);
                   },
                 ),
               ),
             ],
           ),
           onPressed: () {
-            setState(() {
-              deliveryType = !deliveryType;
-            });
+            setState(() => deliveryType = !deliveryType);
           },
         ),
       ),
@@ -225,21 +223,14 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
                   value: pickupType,
                   activeColor: Theme.of(context).accentColor,
                   onChanged: (value) {
-                    setState(() {
-                      pickupType = value;
-                    });
+                    setState(() => pickupType = value);
                   },
                 ),
               ),
             ],
           ),
           onPressed: () {
-            setState(() {
-              pickupType = !pickupType;
-              Singletons.user().notificationToken.active = pickupType;
-              //_loading = true;
-            });
-            //presenter.update(Singletons.user());
+            setState(() => pickupType = !pickupType);
           },
         ),
       ),
@@ -304,6 +295,7 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
 
   @override
   onFailure(String error)  {
+    Log.d(error);
     setState(() => _loading = false);
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }

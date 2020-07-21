@@ -84,6 +84,11 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> implements OrderCon
   }
 
   @override
+  removeOrder(Order order) {
+
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,

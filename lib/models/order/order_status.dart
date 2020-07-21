@@ -31,6 +31,17 @@ class OrderStatus extends BaseModel<OrderStatus> {
     return current.name == values.last.name;
   }
 
+  int getIndex(Status current) {
+    int index = 0;
+    for (var value in values) {
+      if (current.name == value.name) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
 }
 
 class Status extends BaseModel<Status> {

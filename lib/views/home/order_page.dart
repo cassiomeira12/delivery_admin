@@ -91,6 +91,11 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
   }
 
   @override
+  removeOrder(Order order) {
+
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,

@@ -150,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
         notificationsSettingsButton(),
         //darkModeButton(),
         aboutAppButton(),
-        termosButton(),
+        //termosButton(),
         //disableAccountButton(),
         //companyButton(),
         //planButton(),
@@ -160,7 +160,7 @@ class _SettingsPageState extends State<SettingsPage> implements UserContractView
         deliveryButton(),
         paymentTypeButton(),
         signOutButton(),
-        Padding(padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 40),),
+        Padding(padding: EdgeInsets.only(bottom: 40),),
       ],
     );
   }
