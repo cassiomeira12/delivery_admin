@@ -1,5 +1,5 @@
-import 'package:delivery_admin/utils/log_util.dart';
-import 'package:delivery_admin/utils/preferences_util.dart';
+import '../../utils/log_util.dart';
+import '../../utils/preferences_util.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'dart:async';
 import '../../models/singleton/singletons.dart';
@@ -107,7 +107,7 @@ class OrdersPresenter implements OrderContractPresenter {
     liveQuery = LiveQuery();
 
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      ..whereEqualTo("company", Singletons.company().toPointer())
+      //..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");
@@ -169,7 +169,7 @@ class OrdersPresenter implements OrderContractPresenter {
   @override
   Future<List<Order>> listDayOrders(DateTime day) async {
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      ..whereEqualTo("company", Singletons.company().toPointer())
+      //..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");

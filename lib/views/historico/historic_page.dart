@@ -1,7 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/presenters/company/company_presenter.dart';
-import 'package:delivery_admin/presenters/file_presenter.dart';
-import 'package:delivery_admin/utils/log_util.dart';
+import '../../presenters/company/company_presenter.dart';
+import '../../presenters/file_presenter.dart';
+import '../../utils/log_util.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';

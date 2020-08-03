@@ -1,9 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/utils/date_util.dart';
-import 'package:delivery_admin/utils/log_util.dart';
+import '../../utils/date_util.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
-
 import '../../contracts/user/user_contract.dart';
 import '../../models/company/company.dart';
 import '../../presenters/user/user_presenter.dart';
@@ -275,7 +272,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                           children: [
                             search(),
                             Text(
-                              Singletons.company().getOpenTime(date),
+                              Singletons.company() != null ? Singletons.company().getOpenTime(date) : "",
                               style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,

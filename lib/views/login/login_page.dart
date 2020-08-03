@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:delivery_admin/contracts/user/user_contract.dart';
-import 'package:delivery_admin/presenters/user/user_presenter.dart';
-import 'package:delivery_admin/utils/preferences_util.dart';
+import '../../contracts/user/user_contract.dart';
+import '../../presenters/user/user_presenter.dart';
+import '../../utils/preferences_util.dart';
 import '../../models/singleton/singletons.dart';
 import '../../views/settings/phone_number_page.dart';
 import 'package:flutter/material.dart';

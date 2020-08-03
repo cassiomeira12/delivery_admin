@@ -174,15 +174,15 @@ class _NewProductPageState extends State<NewProductPage> {
                     onSaved: (value) => cost = costController.numberValue,
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
-                  child: TextInputField(
-                    labelText: "Desconto R\$",
-                    controller: discountController,
-                    onSaved: (value) =>
-                        discount = discountController.numberValue,
-                  ),
-                ),
+//                Padding(
+//                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+//                  child: TextInputField(
+//                    labelText: "Desconto R\$",
+//                    controller: discountController,
+//                    onSaved: (value) =>
+//                        discount = discountController.numberValue,
+//                  ),
+//                ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: GestureDetector(
@@ -329,6 +329,7 @@ class _NewProductPageState extends State<NewProductPage> {
   void save() async {
     if (validateAndSave()) {
       if (widget.product == null) {
+        discount = 0;
         var product = Product()
           ..name = name
           ..description = descriptionController.value.text.isEmpty

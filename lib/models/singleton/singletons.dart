@@ -1,4 +1,4 @@
-import 'package:delivery_admin/services/notifications/push_notification.dart';
+import '../../services/notifications/push_notification.dart';
 import 'package:get_it/get_it.dart';
 import 'order_list_singleton.dart';
 import 'company_list_singleton.dart';

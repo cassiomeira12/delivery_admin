@@ -253,6 +253,8 @@ class ParseUserService implements UserContractService {
     PreferencesUtil.setUserData(null);
     PreferencesUtil.setAdminCompany(null);
     Singletons.company().clear();
+    Singletons.orders().clear();
+    Singletons.menus().clear();
     ParseUser currentUser = await ParseUser.currentUser();
     await currentUser.logout();
   }

@@ -1,10 +1,6 @@
-import 'package:delivery_admin/views/new_company_page.dart';
-
+import '../views/new_company_page.dart';
 import '../models/singleton/singletons.dart';
-import '../services/notifications/parse_push_notification.dart';
-import '../services/notifications/firebase_push_notification.dart';
 import '../contracts/user/user_contract.dart';
-import '../models/base_user.dart';
 import '../models/version_app.dart';
 import '../presenters/user/user_presenter.dart';
 import '../presenters/version_app_presenter.dart';

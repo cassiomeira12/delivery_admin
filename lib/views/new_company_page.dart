@@ -1,9 +1,9 @@
-import 'package:delivery_admin/contracts/company/company_contract.dart';
-import 'package:delivery_admin/models/company/company.dart';
-import 'package:delivery_admin/presenters/company/company_presenter.dart';
-import 'package:delivery_admin/utils/log_util.dart';
-import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
+import '../contracts/company/company_contract.dart';
+import '../models/company/company.dart';
+import '../presenters/company/company_presenter.dart';
+import '../utils/log_util.dart';
+import '../widgets/scaffold_snackbar.dart';
+import '../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../utils/preferences_util.dart';

@@ -1,10 +1,7 @@
 import 'dart:io';
-
-import 'package:delivery_admin/models/base_user.dart';
-import 'package:delivery_admin/utils/log_util.dart';
-
+import '../../models/base_user.dart';
+import '../../utils/log_util.dart';
 import '../../services/parse/parse_company_service.dart';
-import '../../services/firebase/firebase_company_service.dart';
 import '../../contracts/company/company_contract.dart';
 import '../../models/company/company.dart';
 

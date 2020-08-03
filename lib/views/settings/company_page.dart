@@ -1,13 +1,8 @@
-import 'package:delivery_admin/widgets/primary_button.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
-
-import '../../models/version_app.dart';
-import '../../presenters/version_app_presenter.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/text_input_field.dart';
 import '../../strings.dart';
 import '../../widgets/background_card.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CompanyPage extends StatefulWidget {
 

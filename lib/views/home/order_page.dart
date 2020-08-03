@@ -1,6 +1,8 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:delivery_admin/widgets/scaffold_snackbar.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import '../../models/company/type_payment.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:timeline_tile/timeline_tile.dart';
@@ -32,6 +34,7 @@ class OrderPage extends StatefulWidget {
 class _OrderPageState extends State<OrderPage> implements OrderContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _loading = false;
 
   OrderContractPresenter presenter;
 
@@ -72,7 +75,10 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
 
   @override
   onFailure(String error)  {
-    print(error);
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+    setState(() {
+      _loading = false;
+    });
   }
 
   @override
@@ -88,6 +94,9 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
       }
       index++;
     });
+    setState(() {
+      _loading = false;
+    });
   }
 
   @override
@@ -100,7 +109,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(title, style: TextStyle(color: Colors.white),),
+        title: Text(order.companyName, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
@@ -130,7 +139,15 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           ),
         ],
       ),
-      body: nestedScrollView(),
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+        ),
+        child: nestedScrollView(),
+      ),
     );
   }
 
@@ -195,16 +212,26 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
               ],
             ),
             SizedBox(height: 5,),
-            Column(children: ordersItems,),
-            textDelivery(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                totalTextWidget(),
-                costTextWidget("R\$ ${total.toStringAsFixed(2)}"),
-              ],
+            Card(
+              color: Colors.grey[200],
+              margin: EdgeInsets.all(0),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Column(children: ordersItems,),
+              ),
             ),
-            textPaymentType(),
+            order.delivery ? textDelivery() : Container(),
+            Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  totalTextWidget(),
+                  costTextWidget("R\$ ${total.toStringAsFixed(2)}"),
+                ],
+              ),
+            ),
+            paymentTypeWidget(order.typePayment),
             addressDataWidget(order.deliveryAddress),
             SizedBox(height: 10,),
             order.status.isLast() && order.evaluation != null ?
@@ -290,6 +317,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                         order.status.values[1].date = DateTime.now();
                         setState(() {
                           order.status.current = order.status.values[1];
+                          _loading = true;
                         });
                         presenter.update(order);
                       } else if (result == 11) {
@@ -320,6 +348,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                             order.status.values[1].date = DateTime.now();
                             setState(() {
                               order.status.current = order.status.values[1];
+                              _loading = true;
                             });
                             presenter.update(order);
                           }
@@ -344,6 +373,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                         order.status.values[1].date = DateTime.now();
                         setState(() {
                           order.status.current = order.status.values[1];
+                          _loading = true;
                         });
                         presenter.update(order);
                       }
@@ -408,37 +438,64 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
     );
   }
 
-  Widget textPaymentType() {
-    return Padding(
-      padding: EdgeInsets.only(top: 15, bottom: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            flex: 1,
-            child: AutoSizeText(
-              order.typePayment.getType(),
-              maxLines: 1,
+  Widget paymentTypeWidget(TypePayment payment) {
+    return Card(
+      elevation: 5,
+      margin: EdgeInsets.only(top: 15),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(0, 15, 10, 15),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              alignment: Alignment.center,
+              child: FaIcon(findIcon(payment.paymentType), color: Colors.green,),
+            ),
+            Expanded(
+              child: AutoSizeText(
+                payment.getType(),
+                maxLines: 1,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black45,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Text(
+              order.changeMoney == null ? "Sem troco" : "Troco: ${order.changeMoney}",
               textAlign: TextAlign.left,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 19,
                 color: Colors.black45,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          Text(
-            order.changeMoney == null ? "Sem troco" : order.changeMoney,
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black45,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  IconData findIcon(Type type) {
+    IconData icon;
+    switch(type) {
+      case Type.MONEY:
+        icon = FontAwesomeIcons.moneyBill;
+        break;
+      case Type.CARD:
+        icon = FontAwesomeIcons.creditCard;
+        break;
+      case Type.APP_PAYMENT:
+        icon = FontAwesomeIcons.mobileAlt;
+        break;
+      case Type.CASHBACK:
+        icon = FontAwesomeIcons.handHoldingUsd;
+        break;
+    }
+    return icon;
   }
 
   Widget orderCanceled() {
@@ -454,18 +511,20 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
 
   Widget orderItem(OrderItem item) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 5, 0, 5),
+      padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "${item.amount}x ${item.name}",
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black45,
+              Flexible(
+                child: Text(
+                  "${item.amount}x ${item.name}",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.black45,
+                  ),
                 ),
               ),
               Text(
@@ -508,14 +567,20 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             }).toList(),
           ),
           item.note.isNotEmpty ?
-          Text(
-            item.note,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-              //fontWeight: FontWeight.bold,
-            ),
-          ) : Container(),
+            Text(
+              item.note,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
+                //fontWeight: FontWeight.bold,
+              ),
+            ) : Container(),
+          SizedBox(height: 15,),
+          Divider(
+            color: Colors.white,
+            thickness: 1,
+            height: 0,
+          ),
         ],
       ),
     );
@@ -590,6 +655,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                     currentStatusIndex++;
                     order.status.values[currentStatusIndex].date = DateTime.now();
                     order.status.current = order.status.values[currentStatusIndex];
+                    _loading = true;
                     presenter.update(order);
                   });
                 }
@@ -678,68 +744,70 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                   padding: EdgeInsets.all(10),
                   child: order.delivery ? FaIcon(FontAwesomeIcons.motorcycle,) : FaIcon(FontAwesomeIcons.running,),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: 5, right: 10),
-                      child: Text(
-                        order.delivery ? "Endereço de entrega" : "Endereço de retirada",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 5, right: 10),
+                        child: Text(
+                          order.delivery ? "Endereço de entrega" : "Endereço de retirada",
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 5, right: 10),
-                      child: Text(
-                        "${address.street}" + (address.number == null ? "" : ", ${address.number}"),
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black54,
+                      Padding(
+                        padding: EdgeInsets.only(top: 5, right: 10),
+                        child: Text(
+                          "${address.street}" + (address.number == null ? "" : ", ${address.number}"),
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black54,
+                          ),
                         ),
                       ),
-                    ),
-                    address.neighborhood != null ? Padding(
-                      padding: EdgeInsets.only(top: 5, right: 10),
-                      child: Text(
-                        address.neighborhood,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black54,
+                      address.neighborhood != null ? Padding(
+                        padding: EdgeInsets.only(top: 5, right: 10),
+                        child: Text(
+                          address.neighborhood,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black54,
+                          ),
                         ),
-                      ),
-                    ) : Container(),
-                    address.reference != null ? Padding(
-                      padding: EdgeInsets.only(top: 5, right: 10),
-                      child: Text(
-                        address.reference,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black38,
+                      ) : Container(),
+                      address.reference != null ? Padding(
+                        padding: EdgeInsets.only(top: 5, right: 10),
+                        child: Text(
+                          address.reference,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black38,
+                          ),
                         ),
-                      ),
-                    ) : Container(),
-                    order.note != null && order.note.isNotEmpty ?
-                    Padding(
-                      padding: EdgeInsets.only(top: 5, right: 10),
-                      child: Text(
-                        order.note,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                          //fontWeight: FontWeight.bold,
+                      ) : Container(),
+                      order.note != null && order.note.isNotEmpty ?
+                      Padding(
+                        padding: EdgeInsets.only(top: 5, right: 10),
+                        child: Text(
+                          order.note,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
+                            //fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ) : Container(),
-                    SizedBox(height: 10,),
-                  ],
+                      ) : Container(),
+                      SizedBox(height: 10,),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -754,7 +822,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                   borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
                 ),
                 child: Text(
-                  "Abrir o Mapa",
+                  OPEN_MAP,
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 20,
@@ -817,93 +885,6 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           fontSize: 25,
           color: Colors.black45,
         ),
-      ),
-    );
-  }
-
-  Widget statusItemList(Status status, int index) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            //height: 70,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 3,
-                  height: 80,
-                  color: Colors.grey[350],
-                ),
-                Container(
-                  width: 25,
-                  height: 25,
-                  decoration: BoxDecoration(
-                    color: this.currentStatusIndex > index ? Colors.grey[350] : this.currentStatusIndex == index ? Colors.green : Colors.grey[300],
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(25),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(top: 10, right: 30),
-                  child: SecondaryButton(
-                    child: AutoSizeText(
-                      status.name,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: this.currentStatusIndex > index ?
-                        Colors.grey[500]
-                            :
-                        this.currentStatusIndex == index ?
-                        Colors.green
-                            :
-                        this.currentStatusIndex + 1 == index ?
-                        Colors.black54
-                            :
-                        Colors.grey[300],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () {
-                      if (currentStatusIndex + 1 == index) {
-                        setState(() {
-                          currentStatusIndex++;
-                          order.status.values[currentStatusIndex].date = DateTime.now();
-                          order.status.current = order.status.values[currentStatusIndex];
-                          presenter.update(order);
-                        });
-                      }
-                    },
-                  ),
-                ),
-                status.date != null ?
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                  child: Text(
-                    DateUtil.formatHourMinute(status.date),
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.black45,
-                    ),
-                  ),
-                ) : Container(),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -46,7 +46,7 @@ class _ProductWidgetState extends State<ProductWidget> {
                   titleTextWidget(product.name),
                   product.description == null ? Container() :
                   descriptionTextWidget(product.description),
-                  costTextWidget(product.cost),
+                  product.cost > 0 ? costTextWidget(product.cost) : Container(),
                 ],
               ),
             ),

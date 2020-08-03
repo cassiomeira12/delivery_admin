@@ -1,15 +1,13 @@
-import 'package:delivery_admin/contracts/menu/menu_contract.dart';
-import 'package:delivery_admin/models/menu/choice_selected.dart';
-import 'package:delivery_admin/models/menu/menu.dart';
-import 'package:delivery_admin/presenters/file_presenter.dart';
-import 'package:delivery_admin/presenters/menu/menu_presenter.dart';
-import 'package:delivery_admin/utils/log_util.dart';
-import 'package:delivery_admin/views/historico/new_product_page.dart';
-import 'package:delivery_admin/widgets/secondary_button.dart';
+import '../../contracts/menu/menu_contract.dart';
+import '../../models/menu/choice_selected.dart';
+import '../../models/menu/menu.dart';
+import '../../presenters/file_presenter.dart';
+import '../../presenters/menu/menu_presenter.dart';
+import '../../utils/log_util.dart';
+import '../../views/historico/new_product_page.dart';
+import '../../widgets/secondary_button.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../../views/login/login_page.dart';
 import '../../models/singleton/singletons.dart';
 import '../../models/company/company.dart';
 import '../../models/order/order_item.dart';
@@ -22,7 +20,6 @@ import '../../models/menu/product.dart';
 import '../../strings.dart';
 import '../../views/home/additional_widget.dart';
 import '../../views/image_view_page.dart';
-import '../../widgets/area_input_field.dart';
 import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -247,41 +244,41 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
 
           SizedBox(height: 30,),
 
-          GestureDetector(
-            child: AbsorbPointer(
-              absorbing: true,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: AreaInputField(
-                  labelText: "Observação",
-                  maxLines: 4,
-                  controller: _observacaoController,
-                ),
-              ),
-            ),
-            onTap: () async {
-              var result = await showTextInputDialog(
-                context: context,
-                title: "Observação",
-                message: "Digite aqui sua observação",
-                cancelLabel: CANCELAR,
-                okLabel: SALVAR,
-                textFields: [
-                  DialogTextField(
-                    hintText: "Observação",
-                    initialText: _observacaoController.text,
-                  ),
-                ],
-              );
-              if (result == null) return;
-              var temp = result[0];
-              setState(() {
-                _observacaoController.text = temp;
-              });
-            },
-          ),
+//          GestureDetector(
+//            child: AbsorbPointer(
+//              absorbing: true,
+//              child: Padding(
+//                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+//                child: AreaInputField(
+//                  labelText: "Observação",
+//                  maxLines: 4,
+//                  controller: _observacaoController,
+//                ),
+//              ),
+//            ),
+//            onTap: () async {
+//              var result = await showTextInputDialog(
+//                context: context,
+//                title: "Observação",
+//                message: "Digite aqui sua observação",
+//                cancelLabel: CANCELAR,
+//                okLabel: SALVAR,
+//                textFields: [
+//                  DialogTextField(
+//                    hintText: "Observação",
+//                    initialText: _observacaoController.text,
+//                  ),
+//                ],
+//              );
+//              if (result == null) return;
+//              var temp = result[0];
+//              setState(() {
+//                _observacaoController.text = temp;
+//              });
+//            },
+//          ),
 
-          SizedBox(height: 20,),
+          //SizedBox(height: 20,),
 
           adicionarButton(),
 
@@ -463,26 +460,26 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
             ),
           ],
         ),
-        onPressed: () async {
-          if (Singletons.user().isAnonymous()) {
-            final result = await showOkCancelAlertDialog(
-              context: context,
-              title: "Criar conta",
-              message: "Você precisa criar uma conta para fazer pedido",
-              okLabel: CRIAR_CONTA,
-              cancelLabel: CANCELAR,
-            );
-            switch(result) {
-              case OkCancelResult.ok:
-                PageRouter.push(context, LoginPage(loginCallback: widget.loginCallback, anonymousLogin: true,));
-                break;
-              case OkCancelResult.cancel:
-                break;
-            }
-            return;
-          }
-          saveOrderItem();
-        },
+//        onPressed: () async {
+//          if (Singletons.user().isAnonymous()) {
+//            final result = await showOkCancelAlertDialog(
+//              context: context,
+//              title: "Criar conta",
+//              message: "Você precisa criar uma conta para fazer pedido",
+//              okLabel: CRIAR_CONTA,
+//              cancelLabel: CANCELAR,
+//            );
+//            switch(result) {
+//              case OkCancelResult.ok:
+//                PageRouter.push(context, LoginPage(loginCallback: widget.loginCallback, anonymousLogin: true,));
+//                break;
+//              case OkCancelResult.cancel:
+//                break;
+//            }
+//            return;
+//          }
+//          saveOrderItem();
+//        },
       ),
     );
   }

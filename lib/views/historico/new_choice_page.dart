@@ -1,13 +1,10 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:delivery_admin/models/menu/choice.dart';
-import 'package:delivery_admin/views/historico/new_item_page.dart';
-import 'package:delivery_admin/widgets/rounded_shape.dart';
-import 'package:delivery_admin/widgets/text_input_field.dart';
-
+import '../../models/menu/choice.dart';
+import '../../views/historico/new_item_page.dart';
+import '../../widgets/rounded_shape.dart';
+import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:sticky_headers/sticky_headers/widget.dart';
 import '../../models/menu/item.dart';
-import '../../strings.dart';
 import '../../widgets/area_input_field.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
