@@ -73,14 +73,17 @@ class OrderItem extends BaseModel<OrderItem> {
 
   double getTotal() {
     double total = amount * cost;
+
+    choicesSelected.forEach((element) {
+      element.choiceSelected.forEach((item) {
+        total += amount * item.cost;
+      });
+    });
+
     additionalSelected.forEach((element) {
       total += element.amount * element.cost;
     });
-    choicesSelected.forEach((element) {
-      element.choiceSelected.forEach((item) {
-        total += item.cost;
-      });
-    });
+
     return total;
   }
 

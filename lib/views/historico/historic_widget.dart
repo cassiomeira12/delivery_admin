@@ -116,6 +116,7 @@ class _HistoricWidgetState extends State<HistoricWidget> {
         style: TextStyle(
           fontSize: 18,
           color: Colors.black45,
+          fontWeight: FontWeight.bold
         ),
       ),
     );
