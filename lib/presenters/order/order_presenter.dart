@@ -169,7 +169,7 @@ class OrdersPresenter implements OrderContractPresenter {
   @override
   Future<List<Order>> listDayOrders(DateTime day) async {
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      //..whereEqualTo("company", Singletons.company().toPointer())
+      ..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");

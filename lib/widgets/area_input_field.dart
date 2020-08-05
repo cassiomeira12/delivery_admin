@@ -8,6 +8,7 @@ class AreaInputField extends StatefulWidget {
   bool obscureText;
   TextCapitalization textCapitalization;
   int maxLines;
+  bool enable;
 
   TextEditingController controller;
   FormFieldValidator<String> validator;
@@ -22,6 +23,7 @@ class AreaInputField extends StatefulWidget {
     this.obscureText = false,
     this.textCapitalization = TextCapitalization.words,
     this.maxLines = 2,
+    this.enable = true,
 
     this.controller,
     this.validator,
@@ -45,6 +47,7 @@ class _AreaInputFieldState extends State<AreaInputField> {
       maxLines: widget.maxLines,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+      enabled: widget.enable,
       decoration: InputDecoration(
         labelText: widget.labelText,
         alignLabelWithHint: true,
@@ -64,6 +67,10 @@ class _AreaInputFieldState extends State<AreaInputField> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Theme.of(context).hintColor),
         ),
       ),
       controller: widget.controller,

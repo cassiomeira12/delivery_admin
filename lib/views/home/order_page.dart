@@ -189,7 +189,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           ),
         ];
       },
-      body: order.status.isFirst() ? Container() : body(),
+      body: order.status.isFirst() || order.canceled ? Container() : body(),
     );
   }
 

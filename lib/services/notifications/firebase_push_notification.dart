@@ -118,6 +118,10 @@ class FirebasePushNotifications {
     }
   }
 
+  void pushLocalNotification(String title, String message) {
+    showSilentNotification(notifications, title: title, body: message);
+  }
+
   void iOSPermission() {
     _firebaseMessaging.requestNotificationPermissions(
         IosNotificationSettings(sound: true, badge: true, alert: true)

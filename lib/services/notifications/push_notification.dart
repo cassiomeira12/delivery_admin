@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 import '../../models/base_user.dart';
 import '../../models/singleton/singletons.dart';
 import '../../services/notifications/parse_push_notification.dart';
@@ -30,6 +32,10 @@ class PushNotification {
     pushNotifications.subscribeDefaultTopics();
     ParsePushNotification();
     return userToken;
+  }
+
+  void pushLocalNotification(String title, String message) {
+    pushNotifications.pushLocalNotification(title, message);
   }
 
 }

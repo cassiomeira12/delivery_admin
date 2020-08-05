@@ -1,3 +1,5 @@
+import 'package:kideliver_admin/views/notifications/new_notification_page.dart';
+
 import '../../models/singleton/singletons.dart';
 import '../../contracts/user/notification_contract.dart';
 import '../../models/user_notification.dart';
@@ -107,6 +109,12 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add, color: Colors.white,),
+        onPressed: () async {
+          //await PageRouter.push(context, NewNotificationPage());
+        },
       ),
     );
   }

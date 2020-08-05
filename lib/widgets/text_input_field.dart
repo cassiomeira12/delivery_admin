@@ -8,6 +8,7 @@ class TextInputField extends StatefulWidget {
   TextAlign textAlign;
   bool obscureText;
   TextCapitalization textCapitalization;
+  bool enable;
 
   TextEditingController controller;
   FormFieldValidator<String> validator;
@@ -22,6 +23,7 @@ class TextInputField extends StatefulWidget {
     this.textAlign = TextAlign.center,
     this.obscureText = false,
     this.textCapitalization = TextCapitalization.none,
+    this.enable = true,
 
     this.controller,
     this.validator,
@@ -44,6 +46,7 @@ class _TextInputFieldState extends State<TextInputField> {
       textCapitalization: widget.textCapitalization,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+      enabled: widget.enable,
       decoration: InputDecoration(
         hintText: widget.hintText == null ? null : widget.hintText,
         labelText: widget.labelText,
@@ -63,6 +66,10 @@ class _TextInputFieldState extends State<TextInputField> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]),
         ),
       ),
       controller: widget.controller,
