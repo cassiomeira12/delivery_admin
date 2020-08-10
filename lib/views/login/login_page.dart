@@ -18,8 +18,8 @@ import '../../widgets/primary_button.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../widgets/secondary_button.dart';
 import '../../widgets/shape_round.dart';
-
 import '../../strings.dart';
+import 'company/new_company_page.dart';
 import 'forgot_password_page.dart';
 import 'signup_page.dart';
 
@@ -155,6 +155,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
           //googleButton(),
           signupButton(),
           //anonymousButton(),
+          newCompanyButton(),
         ],
       ),
     );
@@ -295,7 +296,7 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   Widget signupButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(60, 12, 60, 0),
+      padding: EdgeInsets.fromLTRB(60, 12, 60, 10),
       child: SecondaryButton(
         text: CRIAR_CONTA,
         onPressed: () {
@@ -307,11 +308,23 @@ class _LoginPageState extends State<LoginPage> implements LoginContractView {
 
   Widget anonymousButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(10, 12, 10, 30),
+      padding: EdgeInsets.fromLTRB(10, 12, 10, 0),
       child: LightButton(
         text: "Entrar como convidado".toUpperCase(),
         onPressed: () {
           loginPresenter.signAnonymous();
+        },
+      ),
+    );
+  }
+
+  Widget newCompanyButton() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(10, 0, 10, 50),
+      child: LightButton(
+        text: "Cadastre seu estabelecimento".toUpperCase(),
+        onPressed: () {
+          PageRouter.push(context, NewCompanyPage());
         },
       ),
     );

@@ -202,6 +202,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
         child: Column(
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
@@ -701,7 +702,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
 
   Widget dateTextWidget(String text) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+      padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
       child: Text(
         text,
         textAlign: TextAlign.right,

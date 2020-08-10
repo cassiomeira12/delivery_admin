@@ -19,9 +19,8 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
   Widget build(BuildContext context) {
     return StickyHeader(
       header: Container(
-        height: 50,
         color: Colors.grey[200],
-        padding: EdgeInsets.symmetric(horizontal: 10),
+        padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
         alignment: Alignment.centerLeft,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

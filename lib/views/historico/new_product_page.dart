@@ -4,7 +4,6 @@ import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import '../../models/menu/additional.dart';
 import '../../models/menu/choice.dart';
-import '../../utils/log_util.dart';
 import '../../views/historico/new_additional_page.dart';
 import '../../views/historico/new_choice_page.dart';
 import '../../views/home/choice_widget.dart';
@@ -341,7 +340,7 @@ class _NewProductPageState extends State<NewProductPage> {
           ..images = imagesList
           ..choices = choiceList
           ..additional = additionalList;
-        PageRouter.pop(context, product);
+        //PageRouter.pop(context, product);
       } else {
         widget.product.name = name;
         widget.product.description = descriptionController.value.text.isEmpty
@@ -353,7 +352,7 @@ class _NewProductPageState extends State<NewProductPage> {
         widget.product.images = imagesList;
         widget.product.choices = choiceList;
         widget.product.additional = additionalList;
-        PageRouter.pop(context, widget.product);
+        //PageRouter.pop(context, widget.product);
       }
     }
   }

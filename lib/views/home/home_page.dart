@@ -316,10 +316,10 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
             children: <Widget>[
               FaIcon(FontAwesomeIcons.calendarAlt, color: Colors.grey,),
               SizedBox(width: 10,),
-              Flexible(
-                flex: 1,
+              Expanded(
                 child: Text(
                   "Pedidos ${DateUtil.getWeekDat(date)} - ${date.day} de ${DateUtil.getMounth(date)}",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.grey,
@@ -370,13 +370,18 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         child: _loading ?
           LoadingShimmerList()
             :
-          Singletons.orders().isEmpty ?
-            EmptyListWidget(
-              message: "Nenhum pedido foi encontrado",
-              //assetsImage: "assets/notification.png",
-            )
-              :
-            listView(),
+          Stack(
+            children: [
+              listView(),
+              Singletons.orders().isEmpty ?
+                EmptyListWidget(
+                  message: "Você ainda não recebeu pedidos hoje",
+                  //assetsImage: "assets/notification.png",
+                )
+                  :
+                Container(),
+            ],
+          ),
       ),
     );
   }

@@ -1,6 +1,6 @@
-# deliveryadmin
+# kidelivercompany
 
-Delivery Admin
+A new Flutter application.
 
 ## Getting Started
 

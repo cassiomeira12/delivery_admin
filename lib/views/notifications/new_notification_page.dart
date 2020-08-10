@@ -1,12 +1,11 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:kideliver_admin/contracts/notification/push_notification_contract.dart';
-import 'package:kideliver_admin/models/notification/push_notification.dart';
-import 'package:kideliver_admin/presenters/notification/push_notification_presenter.dart';
-import 'package:kideliver_admin/utils/log_util.dart';
-import 'package:kideliver_admin/views/page_router.dart';
-import 'package:kideliver_admin/widgets/scaffold_snackbar.dart';
-import 'package:kideliver_admin/widgets/secondary_button.dart';
+import '../../contracts/notification/push_notification_contract.dart';
+import '../../models/notification/push_notification.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
+import '../../views/page_router.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import '../../widgets/secondary_button.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../models/singleton/singletons.dart';
 import '../../widgets/area_input_field.dart';
@@ -53,24 +52,6 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     presenter = PushNotificationPresenter(this);
     topicSelected = topics[Singletons.company().topic];
     titleController = TextEditingController(text: Singletons.company().name);
-//    message = widget.notification.message;
-//    observacao = widget.notification.observacao;
-//    imgURL = widget.notification.avatarURL;
-//    data = DateUtil.formatDateMonth(widget.notification.createdAt);
-//
-//    if (!widget.notification.read) {
-//      widget.notification.read = true;
-//      updateNotification();
-//    }
-  }
-
-  void updateNotification() async {
-//    UserNotification temp = await widget.presenter.update(widget.notification);
-////    if (temp != null) {
-////      setState(() {
-////        //widget.notification.updateData(temp);
-////      });
-////    }
   }
 
   @override

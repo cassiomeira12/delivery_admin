@@ -81,7 +81,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
               formPushNotification(),
               //topic(),
               testButton(),
-              true ? sendButton() : avaliationPushNotification(),
+              true ? resendButton() : avaliationPushNotification(),
             ],
           ),
         ),
@@ -216,7 +216,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     );
   }
 
-  Widget sendButton() {
+  Widget resendButton() {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 50),
       child: PrimaryButton(

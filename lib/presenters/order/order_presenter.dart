@@ -107,7 +107,7 @@ class OrdersPresenter implements OrderContractPresenter {
     liveQuery = LiveQuery();
 
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      //..whereEqualTo("company", Singletons.company().toPointer())
+      ..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
       ..orderByDescending("createdAt");
