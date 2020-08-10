@@ -131,8 +131,49 @@ class ParsePushNotificationService extends PushNotificationContractService {
 
   @override
   Future<List<PushNotification>> list() async {
-    return await service.list().then((response) {
-      return response.isEmpty ? List<PushNotification>() : response.map<PushNotification>((item) => PushNotification.fromMap(item)).toList();
+    var query = QueryBuilder<ParseObject>(service.getObject())
+      ..includeObject(["senderCompany", "senderUser", "destinationUser"]);
+
+    return await query.query().then((value) async {
+      if (value.success) {
+        if (value.result == null) {
+          return List<PushNotification>();
+        } else {
+          List<ParseObject> listObj = value.result;
+
+          return listObj.map<PushNotification>((obj) {
+            var root = obj.toJson();
+            var senderCompany = obj.get("senderCompany");
+            var senderUser = obj.get("senderUser");
+            var destinationUser = obj.get("destinationUser");
+
+            if (senderCompany != null) {
+              var json = senderCompany.toJson();
+              root["senderCompany"] = json;
+            }
+
+            if (senderUser != null) {
+              var json = senderUser.toJson();
+              root["senderUser"] = json;
+            }
+
+            if (destinationUser != null) {
+              var json = destinationUser.toJson();
+              root["destinationUser"] = json;
+            }
+
+            return PushNotification.fromMap(root);
+          }).toList();
+        }
+      } else {
+        switch (value.error.code) {
+          case -1:
+            throw Exception(ERROR_NETWORK);
+            break;
+          default:
+            throw Exception(value.error.message);
+        }
+      }
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -142,6 +183,17 @@ class ParsePushNotificationService extends PushNotificationContractService {
           throw Exception(error.message);
       }
     });
+//    return await service.list().then((response) {
+//      return response.isEmpty ? List<PushNotification>() : response.map<PushNotification>((item) => PushNotification.fromMap(item)).toList();
+//    }).catchError((error) {
+//      switch (error.code) {
+//        case -1:
+//          throw Exception(ERROR_NETWORK);
+//          break;
+//        default:
+//          throw Exception(error.message);
+//      }
+//    });
   }
 
 }

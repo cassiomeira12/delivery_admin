@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class PrimaryButton extends StatelessWidget {
   final String text;
   final Widget child;
+  final Color color;
   final VoidCallback onPressed;
 
   const PrimaryButton({
     this.text,
     this.child,
+    this.color,
     @required this.onPressed,
   });
 
@@ -19,7 +21,7 @@ class PrimaryButton extends StatelessWidget {
       child: RaisedButton(
         elevation: 5.0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),),
-        color: Theme.of(context).buttonColor,
+        color: color == null ? Theme.of(context).buttonColor : color,
         child: child == null ?
         Text(
           text,

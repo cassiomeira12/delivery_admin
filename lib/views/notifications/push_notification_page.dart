@@ -1,5 +1,5 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:kideliver_admin/widgets/scaffold_snackbar.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../contracts/notification/push_notification_contract.dart';
 import '../../models/notification/push_notification.dart';
@@ -65,7 +65,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Nova notificação", style: TextStyle(color: Colors.white),),
+        title: Text(widget.notification.senderCompany.name, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ModalProgressHUD(
@@ -78,14 +78,25 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              textTitleWidget(),
-              textMessageWidget(),
-              topic(),
+              formPushNotification(),
+              //topic(),
               testButton(),
-              sendButton(),
+              true ? sendButton() : avaliationPushNotification(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget formPushNotification() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          textTitleWidget(),
+          textMessageWidget(),
+        ],
       ),
     );
   }
@@ -110,7 +121,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
         child: AreaInputField(
           labelText: "Mensagem",
           maxLines: 5,
-          enable: false,
+          enable: true,
           controller: messageController,
         ),
       ),
@@ -182,13 +193,24 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     );
   }
 
+  bool validateAndSave() {
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      return true;
+    }
+    return false;
+  }
+
   Widget testButton() {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 10),
       child: SecondaryButton(
         text: "Testar nesse celular",
         onPressed: () {
-          Singletons.pushNotification().pushLocalNotification(title, message);
+          if (validateAndSave()) {
+            Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+          }
         },
       ),
     );
@@ -200,10 +222,50 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
       child: PrimaryButton(
         text: "Reenviar notificação",
         onPressed: () {
-          setState(() => _loading = true);
-          widget.notification.validated = false;
-          presenter.update(widget.notification);
+          if (validateAndSave()) {
+            setState(() => _loading = true);
+            widget.notification.denied = false;
+            widget.notification.validated = false;
+            presenter.update(widget.notification);
+          }
         },
+      ),
+    );
+  }
+
+  Widget avaliationPushNotification() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(10, 20, 10, 50),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            flex: 1,
+            child: PrimaryButton(
+              text: "Rejeitar",
+              onPressed: () {
+                setState(() => _loading = true);
+                widget.notification.denied = true;
+                widget.notification.validated = false;
+                presenter.update(widget.notification);
+              },
+            ),
+          ),
+          SizedBox(width: 10,),
+          Flexible(
+            flex: 1,
+            child: PrimaryButton(
+              text: "Aprovar",
+              color: Colors.green,
+              onPressed: () {
+                setState(() => _loading = true);
+                widget.notification.denied = false;
+                widget.notification.validated = true;
+                presenter.update(widget.notification);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -222,7 +284,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
   @override
   onSuccess(PushNotification result) {
     setState(() => _loading = false);
-    ScaffoldSnackBar.success(context, _scaffoldKey, "Notificação enviada!");
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
 
 }

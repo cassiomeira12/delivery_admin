@@ -1,3 +1,6 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../views/notifications/push_notification_page.dart';
 import '../../contracts/notification/push_notification_contract.dart';
 import '../../models/notification/push_notification.dart';
@@ -9,6 +12,7 @@ import '../../views/notifications/notifications_settings_page.dart';
 import '../../views/page_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'new_notification_page.dart';
 
 class NotificationsPage extends StatefulWidget {
 
@@ -18,7 +22,9 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+  bool _loading = false;
 
   PushNotificationContractPresenter presenter;
 
@@ -28,8 +34,8 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
   void initState() {
     super.initState();
     presenter = PushNotificationPresenter(this);
-    //presenter.list();
     presenter.findBy("senderCompany", Singletons.company().toPointer());
+    //presenter.list();
   }
 
   @override
@@ -47,18 +53,20 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
 
   @override
   onFailure(String error) {
-    return null;
+    setState(() => _loading = false);
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
   onSuccess(PushNotification result) {
-    return null;
+    setState(() => _loading = false);
+    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //key: _scaffoldKey,
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(TAB2, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
@@ -76,37 +84,62 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
           ),
         ],
       ),
-      body: RefreshIndicator(
-        key: _refreshIndicatorKey,
-        onRefresh: () {
-          Singletons.notifications().clear();
-          return presenter.findBy("senderCompany", Singletons.company().toPointer());
-        },
-        child: Center(
-          child: notificationsList == null ?
-          showCircularProgress()
-              :
-          notificationsList.isEmpty ?
-          semNotificacoes()
-              :
-          CustomScrollView(
-            slivers: <Widget>[
-              SliverList(
-                delegate: SliverChildListDelegate(
-                    notificationsList.map<Widget>((item) {
-                      return listItem(item);
-                    }).toList()
-                ),
-              ),
-            ],
-          ),
+      body: ModalProgressHUD(
+        inAsyncCall: _loading,
+        progressIndicator: Card(
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
         ),
+        child: body(),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, color: Colors.white,),
         onPressed: () async {
-          //await PageRouter.push(context, NewNotificationPage());
+          var result = await PageRouter.push(context, NewNotificationPage());
+          if (result != null) {
+            setState(() {
+              notificationsList.add(result);
+            });
+          }
         },
+      ),
+    );
+  }
+
+  Widget body() {
+    return RefreshIndicator(
+      key: _refreshIndicatorKey,
+      onRefresh: () {
+        Singletons.notifications().clear();
+        return presenter.findBy("senderCompany", Singletons.company().toPointer());
+      },
+      child: Center(
+        child: notificationsList == null ?
+          showCircularProgress()
+              :
+          Stack(
+            children: [
+              CustomScrollView(
+                slivers: <Widget>[
+                  SliverList(
+                    delegate: SliverChildListDelegate(
+                        notificationsList.map<Widget>((item) {
+                          return Padding(
+                            padding: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                            child: listItem(item),
+                          );
+                        }).toList()
+                    ),
+                  ),
+                ],
+              ),
+              notificationsList.isEmpty ?
+                semNotificacoes()
+                  :
+                Container(),
+            ],
+          ),
       ),
     );
   }
@@ -117,8 +150,9 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
       actionExtentRatio: 0.25,
       child: NotificationWidget(
         notification: item,
-        onPressed: () {
-          PageRouter.push(context, PushNotificationPage(notification: item));
+        onPressed: () async {
+          await PageRouter.push(context, PushNotificationPage(notification: item));
+          presenter.findBy("senderCompany", Singletons.company().toPointer());
         },
       ),
       secondaryActions: <Widget>[
@@ -127,14 +161,32 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
           color: Colors.red,
           icon: Icons.delete,
           onTap: () {
-            setState(() {
-              presenter.delete(item);
-              notificationsList.remove(item);
-            });
+            showDialogDeleteItem(item);
           },
         ),
       ],
     );
+  }
+
+  void showDialogDeleteItem(PushNotification item) async {
+    final result = await showOkCancelAlertDialog(
+      context: context,
+      title: DELETAR,
+      okLabel: DELETAR,
+      cancelLabel: CANCELAR,
+      message: "Deseja realmente deletar essa notificação?",
+    );
+    switch(result) {
+      case OkCancelResult.ok:
+        setState(() => _loading = true);
+        setState(() {
+          presenter.delete(item);
+          notificationsList.remove(item);
+        });
+        break;
+      case OkCancelResult.cancel:
+        break;
+    }
   }
 
   Widget showCircularProgress() {

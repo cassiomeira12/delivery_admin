@@ -4,6 +4,7 @@ import 'package:kideliver_admin/contracts/notification/push_notification_contrac
 import 'package:kideliver_admin/models/notification/push_notification.dart';
 import 'package:kideliver_admin/presenters/notification/push_notification_presenter.dart';
 import 'package:kideliver_admin/utils/log_util.dart';
+import 'package:kideliver_admin/views/page_router.dart';
 import 'package:kideliver_admin/widgets/scaffold_snackbar.dart';
 import 'package:kideliver_admin/widgets/secondary_button.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -90,14 +91,25 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              textTitleWidget(),
-              textMessageWidget(),
-              topic(),
+              formPushNotification(),
+              //topic(),
               testButton(),
               sendButton(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget formPushNotification() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          textTitleWidget(),
+          textMessageWidget(),
+        ],
       ),
     );
   }
@@ -193,13 +205,24 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     );
   }
 
+  bool validateAndSave() {
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      return true;
+    }
+    return false;
+  }
+
   Widget testButton() {
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 10),
       child: SecondaryButton(
         text: "Testar nesse celular",
         onPressed: () {
-          Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+          if (validateAndSave()) {
+            Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+          }
         },
       ),
     );
@@ -211,15 +234,17 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
       child: PrimaryButton(
         text: "Enviar notificação",
         onPressed: () {
-          var pushNotification = PushNotification();
-          pushNotification.title = titleController.text;
-          pushNotification.message = message;
-          pushNotification.senderCompany = Singletons.company();
-          pushNotification.senderUser = Singletons.user();
-          pushNotification.topic = topicSelected["key"];
+          if (validateAndSave()) {
+            var pushNotification = PushNotification();
+            pushNotification.title = titleController.text;
+            pushNotification.message = message;
+            pushNotification.senderCompany = Singletons.company();
+            pushNotification.senderUser = Singletons.user();
+            pushNotification.topic = topicSelected["key"];
 
-          setState(() => _loading = true);
-          presenter.create(pushNotification);
+            setState(() => _loading = true);
+            presenter.create(pushNotification);
+          }
         },
       ),
     );
@@ -237,9 +262,11 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
   }
 
   @override
-  onSuccess(PushNotification result) {
+  onSuccess(PushNotification result) async {
     setState(() => _loading = false);
     ScaffoldSnackBar.success(context, _scaffoldKey, "Notificação enviada!");
+    await Future.delayed(Duration(seconds: 1));
+    PageRouter.pop(context, result);
   }
 
 }

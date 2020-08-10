@@ -39,4 +39,16 @@ class PushNotification extends BaseModel<PushNotification> {
     return map;
   }
 
+  String getStateName() {
+    if (denied) {
+      return "Negado";
+    } else {
+      if (validated) {
+        return "Aprovado";
+      } else {
+        return "Em análise";
+      }
+    }
+  }
+
 }

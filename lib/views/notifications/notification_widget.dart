@@ -28,45 +28,67 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 1,left: 0, right: 0, bottom: 0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: RaisedButton(
-          padding: EdgeInsets.fromLTRB(0, 5, 5, 5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0),),
-          color: widget.notification.validated ? Theme.of(context).backgroundColor : Theme.of(context).primaryColorLight,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              widget.notification.title == null ? Container() : titleWidget(),
-              widget.notification.message == null ? Container() : messageWidget(),
-              dataWidget(),
-            ],
-          ),
-          onPressed: widget.onPressed,
+      width: MediaQuery.of(context).size.width,
+      child: RaisedButton(
+        color: Theme.of(context).backgroundColor,
+        padding: EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            widget.notification.title == null ? Container() : titleWidget(),
+            widget.notification.message == null ? Container() : messageWidget(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                stateWidget(),
+                dataWidget(),
+              ],
+            ),
+          ],
         ),
+        onPressed: widget.onPressed,
       ),
     );
   }
 
   Widget titleWidget() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+    return Container(
+      width: MediaQuery.of(context).size.width,
       child: Text(
         widget.notification.title,
         textAlign: TextAlign.left,
-        style: Theme.of(context).textTheme.display3,
+        style: Theme.of(context).textTheme.bodyText2,
       ),
     );
   }
 
   Widget messageWidget() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+    return Container(
+      width: MediaQuery.of(context).size.width,
       child: Text(
         widget.notification.message,
         textAlign: TextAlign.left,
         style: Theme.of(context).textTheme.display4,
+      ),
+    );
+  }
+
+  Widget stateWidget() {
+    return Container(
+      child: Text(
+        widget.notification.getStateName(),
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: widget.notification.denied ?
+            Colors.red
+              :
+            widget.notification.validated ?
+              Colors.green
+                :
+              Colors.black54,
+        ),
       ),
     );
   }
