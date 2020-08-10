@@ -1,12 +1,10 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:kideliver_admin/contracts/notification/push_notification_contract.dart';
-import 'package:kideliver_admin/models/notification/push_notification.dart';
-import 'package:kideliver_admin/presenters/notification/push_notification_presenter.dart';
-import 'package:kideliver_admin/utils/log_util.dart';
 import 'package:kideliver_admin/widgets/scaffold_snackbar.dart';
-import 'package:kideliver_admin/widgets/secondary_button.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import '../../contracts/notification/push_notification_contract.dart';
+import '../../models/notification/push_notification.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
+import '../../widgets/secondary_button.dart';
 import '../../models/singleton/singletons.dart';
 import '../../widgets/area_input_field.dart';
 import '../../widgets/primary_button.dart';
@@ -14,20 +12,25 @@ import '../../widgets/text_input_field.dart';
 import '../../strings.dart';
 import 'package:flutter/material.dart';
 
-class NewNotificationPage extends StatefulWidget {
+class PushNotificationPage extends StatefulWidget {
+  final PushNotification notification;
+
+  const PushNotificationPage({
+    this.notification,
+  });
 
   @override
-  _NewNotificationPageState createState() => _NewNotificationPageState();
+  _PushNotificationPageState createState() => _PushNotificationPageState();
 }
 
-class _NewNotificationPageState extends State<NewNotificationPage> implements PushNotificationContractView {
+class _PushNotificationPageState extends State<PushNotificationPage> implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _loading = false;
 
   PushNotificationContractPresenter presenter;
 
-  TextEditingController titleController;
+  TextEditingController titleController, messageController;
   String title, message, observacao, imgURL, data;
 
   var topics = {
@@ -51,25 +54,10 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     super.initState();
     presenter = PushNotificationPresenter(this);
     topicSelected = topics[Singletons.company().topic];
-    titleController = TextEditingController(text: Singletons.company().name);
-//    message = widget.notification.message;
-//    observacao = widget.notification.observacao;
-//    imgURL = widget.notification.avatarURL;
-//    data = DateUtil.formatDateMonth(widget.notification.createdAt);
-//
-//    if (!widget.notification.read) {
-//      widget.notification.read = true;
-//      updateNotification();
-//    }
-  }
-
-  void updateNotification() async {
-//    UserNotification temp = await widget.presenter.update(widget.notification);
-////    if (temp != null) {
-////      setState(() {
-////        //widget.notification.updateData(temp);
-////      });
-////    }
+    title = widget.notification.title;
+    message = widget.notification.message;
+    titleController = TextEditingController(text: title);
+    messageController = TextEditingController(text: message);
   }
 
   @override
@@ -108,7 +96,7 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
       child: Center(
         child: TextInputField(
           labelText: "Título",
-          enable: true,
+          enable: false,
           controller: titleController,
         ),
       ),
@@ -122,7 +110,8 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
         child: AreaInputField(
           labelText: "Mensagem",
           maxLines: 5,
-          onChanged: (value) => message = value,
+          enable: false,
+          controller: messageController,
         ),
       ),
     );
@@ -172,21 +161,21 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
             ],
           ),
           onPressed: () async {
-            String topicSelected = await showConfirmationDialog<String>(
-              context: context,
-              title: "Escolha um tópico",
-              okLabel: "Ok",
-              cancelLabel: CANCELAR,
-              barrierDismissible: false,
-              actions: topics.values.map((e) {
-                return AlertDialogAction<String>(label: e["label"], key: e["key"]);
-              }).toList(),
-            );
-            if (topicSelected != null) {
-              setState(() {
-                this.topicSelected = topics[topicSelected];
-              });
-            }
+//            String topicSelected = await showConfirmationDialog<String>(
+//              context: context,
+//              title: "Escolha um tópico",
+//              okLabel: "Ok",
+//              cancelLabel: CANCELAR,
+//              barrierDismissible: false,
+//              actions: topics.values.map((e) {
+//                return AlertDialogAction<String>(label: e["label"], key: e["key"]);
+//              }).toList(),
+//            );
+//            if (topicSelected != null) {
+//              setState(() {
+//                this.topicSelected = topics[topicSelected];
+//              });
+//            }
           },
         ),
       ),
@@ -199,7 +188,7 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
       child: SecondaryButton(
         text: "Testar nesse celular",
         onPressed: () {
-          Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+          Singletons.pushNotification().pushLocalNotification(title, message);
         },
       ),
     );
@@ -209,17 +198,11 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     return Padding(
       padding: EdgeInsets.fromLTRB(10, 20, 10, 50),
       child: PrimaryButton(
-        text: "Enviar notificação",
+        text: "Reenviar notificação",
         onPressed: () {
-          var pushNotification = PushNotification();
-          pushNotification.title = titleController.text;
-          pushNotification.message = message;
-          pushNotification.senderCompany = Singletons.company();
-          pushNotification.senderUser = Singletons.user();
-          pushNotification.topic = topicSelected["key"];
-
           setState(() => _loading = true);
-          presenter.create(pushNotification);
+          widget.notification.validated = false;
+          presenter.update(widget.notification);
         },
       ),
     );

@@ -6,6 +6,12 @@ abstract class BaseModel<T> extends ParseObject {
   DateTime updatedAt;
 
   BaseModel(String className) : super(className);
-  //update(BaseModel<T> item);
+
+  baseFromMap(Map<dynamic, dynamic>  map) {
+    id = map["objectId"];
+    createdAt = map["createdAt"] == null ? null : DateTime.parse(map["createdAt"]).toLocal();
+    updatedAt = map["updatedAt"] == null ? null : DateTime.parse(map["updatedAt"]).toLocal();
+  }
+
   Map<String, dynamic> toMap();
 }

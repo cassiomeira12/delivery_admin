@@ -1,9 +1,9 @@
-import '../../models/user_notification.dart';
+import '../../models/notification/push_notification.dart';
 import '../../utils/date_util.dart';
 import 'package:flutter/material.dart';
 
 class NotificationWidget extends StatefulWidget {
-  final UserNotification notification;
+  final PushNotification notification;
   final VoidCallback onPressed;
 
   const NotificationWidget({
@@ -30,23 +30,15 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     return Container(
       margin: EdgeInsets.only(top: 1,left: 0, right: 0, bottom: 0),
       child: SizedBox(
-        width: double.infinity,
+        width: MediaQuery.of(context).size.width,
         child: RaisedButton(
-          padding: EdgeInsets.fromLTRB(20, 5, 5, 5),
-          elevation: 0.0,
+          padding: EdgeInsets.fromLTRB(0, 5, 5, 5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0),),
-          color: widget.notification.read ? Theme.of(context).backgroundColor : Theme.of(context).primaryColorLight,
+          color: widget.notification.validated ? Theme.of(context).backgroundColor : Theme.of(context).primaryColorLight,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  widget.notification.avatarURL == null ? Container() : imageNetworkURL(widget.notification.avatarURL),
-                  widget.notification.title == null ? Container() : Expanded(child: titleWidget(),),
-                  //buttonAction(),
-                ],
-              ),
+              widget.notification.title == null ? Container() : titleWidget(),
               widget.notification.message == null ? Container() : messageWidget(),
               dataWidget(),
             ],

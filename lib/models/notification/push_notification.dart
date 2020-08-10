@@ -6,18 +6,23 @@ class PushNotification extends BaseModel<PushNotification> {
   String title, message, topic;
   Company senderCompany;
   BaseUser senderUser, destinationUser;
-  bool validated;
+  bool validated, denied;
 
-  PushNotification() : super('PushNotification');
+  PushNotification() : super('PushNotification') {
+    validated = false;
+    denied = false;
+  }
 
   PushNotification.fromMap(Map<dynamic, dynamic>  map) : super('PushNotification') {
-    title = map["name"];
+    baseFromMap(map);
+    title = map["title"];
     message = map["message"];
     topic = map["topic"];
     senderCompany = map["senderCompany"] == null ? null : Company.fromMap(map["senderCompany"]);
     senderUser = map["senderUser"] == null ? null : BaseUser.fromMap(map["senderUser"]);
     destinationUser = map["destinationUser"] == null ? null : BaseUser.fromMap(map["destinationUser"]);
     validated = map["validated"] as bool;
+    denied = map["denied"] as bool;
   }
 
   @override
@@ -30,6 +35,7 @@ class PushNotification extends BaseModel<PushNotification> {
     map["senderUser"] = senderUser == null ? null : senderUser.toPointer();
     map["destinationUser"] = destinationUser == null ? null : destinationUser.toPointer();
     map["validated"] = validated;
+    map["denied"] = denied;
     return map;
   }
 

@@ -1,9 +1,8 @@
-import 'package:kideliver_admin/views/notifications/new_notification_page.dart';
-
+import '../../views/notifications/push_notification_page.dart';
+import '../../contracts/notification/push_notification_contract.dart';
+import '../../models/notification/push_notification.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
 import '../../models/singleton/singletons.dart';
-import '../../contracts/user/notification_contract.dart';
-import '../../models/user_notification.dart';
-import '../../presenters/user/notification_presenter.dart';
 import '../../strings.dart';
 import '../../views/notifications/notification_widget.dart';
 import '../../views/notifications/notifications_settings_page.dart';
@@ -11,32 +10,26 @@ import '../../views/page_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import 'notification_page.dart';
-
 class NotificationsPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> implements NotificationContractView {
+class _NotificationsPageState extends State<NotificationsPage> implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  NotificationContractPresenter presenter;
+  PushNotificationContractPresenter presenter;
 
-  List<UserNotification> notificationsList;
+  List<PushNotification> notificationsList;
 
   @override
   void initState() {
     super.initState();
-    presenter = NotificationPresenter(this);
-    var temp = Singletons.notifications();
-    if (temp.isEmpty) {
-      presenter.list();
-    } else {
-      setState(() => notificationsList = temp);
-    }
+    presenter = PushNotificationPresenter(this);
+    //presenter.list();
+    presenter.findBy("senderCompany", Singletons.company().toPointer());
   }
 
   @override
@@ -46,8 +39,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
   }
 
   @override
-  listSuccess(List<UserNotification> list) {
-    Singletons.notifications().addAll(list);
+  listSuccess(List<PushNotification> list) {
     setState(() {
       notificationsList = list;
     });
@@ -59,7 +51,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
   }
 
   @override
-  onSuccess(UserNotification result) {
+  onSuccess(PushNotification result) {
     return null;
   }
 
@@ -88,7 +80,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
         key: _refreshIndicatorKey,
         onRefresh: () {
           Singletons.notifications().clear();
-          return presenter.list();
+          return presenter.findBy("senderCompany", Singletons.company().toPointer());
         },
         child: Center(
           child: notificationsList == null ?
@@ -119,34 +111,16 @@ class _NotificationsPageState extends State<NotificationsPage> implements Notifi
     );
   }
 
-  Widget listItem(UserNotification item) {
+  Widget listItem(PushNotification item) {
     return Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: NotificationWidget(
         notification: item,
         onPressed: () {
-          PageRouter.push(context,
-            NotificationPage(
-              presenter: presenter,
-              notification: item,
-            ),
-          );
+          PageRouter.push(context, PushNotificationPage(notification: item));
         },
       ),
-//      actions: <Widget>[
-//        IconSlideAction(
-//          caption: "Lido",
-//          color: Colors.blue,
-//          icon: Icons.archive,
-//          onTap: () {
-//            setState(() {
-//              item.read = true;
-//              presenter.update(item);
-//            });
-//          },
-//        ),
-//      ],
       secondaryActions: <Widget>[
         IconSlideAction(
           caption: DELETAR,

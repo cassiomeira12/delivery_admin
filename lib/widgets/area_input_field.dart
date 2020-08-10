@@ -21,7 +21,7 @@ class AreaInputField extends StatefulWidget {
     this.inputType = TextInputType.text,
     this.textAlign = TextAlign.center,
     this.obscureText = false,
-    this.textCapitalization = TextCapitalization.words,
+    this.textCapitalization = TextCapitalization.sentences,
     this.maxLines = 2,
     this.enable = true,
 
