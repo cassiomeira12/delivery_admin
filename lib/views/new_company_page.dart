@@ -1,21 +1,19 @@
+import '../views/page_router.dart';
 import '../contracts/company/company_contract.dart';
 import '../models/company/company.dart';
 import '../presenters/company/company_presenter.dart';
-import '../utils/log_util.dart';
 import '../widgets/scaffold_snackbar.dart';
 import '../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../utils/preferences_util.dart';
 import '../models/singleton/singletons.dart';
-import '../contracts/user/user_contract.dart';
-import '../models/base_user.dart';
-import '../presenters/user/user_presenter.dart';
 import '../widgets/background_card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
 import '../widgets/shape_round.dart';
 import '../strings.dart';
+import '../views/login/company/new_company_page.dart' as CompanyPage;
 
 class NewCompanyPage extends StatefulWidget {
   NewCompanyPage({this.loginCallback, this.logoutCallback});
@@ -27,7 +25,7 @@ class NewCompanyPage extends StatefulWidget {
   State<StatefulWidget> createState() => _NewCompanyPageState();
 }
 
-class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContractView {
+class _NewCompanyPageState extends State<NewCompanyPage> {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -48,7 +46,7 @@ class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContr
   @override
   void initState() {
     super.initState();
-    companyPresenter = CompanyPresenter(this);
+    companyPresenter = CompanyPresenter(null);
     getCompany();
   }
 
@@ -67,9 +65,15 @@ class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContr
           child: Stack(
             children: <Widget>[
               BackgroundCard(),
-              Padding(
-                padding: EdgeInsets.only(top: 50),
-                child: ShapeRound(notCompany ? formCompany() : _showForm()),
+              Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 50),
+                    child: ShapeRound(notCompany ? formCompany() : _showForm()),
+                  ),
+                  notCompany ? toBackButton() : Container(),
+                  notCompany ? newCompany() : Container(),
+                ],
               ),
             ],
           ),
@@ -104,6 +108,28 @@ class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContr
             saveButton(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget toBackButton() {
+    return Padding(
+      padding: EdgeInsets.all(30),
+      child: SecondaryButton(
+        text: "Voltar",
+        onPressed: () => widget.logoutCallback(),
+      ),
+    );
+  }
+
+  Widget newCompany() {
+    return Padding(
+      padding: EdgeInsets.all(30),
+      child: PrimaryButton(
+        text: "Cadastrar estabelecimento",
+        onPressed: () {
+          PageRouter.push(context, CompanyPage.NewCompanyPage());
+        },
       ),
     );
   }
@@ -213,25 +239,25 @@ class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContr
     }
   }
 
-  @override
-  onFailure(String error) {
-    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
-    setState(() {
-      loading = false;
-      _loading = false;
-      imgEmail = "assets/error.png";
-    });
-  }
-
-  @override
-  onSuccess(Company result) {
-    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
-  }
-
-  @override
-  listSuccess(List<Company> list) {
-
-  }
+//  @override
+//  onFailure(String error) {
+//    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
+//    setState(() {
+//      loading = false;
+//      _loading = false;
+//      imgEmail = "assets/error.png";
+//    });
+//  }
+//
+//  @override
+//  onSuccess(Company result) {
+//    ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
+//  }
+//
+//  @override
+//  listSuccess(List<Company> list) {
+//
+//  }
 
   bool validateAndSave() {
     final form = _formKey.currentState;
@@ -242,18 +268,32 @@ class _NewCompanyPageState extends State<NewCompanyPage> implements CompanyContr
     return false;
   }
 
+  Future<bool> checkCompanyExist(String id) async {
+    var company = Company();
+    company.id = id;
+    company.objectId = id;
+    var result = await companyPresenter.read(company);
+    return result != null;
+  }
+
   void validateAndSubmit() async {
     if (validateAndSave()) {
       setState(() => _loading = true);
-      var result = await companyPresenter.createAdminCompany(Singletons.user().id, codigo);
-      setState(() => _loading = false);
-      if (result == null || !result) {
-        ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+      var companyExist = await checkCompanyExist(codigo);
+      if (companyExist) {
+        var result = await companyPresenter.createAdminCompany(Singletons.user().id, codigo);
+        setState(() => _loading = false);
+        if (result == null || !result) {
+          ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+        } else {
+          ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
+          PreferencesUtil.setAdminCompany(codigo);
+          await Future.delayed(Duration(seconds: 1));
+          widget.loginCallback();
+        }
       } else {
-        ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
-        PreferencesUtil.setAdminCompany(codigo);
-        await Future.delayed(Duration(seconds: 1));
-        widget.loginCallback();
+        setState(() => _loading = false);
+        ScaffoldSnackBar.failure(context, _scaffoldKey, "Código inválido");
       }
     }
   }
