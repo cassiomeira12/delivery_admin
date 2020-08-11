@@ -1,3 +1,4 @@
+import 'package:kidelivercompany/utils/log_util.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
@@ -70,7 +71,7 @@ class _NewProductPageState extends State<NewProductPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Novo item"),
+        title: Text(widget.product == null ? "Novo item" : widget.product.name),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
@@ -237,11 +238,10 @@ class _NewProductPageState extends State<NewProductPage> {
               return GestureDetector(
                 child: ChoiceWidget(e),
                 onTap: () async {
-                  var result = await PageRouter.push(
-                      context,
-                      NewChoicePage(
-                        choice: e,
-                      ));
+                  Choice result = await PageRouter.push(context, NewChoicePage(choice: e));
+                  setState(() {
+                    e = result;
+                  });
                 },
               );
             }).toList(),
@@ -272,17 +272,8 @@ class _NewProductPageState extends State<NewProductPage> {
         children: [
           AdditionalWidget(
             additional: additionalList,
-            changedCount: (value) {
-//              double temp = 0;
-//              value.forEach((element) {
-//                if (element.amount > 0) {
-//                  temp += element.amount * element.cost;
-//                }
-//              });
-//              setState(() {
-//                additionalCost = temp;
-//              });
-            },
+            editable: true,
+            changedCount: (value) { },
           ),
           SizedBox(
             height: 15,
@@ -329,6 +320,7 @@ class _NewProductPageState extends State<NewProductPage> {
     if (validateAndSave()) {
       if (widget.product == null) {
         discount = 0;
+
         var product = Product()
           ..name = name
           ..description = descriptionController.value.text.isEmpty
@@ -340,8 +332,11 @@ class _NewProductPageState extends State<NewProductPage> {
           ..images = imagesList
           ..choices = choiceList
           ..additional = additionalList;
-        //PageRouter.pop(context, product);
+
+        PageRouter.pop(context, product);
       } else {
+        discount = 0;
+
         widget.product.name = name;
         widget.product.description = descriptionController.value.text.isEmpty
             ? null
@@ -352,7 +347,8 @@ class _NewProductPageState extends State<NewProductPage> {
         widget.product.images = imagesList;
         widget.product.choices = choiceList;
         widget.product.additional = additionalList;
-        //PageRouter.pop(context, widget.product);
+
+        PageRouter.pop(context, widget.product);
       }
     }
   }

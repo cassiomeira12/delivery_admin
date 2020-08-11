@@ -1,4 +1,5 @@
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:kidelivercompany/strings.dart';
 import '../../models/menu/additional.dart';
 import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,9 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../page_router.dart';
 
 class NewAdditionalPage extends StatefulWidget {
+  final Additional additional;
+
+  NewAdditionalPage({this.additional});
 
   @override
   State<StatefulWidget> createState() => _NewAdditionalPageState();
@@ -20,16 +24,24 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
 
   bool _loading = false;
 
+  TextEditingController nameController;
   TextEditingController descriptionController;
-  String name;
-  var costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
-  double cost;
-  int maxQuantity;
+  MoneyMaskedTextController costController;
+  TextEditingController maxQuantityController;
 
   @override
   void initState() {
     super.initState();
+    nameController = TextEditingController();
     descriptionController = TextEditingController();
+    costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
+    maxQuantityController = TextEditingController();
+    if (widget.additional != null) {
+      nameController.text = widget.additional.name;
+      descriptionController.text = widget.additional.description;
+      costController.updateValue(widget.additional.cost);
+      maxQuantityController.text = widget.additional.maxQuantity.toString();
+    }
   }
 
   @override
@@ -37,7 +49,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Novo Adicional"),
+        title: Text(widget.additional == null ? "Novo Adicional" : widget.additional.name),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
@@ -70,7 +82,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   child: TextInputField(
                     labelText: "Nome",
                     textCapitalization: TextCapitalization.sentences,
-                    onSaved: (value) => name = value.trim(),
+                    controller: nameController,
                   ),
                 ),
                 Padding(
@@ -88,7 +100,6 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                     labelText: "Preço R\$",
                     keyboardType: TextInputType.number,
                     controller: costController,
-                    onSaved: (value) => cost = costController.numberValue,
                   ),
                 ),
                 Padding(
@@ -96,7 +107,14 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                   child: TextInputField(
                     labelText: "Quantidade Máxima",
                     keyboardType: TextInputType.number,
-                    onSaved: (value) => maxQuantity = int.parse(value.trim()),
+                    controller: maxQuantityController,
+                    validator: (value) {
+                      if (value.isNotEmpty) {
+                        return int.parse(value) > 0 ? null : "Quantidade tem que ser maior que zero";
+                      } else {
+                        return "Quantidade não pode ser vazio";
+                      }
+                    },
                   ),
                 ),
                 saveButton(),
@@ -113,7 +131,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
       padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
       alignment: Alignment.center,
       child: PrimaryButton(
-        text: "Salvar",
+        text: SALVAR,
         onPressed: save,
       ),
     );
@@ -130,12 +148,20 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
 
   void save() {
     if (validateAndSave()) {
-      var additional = Additional()
-          ..name = name
+      if (widget.additional == null) {
+        var additional = Additional()
+          ..name = nameController.value.text.isEmpty ? null : nameController.value.text
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
-          ..cost = cost
-          ..maxQuantity = maxQuantity;
-      PageRouter.pop(context, additional);
+          ..cost = costController.numberValue
+          ..maxQuantity = int.parse(maxQuantityController.text);
+        PageRouter.pop(context, additional);
+      } else {
+        widget.additional.name = nameController.value.text.isEmpty ? null : nameController.value.text;
+        widget.additional.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
+        widget.additional.cost = costController.numberValue;
+        widget.additional.maxQuantity = int.parse(maxQuantityController.text);
+        PageRouter.pop(context, widget.additional);
+      }
     }
   }
 

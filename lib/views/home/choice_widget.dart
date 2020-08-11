@@ -6,9 +6,10 @@ import '../../models/menu/item.dart';
 
 class ChoiceWidget extends StatefulWidget {
   final Choice choice;
+  final bool editable;
   Item selectedItem;
 
-  ChoiceWidget(this.choice);
+  ChoiceWidget(this.choice, {this.editable = false});
 
   @override
   _ChoiceWidgetState createState() => _ChoiceWidgetState();
@@ -41,10 +42,12 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
               ],
             ),
             widget.choice.description != null ?
-            Text(
-              widget.choice.description,
-              style: Theme.of(context).textTheme.body2,
-            ) : Container(),
+              Text(
+                widget.choice.description,
+                style: Theme.of(context).textTheme.body2,
+              )
+                  :
+              Container(),
           ],
         ),
       ),
@@ -95,31 +98,35 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
                   color: Colors.green,
                 ),
               ) : Container(),
-             GestureDetector(
-               child: Container(
-                 padding: EdgeInsets.only(left: 20, right: 20),
-                 child: FaIcon(FontAwesomeIcons.trashAlt,),
-               ),
-               onTap: () {
-
-               },
-             ),
-
+             widget.editable ?
+               GestureDetector(
+                 child: Container(
+                   padding: EdgeInsets.only(left: 20, right: 20),
+                   child: FaIcon(FontAwesomeIcons.trashAlt,),
+                 ),
+                 onTap: () {
+                   print("aqui");
+                   setState(() {
+                     widget.choice.itens.remove(item);
+                   });
+                 },
+               ) : Container(),
             ],
           ),
         ],
       ),
-      onPressed: () {
-        if (widget.selectedItem != null && widget.selectedItem == item) {
-          setState(() {
-            widget.selectedItem = null;
-          });
-        } else {
-          setState(() {
-            widget.selectedItem = item;
-          });
-        }
-      },
+//      onPressed: () {
+//        print("1");
+//        if (widget.selectedItem != null && widget.selectedItem == item) {
+//          setState(() {
+//            widget.selectedItem = null;
+//          });
+//        } else {
+//          setState(() {
+//            widget.selectedItem = item;
+//          });
+//        }
+//      },
     );
   }
 

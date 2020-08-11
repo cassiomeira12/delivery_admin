@@ -45,7 +45,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text("Nova Opção"),
+          title: Text(widget.choice == null ? "Nova Opção" : widget.choice.name),
         ),
         body: ModalProgressHUD(
           inAsyncCall: _loading,
@@ -118,7 +118,7 @@ class _NewChoicePageState extends State<NewChoicePage> {
             return Column(
               children: [
                 choiceItemWidget(e),
-                Divider(color: Colors.grey, height: 0,),
+                //Divider(color: Colors.grey, height: 0,),
               ],
             );
           }).toList(),
@@ -128,55 +128,64 @@ class _NewChoicePageState extends State<NewChoicePage> {
   }
 
   Widget choiceItemWidget(Item item) {
-    return FlatButton(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      margin: EdgeInsets.all(5),
+      elevation: 2,
+      child: FlatButton(
+        padding: EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              flex: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: Theme.of(context).textTheme.body1,
+                  ),
+                  item.description != null ?
+                  Text(
+                    item.description,
+                    style: Theme.of(context).textTheme.body2,
+                  ) : Container(),
+                ],
+              ),
+            ),
+            Row(
               children: [
+                item.cost != null ?
                 Text(
-                  item.name,
-                  style: Theme.of(context).textTheme.body1,
-                ),
-                item.description != null ?
-                Text(
-                  item.description,
-                  style: Theme.of(context).textTheme.body2,
+                  "R\$ ${item.cost.toStringAsFixed(2)}",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.green,
+                  ),
                 ) : Container(),
+                GestureDetector(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 20, right: 20),
+                    child: FaIcon(FontAwesomeIcons.trashAlt,),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      widget.choice.itens.remove(item);
+                    });
+                  },
+                ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              item.cost != null ?
-              Text(
-                "R\$ ${item.cost.toStringAsFixed(2)}",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.green,
-                ),
-              ) : Container(),
-              GestureDetector(
-                child: Container(
-                  padding: EdgeInsets.only(left: 20, right: 20),
-                  child: FaIcon(FontAwesomeIcons.trashAlt,),
-                ),
-                onTap: () {
-
-                },
-              ),
-
-            ],
-          ),
-        ],
+          ],
+        ),
+        onPressed: () async {
+          var result = await PageRouter.push(context, NewItemPage(item: item,));
+          setState(() {
+            item = result;
+          });
+        },
       ),
-      onPressed: () {
-
-      },
     );
   }
 

@@ -88,19 +88,26 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
       appBar: AppBar(
         title: Text(product.name),
         actions: [
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) {
-              return ["Editar"].map((String choice) {
-                return PopupMenuItem(value: choice, child: Text(choice),);
-              }).toList();
-            },
-            onSelected: (value) async {
+          MaterialButton(
+            child: Text(
+              "Editar",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: () async {
               Product productUpdate = await PageRouter.push(context, NewProductPage(product: product,));
               if (productUpdate != null) {
-                setState(() => _loading = true);
+                setState(() {
+                  _loading = true;
+                  product = productUpdate;
+                  selectedChoices = product.choices.map((e) => ChoiceWidget(e)).toList();
+                });
                 menuPresenter.update(widget.menu);
               }
-            },
+            }
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:kidelivercompany/widgets/scaffold_snackbar.dart';
 import '../../presenters/company/company_presenter.dart';
 import '../../presenters/file_presenter.dart';
 import '../../utils/log_util.dart';
@@ -39,6 +40,7 @@ class HistoricPage extends StatefulWidget {
 
 class _HistoricPageState extends State<HistoricPage> implements MenuContractView {
   final _formKey = new GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Company company;
 
@@ -80,6 +82,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Cardápio"),
       ),
@@ -116,9 +119,9 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                   return;
                 }
               });
+              setState(() => _loading = true);
+              menuPresenter.update(menu);
             }
-            setState(() => _loading = true);
-            menuPresenter.update(menu);
           }
 
         },
@@ -155,11 +158,11 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       _loading = false;
       list = [];
     });
+    ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
   @override
   onSuccess(Menu result) {
-    print("update");
     List<Product> temp = List();
 
     result.categories.forEach((product) {

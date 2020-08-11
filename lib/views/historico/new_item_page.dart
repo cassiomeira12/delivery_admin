@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../models/menu/choice.dart';
 import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +12,9 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../page_router.dart';
 
 class NewItemPage extends StatefulWidget {
-  final Choice choice;
+  final Item item;
 
-  NewItemPage({this.choice});
+  NewItemPage({this.item});
 
   @override
   State<StatefulWidget> createState() => _NewItemPageState();
@@ -24,6 +26,7 @@ class _NewItemPageState extends State<NewItemPage> {
 
   bool _loading = false;
 
+  TextEditingController nameController;
   TextEditingController descriptionController;
   MoneyMaskedTextController costController;
   String name;
@@ -32,8 +35,14 @@ class _NewItemPageState extends State<NewItemPage> {
   @override
   void initState() {
     super.initState();
+    nameController = TextEditingController();
     descriptionController = TextEditingController();
     costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
+    if (widget.item != null) {
+      nameController.text = widget.item.name;
+      descriptionController.text = widget.item.description;
+      costController.updateValue(widget.item.cost);
+    }
   }
 
   @override
@@ -41,7 +50,7 @@ class _NewItemPageState extends State<NewItemPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Novo Item"),
+        title: Text(widget.item == null ? "Novo Item" : widget.item.name),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
@@ -74,7 +83,8 @@ class _NewItemPageState extends State<NewItemPage> {
                   child: TextInputField(
                     labelText: "Nome",
                     textCapitalization: TextCapitalization.sentences,
-                    onSaved: (value) => name = value.trim(),
+                    controller: nameController,
+                    onSaved: (value) => null,
                   ),
                 ),
                 Padding(
@@ -126,11 +136,18 @@ class _NewItemPageState extends State<NewItemPage> {
 
   void save() {
     if (validateAndSave()) {
-      var item = Item()
-          ..name = name
+      if (widget.item == null) {
+        var item = Item()
+          ..name = nameController.value.text.isEmpty ? null : nameController.value.text
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
           ..cost = costController.numberValue;
-      PageRouter.pop(context, item);
+        PageRouter.pop(context, item);
+      } else {
+        widget.item.name = nameController.value.text.isEmpty ? null : nameController.value.text;
+        widget.item.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
+        widget.item.cost = costController.numberValue;
+        PageRouter.pop(context, widget.item);
+      }
     }
   }
 
