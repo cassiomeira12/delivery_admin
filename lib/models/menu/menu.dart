@@ -1,8 +1,10 @@
+import 'package:kidelivercompany/models/company/company.dart';
+
 import '../base_model.dart';
 import 'category.dart';
 
 class Menu extends BaseModel<Menu> {
-  String idCompany;
+  Company company;
   List<Category> categories;
 
   Menu() : super('Menu');
@@ -10,7 +12,7 @@ class Menu extends BaseModel<Menu> {
   Menu.fromMap(Map<String, dynamic>  map) : super('Menu') {
     objectId = map["objectId"];
     id = objectId;
-    idCompany = map["idCompany"];
+    company = Company.fromMap(map["company"]);
     categories = map["categories"] == null ? null : List.from(map["categories"]).map<Category>((e) => Category.fromMap(e)).toList();
   }
 
@@ -18,7 +20,7 @@ class Menu extends BaseModel<Menu> {
   Map<String, dynamic> toMap() {
     var map = Map<String, dynamic>();
     map["objectId"] = id;
-    map["idCompany"] = idCompany;
+    map["company"] = company.toPointer();
     map["categories"] = categories == null ? null : categories.map<Map>((e) => e.toMap()).toList();
     return map;
   }

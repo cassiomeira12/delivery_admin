@@ -98,6 +98,10 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add, color: Colors.white,),
         onPressed: () async {
+          var categorySelect = [{"name": "Nova categoria"}];
+          menu.categories.forEach((element) {
+            categorySelect.add({"name": element.name});
+          });
           final categoriesSelected = await showConfirmationDialog<String>(
             context: context,
             title: "Escolha uma categoria",
@@ -105,25 +109,49 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             cancelLabel: CANCELAR,
             barrierDismissible: false,
             //message: "Deseja sair do $APP_NAME ?",
-            actions: menu.categories.map((e) {
-              return AlertDialogAction<String>(label: e.name, key: e.name);
+            actions: categorySelect.map((e) {
+              return AlertDialogAction<String>(label: e["name"], key: e["name"]);
             }).toList(),
           );
 
           if (categoriesSelected != null) {
-            var newProduct = await PageRouter.push(context, NewProductPage());
-            if (newProduct != null) {
-              menu.categories.forEach((element) {
-                if (element.name == categoriesSelected) {
-                  element.products.add(newProduct);
-                  return;
-                }
+            if (categoriesSelected == "Nova categoria") {
+              var newCategory = await showTextInputDialog(
+                context: context,
+                textFields: const [
+                  DialogTextField(
+                    hintText: "Categoria",
+                  )
+                ],
+                title: 'Nova categoria',
+                message: 'Digite aqui a nova categoria',
+              );
+              var category = Category();
+              category.name = newCategory[0];
+              setState(() {
+                menu.categories.add(category);
+                _loading = true;
               });
-              setState(() => _loading = true);
-              menuPresenter.update(menu);
+              print(menu.objectId);
+              if (menu.objectId == null) {
+                menuPresenter.create(menu);
+              } else {
+                menuPresenter.update(menu);
+              }
+            } else {
+              var newProduct = await PageRouter.push(context, NewProductPage());
+              if (newProduct != null) {
+                menu.categories.forEach((element) {
+                  if (element.name == categoriesSelected) {
+                    element.products.add(newProduct);
+                    return;
+                  }
+                });
+                setState(() => _loading = true);
+                menuPresenter.update(menu);
+              }
             }
           }
-
         },
       ),
     );
@@ -134,6 +162,9 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     if (list == null || list.isEmpty) {
       setState(() {
         this.list = List();
+        menu = Menu();
+        menu.company = Singletons.company();
+        menu.categories = List();
       });
       return;
     }

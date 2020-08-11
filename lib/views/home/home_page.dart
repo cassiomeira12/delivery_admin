@@ -54,6 +54,8 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   String filterName;
 
+  double totalToday = 0;
+
   @override
   void initState() {
     super.initState();
@@ -145,8 +147,6 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
             break;
           }
         }
-        print("passou");
-        print(item);
         if (temp == null) {
           setState(() {
             Singletons.orders().insert(0, item);
@@ -162,7 +162,22 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         Singletons.orders().addAll(list);
       });
     }
+    calculateTotalToday(list);
     setState(() => _loading = false);
+  }
+
+  void calculateTotalToday(List<Order> list) {
+    totalToday = 0;
+    for (var value in list) {
+      if (!value.canceled && !value.status.isFirst()) {
+        totalToday += value.deliveryCost;
+        value.items.forEach((element) {
+          setState(() {
+            totalToday += element.getTotal();
+          });
+        });
+      }
+    }
   }
 
   @override
@@ -287,6 +302,14 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                                   color: Theme.of(context).backgroundColor
                               ),
                             ) : Container(),
+                            Text(
+                              "Total vendido hoje: R\$: ${totalToday.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).backgroundColor
+                              ),
+                            ),
                           ],
                         ),
                       ],

@@ -19,7 +19,7 @@ class Category extends BaseModel<Category> {
     var map = Map<String, dynamic>();
     //map["objectId"] = id;
     map["name"] = name;
-    map["products"] = products.map<Map>((e) => e.toMap()).toList();
+    map["products"] = products == null ? List() : products.map<Map>((e) => e.toMap()).toList();
     return map;
   }
 
