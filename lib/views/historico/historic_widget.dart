@@ -32,6 +32,9 @@ class _HistoricWidgetState extends State<HistoricWidget> {
     order.items.forEach((element) {
       total += element.getTotal();
     });
+    if (order.cupon != null) {
+      total += -order.cupon.calcPercentDiscount(total) - order.cupon.getMoneyDiscount();
+    }
   }
 
   @override

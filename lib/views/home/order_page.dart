@@ -1,5 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:kidelivercompany/models/order/cupon.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../models/company/type_payment.dart';
@@ -57,6 +58,9 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
     order.items.forEach((element) {
       total += element.getTotal();
     });
+    if (order.cupon != null) {
+      total += -order.cupon.calcPercentDiscount(total) - order.cupon.getMoneyDiscount();
+    }
     ordersItems = order.items.map((e) => orderItem(e)).toList();
     int index = 0;
     order.status.values.forEach((element) {
@@ -248,6 +252,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                 ],
               ),
             ),
+            order.cupon != null ? cardCupon() : Container(),
             paymentTypeWidget(order.typePayment),
             addressDataWidget(order.deliveryAddress),
             SizedBox(height: 10,),
@@ -451,6 +456,96 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget cardCupon() {
+    return Card(
+      elevation: 3,
+      margin: EdgeInsets.only(top: 10),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Padding(
+          padding: EdgeInsets.all(0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width,
+                color: Colors.grey[200],
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      FaIcon(FontAwesomeIcons.receipt, color: Colors.black54,),
+                      SizedBox(width: 5,),
+                      Text(
+                        "Cupom de desconto",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(5),
+                child: cuponWidget(order.cupon),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget cuponWidget(Cupon cupon) {
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.all(0),
+      child: Container(
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              alignment: Alignment.center,
+              child: FaIcon(FontAwesomeIcons.fileInvoiceDollar, color: Colors.black45,),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cupon.code,
+                  style: TextStyle(
+                      fontSize: 23,
+                      color: Colors.black45,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+                Text(
+                  "Válido até ${DateUtil.formatDateMouthHour(cupon.dateLimit)}h",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.black45,
+                  ),
+                ),
+                Text(
+                  "Desconto: ${cupon.getDiscount()}",
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
