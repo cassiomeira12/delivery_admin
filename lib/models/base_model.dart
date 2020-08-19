@@ -9,9 +9,17 @@ abstract class BaseModel<T> extends ParseObject {
 
   baseFromMap(Map<dynamic, dynamic>  map) {
     id = map["objectId"];
+    objectId = map["objectId"];
     createdAt = map["createdAt"] == null ? null : DateTime.parse(map["createdAt"]).toLocal();
     updatedAt = map["updatedAt"] == null ? null : DateTime.parse(map["updatedAt"]).toLocal();
   }
 
-  Map<String, dynamic> toMap();
+  Map<String, dynamic> toMap() {
+    var map = Map<String, dynamic>();
+    map["objectId"] = objectId;
+    return map;
+  }
+
+  void updateData(T item);
+
 }

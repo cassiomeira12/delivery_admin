@@ -79,9 +79,9 @@ class _AdditionalWidgetState extends State<AdditionalWidget> {
 
   Widget additionalItemWidget(Additional item) {
     return Container(
-      padding: EdgeInsets.fromLTRB(10, 15, 0, 15),
+      padding: EdgeInsets.all(0),
       child: FlatButton(
-        padding: EdgeInsets.all(0),
+        padding: EdgeInsets.fromLTRB(10, 15, 10, 15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -90,9 +90,21 @@ class _AdditionalWidgetState extends State<AdditionalWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.body1,
+                  Row(
+                    children: [
+                      FaIcon(
+                        item.visible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                        size: 20,
+                        color: Colors.black45,
+                      ),
+                      SizedBox(width: 5,),
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: Theme.of(context).textTheme.body1,
+                        ),
+                      ),
+                    ],
                   ),
                   item.description != null ?
                   Text(
@@ -121,26 +133,28 @@ class _AdditionalWidgetState extends State<AdditionalWidget> {
                   ),
                 ) : Container(),
                 widget.editable ?
-                GestureDetector(
-                  child: Container(
-                    padding: EdgeInsets.only(left: 20, right: 20),
-                    child: FaIcon(FontAwesomeIcons.trashAlt,),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      widget.additional.remove(item);
-                    });
-                  },
-                ) : Container(),
+                  GestureDetector(
+                    child: Container(
+                      padding: EdgeInsets.only(left: 20, right: 20),
+                      child: FaIcon(FontAwesomeIcons.trashAlt,),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        widget.additional.remove(item);
+                      });
+                    },
+                  ) : Container(),
               ],
             ),
           ],
         ),
         onPressed: () async {
-          var result = await PageRouter.push(context, NewAdditionalPage(additional: item,));
-          setState(() {
-            item = result;
-          });
+          if (widget.editable) {
+            var result = await PageRouter.push(context, NewAdditionalPage(additional: item,));
+            setState(() {
+              item = result;
+            });
+          }
         },
       ),
     );

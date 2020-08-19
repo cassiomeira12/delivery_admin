@@ -168,10 +168,13 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<List<Order>> listDayOrders(DateTime day) async {
+    var includes = ["cupon"];
+
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
       ..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+      ..includeObject(includes)
       ..orderByDescending("createdAt");
 
     int filter = await PreferencesUtil.getOrderFilter();
@@ -182,8 +185,20 @@ class OrdersPresenter implements OrderContractPresenter {
           if(_view != null) _view.listSuccess([]);
         } else {
           List<ParseObject> listObj = value.result;
+
           var list = listObj.map<Order>((obj) {
-            return Order.fromMap(obj.toJson());
+            var objectJson = obj.toJson();
+
+            for (var include in includes) {
+              try {
+                var json = obj.get(include).toJson();
+                objectJson[include] = json;
+              } catch (error) {
+                print("sem $include");
+              }
+            }
+
+            return Order.fromMap(objectJson);
           }).toList();
 
           if (filter == null) {

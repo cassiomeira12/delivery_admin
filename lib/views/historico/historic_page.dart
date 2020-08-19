@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../models/singleton/singletons.dart';
 import '../../views/historico/new_product_page.dart';
-import '../../views/home/product_page.dart';
+import 'product_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,7 +23,7 @@ import '../../models/menu/product.dart';
 import '../../models/menu/menu.dart';
 import '../../presenters/menu/menu_presenter.dart';
 import '../../views/home/order_slidding_widget.dart';
-import '../../views/home/product_widget.dart';
+import 'product_widget.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
@@ -283,30 +283,33 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
     return RefreshIndicator(
       key: _refreshIndicatorKey,
-      onRefresh: () => menuPresenter.read(menu),
+      onRefresh: () {
+        setState(() {
+          list = null;
+        });
+        return menuPresenter.read(menu);
+      },
       child: Center(
         child: list == null ?
-        LoadingShimmerList()
+          LoadingShimmerList()
             :
-        list.isEmpty ?
-        Stack(
-          children: [
-            EmptyListWidget(
-              message: "Nenhum item foi encontrado",
-              //assetsImage: "assets/notification.png",
-            ),
-            listView(),
-          ],
-        )
-            :
-        listView(),
+          Stack(
+            children: [
+              listView(),
+              list.isEmpty ?
+                EmptyListWidget(
+                  message: "Nenhum item foi encontrado",
+                  //assetsImage: "assets/notification.png",
+                ) : Container(),
+            ],
+          ),
       ),
     );
   }
 
   Widget listView() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, orderSelected ? 180 : 0),
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: CustomScrollView(
         slivers: <Widget>[
           SliverList(
@@ -359,62 +362,6 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         ],
       ),
     );
-  }
-
-  Product adicionar() {
-
-    var item = Item()
-      ..name = "100ml"
-      ..description = "asdf"
-      ..cost = 10.5;
-
-    var item2 = Item()
-      ..name = "200ml"
-      ..description = "asdf"
-      ..cost = 12.5;
-
-    var choice = Choice()
-      ..name = "Tamanho"
-      ..description = "escolha um tamanho"
-      ..required = true
-      ..maxQuantity = 1
-      ..minQuantity = 1
-      ..itens = [item, item2];
-
-    var additional1 = Additional()
-      ..name = "Blend"
-      ..description = "Carne bolvina 120g"
-      ..maxQuantity = 3
-      ..cost = 4.0;
-
-    var additional2 = Additional()
-      ..name = "Bacon"
-    //..description = "Carne bolvina 120g"
-      ..maxQuantity = 5
-      ..cost = 1.0;
-
-    var product = Product()
-      ..id = "0"
-      ..name = "Hamburger Super Cheddar"
-      ..description = "Pão de hamnúguer, blend bolvino 120g, fatia de cheddar e creme de cheddar."
-      ..cost = 12.0
-      ..discount = 0
-      ..choices = []
-      ..additional = [additional1];
-
-
-    var categoria = Category()
-      ..id = "2"
-      ..name = "Hamburger"
-      ..products = [product];
-
-//    print(product.toMap());
-//
-//    setState(() {
-//      list.add(product);
-//    });
-
-    return product;
   }
 
   Widget infoCompanyWidget() {

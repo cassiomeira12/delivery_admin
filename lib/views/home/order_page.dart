@@ -125,12 +125,28 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           ),
           PopupMenuButton(
             itemBuilder: (BuildContext context) {
-              return ["Cancelar"].map((String choice) {
+              return ["WhatsApp", "Ligar", "Cancelar"].map((String choice) {
                 return PopupMenuItem(value: choice, child: Text(choice),);
               }).toList();
             },
             onSelected: (value) async {
               switch (value) {
+                case "WhatsApp":
+                  var whatsAppLink = order.userPhoneNumber.whatsAppLink();
+                  if (await canLaunch(whatsAppLink)) {
+                    await launch(whatsAppLink);
+                  } else {
+                    ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+                  }
+                  break;
+                case "Ligar":
+                  var url = "tel: ${order.userPhoneNumber.toString()}";
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+                  }
+                  break;
                 case "Cancelar":
                   showDialogCancelOrder();
                   break;

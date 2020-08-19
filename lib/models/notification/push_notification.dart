@@ -27,7 +27,7 @@ class PushNotification extends BaseModel<PushNotification> {
 
   @override
   Map<String, dynamic> toMap() {
-    var map = Map<String, dynamic>();
+    var map = super.toMap();
     map["title"] = title;
     map["message"] = message;
     map["topic"] = topic;
@@ -37,6 +37,23 @@ class PushNotification extends BaseModel<PushNotification> {
     map["validated"] = validated;
     map["denied"] = denied;
     return map;
+  }
+
+  @override
+  void updateData(PushNotification item) {
+    id = item.id;
+    objectId = item.objectId;
+    createdAt = item.createdAt;
+    updatedAt = item.updatedAt;
+
+    title = item.title;
+    message = item.message;
+    topic = item.topic;
+    senderCompany = item.senderCompany;
+    senderUser = item.senderUser;
+    destinationUser = item.destinationUser;
+    validated = item.validated;
+    denied = item.denied;
   }
 
   String getStateName() {

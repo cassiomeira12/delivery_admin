@@ -10,10 +10,12 @@ class ParseSmallTownService extends SmallTownContractService {
   @override
   Future<SmallTown> create(SmallTown item) async {
     return service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      SmallTown temp = SmallTown();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -43,8 +45,10 @@ class ParseSmallTownService extends SmallTownContractService {
   @override
   Future<SmallTown> update(SmallTown item) {
     return service.update(item).then((response) {
-      item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : SmallTown.fromMap(response);
+      SmallTown temp = SmallTown();
+      temp.updateData(item);
+      temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:

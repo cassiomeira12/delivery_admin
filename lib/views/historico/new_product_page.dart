@@ -44,14 +44,15 @@ class _NewProductPageState extends State<NewProductPage> {
   List<String> imagesList = List();
   List<Choice> choiceList = List();
   List<Additional> additionalList = List();
-
   List<ChoiceWidget> selectedChoices = List();
+  bool visible;
 
   @override
   void initState() {
     super.initState();
     if (widget.product != null) {
       setProductData(widget.product);
+      visible = widget.product.visible;
     }
   }
 
@@ -183,6 +184,26 @@ class _NewProductPageState extends State<NewProductPage> {
 //                        discount = discountController.numberValue,
 //                  ),
 //                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                  child: SecondaryButton(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            "Visível",
+                            textAlign: TextAlign.left,
+                            style: Theme.of(context).textTheme.body2
+                        ),
+                        Checkbox(
+                          value: visible,
+                          onChanged: (value) => setState(() => visible = !visible),
+                        ),
+                      ],
+                    ),
+                    onPressed: () => setState(() => visible = !visible),
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: GestureDetector(
@@ -331,7 +352,8 @@ class _NewProductPageState extends State<NewProductPage> {
           ..preparationTime = preparationTime
           ..images = imagesList
           ..choices = choiceList
-          ..additional = additionalList;
+          ..additional = additionalList
+          ..visible = visible;
 
         PageRouter.pop(context, product);
       } else {
@@ -347,6 +369,7 @@ class _NewProductPageState extends State<NewProductPage> {
         widget.product.images = imagesList;
         widget.product.choices = choiceList;
         widget.product.additional = additionalList;
+        widget.product.visible = visible;
 
         PageRouter.pop(context, widget.product);
       }

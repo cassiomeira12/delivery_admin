@@ -15,10 +15,12 @@ class ParseCompanyService extends CompanyContractService {
   @override
   Future<Company> create(Company item) async {
     return service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      Company temp = Company();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -48,8 +50,10 @@ class ParseCompanyService extends CompanyContractService {
   @override
   Future<Company> update(Company item) {
     return service.update(item).then((response) {
-      //item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : item;
+      Company temp = Company();
+      temp.updateData(item);
+      temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:

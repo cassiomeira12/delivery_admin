@@ -10,10 +10,12 @@ class ParseNotificationService extends NotificationContractService {
   @override
   Future<UserNotification> create(UserNotification item) async {
     return service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      UserNotification temp = UserNotification();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -43,8 +45,10 @@ class ParseNotificationService extends NotificationContractService {
   @override
   Future<UserNotification> update(UserNotification item) {
     return service.update(item).then((response) {
-      item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : UserNotification.fromMap(response);
+      UserNotification temp = UserNotification();
+      temp.updateData(item);
+      temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:

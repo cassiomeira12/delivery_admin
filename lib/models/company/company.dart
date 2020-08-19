@@ -57,9 +57,9 @@ class Company extends BaseModel<Company> {
     map["cnpj"] = cnpj;
     map["logoURL"] = logoURL;
     map["bannerURL"] = bannerURL;
-    map["openHours"] = openHours.map<Map>((e) => e.toMap()).toList();
+    map["openHours"] = openHours == null ? List() : openHours.map<Map>((e) => e.toMap()).toList();
     map["address"] = address.toPointer();
-    map["typePayments"] = typePayments.map<Map>((e) => e.toMap()).toList();
+    map["typePayments"] = typePayments == null ? List() : typePayments.map<Map>((e) => e.toMap()).toList();
     map["delivery"] = delivery == null ? null : delivery.toMap();
     map["phoneNumber"] = phoneNumber == null ? null : phoneNumber.toMap();
     map["deliveryStatus"] = deliveryStatus == null ? null : deliveryStatus.toPointer();
@@ -67,21 +67,25 @@ class Company extends BaseModel<Company> {
     return map;
   }
 
-  void updateData(Company company) {
-    id = company.id;
-    objectId = company.id;
-    topic = company.topic;
-    name = company.name;
-    cnpj = company.cnpj;
-    logoURL = company.logoURL;
-    bannerURL = company.bannerURL;
-    openHours = company.openHours;
-    address = company.address;
-    typePayments = company.typePayments;
-    delivery = company.delivery;
-    phoneNumber = company.phoneNumber;
-    deliveryStatus = company.deliveryStatus;
-    pickupStatus = company.pickupStatus;
+  @override
+  void updateData(Company item) {
+    id = item.id;
+    objectId = item.objectId;
+    createdAt = item.createdAt;
+    updatedAt = item.updatedAt;
+
+    topic = item.topic;
+    name = item.name;
+    cnpj = item.cnpj;
+    logoURL = item.logoURL;
+    bannerURL = item.bannerURL;
+    openHours = item.openHours;
+    address = item.address;
+    typePayments = item.typePayments;
+    delivery = item.delivery;
+    phoneNumber = item.phoneNumber;
+    deliveryStatus = item.deliveryStatus;
+    pickupStatus = item.pickupStatus;
   }
 
   void clear() {

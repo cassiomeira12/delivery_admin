@@ -11,10 +11,12 @@ class ParsePushNotificationService extends PushNotificationContractService {
   @override
   Future<PushNotification> create(PushNotification item) {
     return service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      PushNotification temp = PushNotification();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -44,8 +46,10 @@ class ParsePushNotificationService extends PushNotificationContractService {
   @override
   Future<PushNotification> update(PushNotification item) {
     return service.update(item).then((response) {
-      item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : PushNotification.fromMap(response);
+      PushNotification temp = PushNotification();
+      temp.updateData(item);
+      temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -183,17 +187,6 @@ class ParsePushNotificationService extends PushNotificationContractService {
           throw Exception(error.message);
       }
     });
-//    return await service.list().then((response) {
-//      return response.isEmpty ? List<PushNotification>() : response.map<PushNotification>((item) => PushNotification.fromMap(item)).toList();
-//    }).catchError((error) {
-//      switch (error.code) {
-//        case -1:
-//          throw Exception(ERROR_NETWORK);
-//          break;
-//        default:
-//          throw Exception(error.message);
-//      }
-//    });
   }
 
 }

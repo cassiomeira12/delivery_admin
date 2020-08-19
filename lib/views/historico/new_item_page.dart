@@ -1,6 +1,4 @@
-import 'dart:math';
-
-import '../../models/menu/choice.dart';
+import '../../widgets/secondary_button.dart';
 import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -31,6 +29,7 @@ class _NewItemPageState extends State<NewItemPage> {
   MoneyMaskedTextController costController;
   String name;
   bool required = false;
+  bool visible;
 
   @override
   void initState() {
@@ -38,10 +37,12 @@ class _NewItemPageState extends State<NewItemPage> {
     nameController = TextEditingController();
     descriptionController = TextEditingController();
     costController = MoneyMaskedTextController(leftSymbol: 'R\$ ');
+    visible = true;
     if (widget.item != null) {
       nameController.text = widget.item.name;
       descriptionController.text = widget.item.description;
       costController.updateValue(widget.item.cost);
+      visible = widget.item.visible;
     }
   }
 
@@ -105,6 +106,26 @@ class _NewItemPageState extends State<NewItemPage> {
                     validator: (value) => null,
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                  child: SecondaryButton(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            "Visível",
+                            textAlign: TextAlign.left,
+                            style: Theme.of(context).textTheme.body2
+                        ),
+                        Checkbox(
+                          value: visible,
+                          onChanged: (value) => setState(() => visible = !visible),
+                        ),
+                      ],
+                    ),
+                    onPressed: () => setState(() => visible = !visible),
+                  ),
+                ),
                 saveButton(),
               ],
             ),
@@ -140,12 +161,14 @@ class _NewItemPageState extends State<NewItemPage> {
         var item = Item()
           ..name = nameController.value.text.isEmpty ? null : nameController.value.text
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
-          ..cost = costController.numberValue;
+          ..cost = costController.numberValue
+          ..visible = visible;
         PageRouter.pop(context, item);
       } else {
         widget.item.name = nameController.value.text.isEmpty ? null : nameController.value.text;
         widget.item.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
         widget.item.cost = costController.numberValue;
+        widget.item.visible = visible;
         PageRouter.pop(context, widget.item);
       }
     }

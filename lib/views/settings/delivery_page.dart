@@ -37,6 +37,7 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
     super.initState();
     companyPresenter = CompanyPresenter(this);
     deliveryCostController = MoneyMaskedTextController(leftSymbol: "R\$ ");
+    deliveryCostController.updateValue(0);
     delivery = Singletons.company().delivery;
     deliveryType = delivery != null;
     if (delivery == null) {
@@ -275,6 +276,10 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
     if (deliveryType) {
       if (validateAndSave()) {
         var cost = deliveryCostController.numberValue * 100;
+        if (delivery == null) {
+          delivery = Delivery();
+          delivery.name = "Entrega a domicílio";
+        }
         delivery.cost = cost;
         delivery.pickup = pickupType;
         Singletons.company().delivery = delivery;

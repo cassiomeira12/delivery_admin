@@ -14,8 +14,12 @@ import '../page_router.dart';
 
 class NewChoicePage extends StatefulWidget {
   Choice choice;
+  bool editChoice;
 
-  NewChoicePage({this.choice});
+  NewChoicePage({
+    this.choice,
+    this.editChoice = false
+  });
 
   @override
   State<StatefulWidget> createState() => _NewChoicePageState();
@@ -27,15 +31,28 @@ class _NewChoicePageState extends State<NewChoicePage> {
 
   bool _loading = false;
 
-  TextEditingController descriptionController;
-  String name;
   bool required = false;
-  int maxQuantity, minQuantity;
+  TextEditingController nameDescription, descriptionController;
+  TextEditingController maxQuantityController, minQuantityController;
 
   @override
   void initState() {
     super.initState();
+    nameDescription = TextEditingController();
     descriptionController = TextEditingController();
+    maxQuantityController = TextEditingController();
+    minQuantityController = TextEditingController();
+    setChoice();
+  }
+
+  void setChoice() {
+    if (widget.choice != null && widget.editChoice) {
+      nameDescription.text = widget.choice.name;
+      descriptionController.text = widget.choice.description;
+      required = widget.choice.required;
+      maxQuantityController.text = widget.choice.maxQuantity.toString();
+      minQuantityController.text = widget.choice.minQuantity.toString();
+    }
   }
 
   @override
@@ -55,10 +72,10 @@ class _NewChoicePageState extends State<NewChoicePage> {
             child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
           ),
           child: SingleChildScrollView(
-            child: widget.choice == null ? bodyChoice() : bodyItem(),
+            child: widget.choice == null ? bodyChoice() : widget.editChoice ? bodyChoice() : bodyItem(),
           ),
         ),
-        floatingActionButton: widget.choice != null ? FloatingActionButton(
+        floatingActionButton: widget.choice != null && !widget.editChoice ? FloatingActionButton(
           child: Icon(Icons.add, color: Colors.white,),
           onPressed: () async {
             var result = await PageRouter.push(context, NewItemPage());
@@ -81,35 +98,64 @@ class _NewChoicePageState extends State<NewChoicePage> {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: StickyHeader(
-        header: Container(
-          color: Colors.grey[200],
-          padding: EdgeInsets.only(left: 10, top: 20, bottom: 20),
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    "${widget.choice.name}",
-                    style: Theme.of(context).textTheme.body1,
-                  ),
-                  widget.choice.required ?
-                  Text(
-                    "*",
-                    style: TextStyle(
-                      color: Colors.red,
+        header: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            color: Colors.grey[200],
+            padding: EdgeInsets.only(left: 10, top: 20, bottom: 20),
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "${widget.choice.name}",
+                          style: Theme.of(context).textTheme.body1,
+                        ),
+                        widget.choice.required ?
+                        Text(
+                          "*",
+                          style: TextStyle(
+                            color: Colors.red,
+                          ),
+                        ) : Container(),
+                      ],
                     ),
-                  ) : Container(),
-                ],
-              ),
-              widget.choice.description != null ?
-              Text(
-                widget.choice.description,
-                style: Theme.of(context).textTheme.body2,
-              ) : Container(),
-            ],
+                    Row(
+                      children: [
+                        Text(
+                          "Min: ${widget.choice.minQuantity}, Max: ${widget.choice.maxQuantity}",
+                          style: Theme.of(context).textTheme.body1,
+                        ),
+                        Expanded(
+                          child: Text(
+                            "Editar",
+                            textAlign: TextAlign.end,
+                            style: Theme.of(context).textTheme.body1,
+                          ),
+                        ),
+                        SizedBox(width: 10,),
+                      ],
+                    ),
+                  ],
+                ),
+                widget.choice.description != null ?
+                Text(
+                  widget.choice.description,
+                  style: Theme.of(context).textTheme.body2,
+                ) : Container(),
+              ],
+            ),
           ),
+          onTap: () async {
+            setState(() {
+              widget.editChoice = true;
+            });
+            setChoice();
+          },
         ),
         content: ListView(
           physics: NeverScrollableScrollPhysics(),
@@ -141,9 +187,21 @@ class _NewChoicePageState extends State<NewChoicePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.body1,
+                  Row(
+                    children: [
+                      FaIcon(
+                        item.visible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                        size: 20,
+                        color: Colors.black45,
+                      ),
+                      SizedBox(width: 5,),
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: Theme.of(context).textTheme.body1,
+                        ),
+                      ),
+                    ],
                   ),
                   item.description != null ?
                   Text(
@@ -206,7 +264,8 @@ class _NewChoicePageState extends State<NewChoicePage> {
                   child: TextInputField(
                     labelText: "Nome",
                     textCapitalization: TextCapitalization.sentences,
-                    onSaved: (value) => name = value.trim(),
+                    controller: nameDescription,
+                    //onSaved: (value) => name = value.trim(),
                   ),
                 ),
                 Padding(
@@ -246,17 +305,43 @@ class _NewChoicePageState extends State<NewChoicePage> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
-                    labelText: "Quantidade Mínima",
+                    labelText: "Quantidade máxima",
                     keyboardType: TextInputType.number,
-                    onSaved: (value) => maxQuantity = int.parse(value.trim()),
+                    controller: maxQuantityController,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Quantidade máxima não pode ser vazio";
+                      }
+                      if (int.parse(value) < 1) {
+                        return "Quantidade máxima deve ser maior que zero";
+                      }
+                      if (int.parse(value) < int.parse(minQuantityController.value.text)) {
+                        return "Quantidade máxima deve ser maior";
+                      }
+                      return null;
+                    },
+                    //onSaved: (value) => minQuantity = int.parse(value.trim()),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
                   child: TextInputField(
-                    labelText: "Quantidade Máxima",
+                    labelText: "Quantidade mínima",
                     keyboardType: TextInputType.number,
-                    onSaved: (value) => minQuantity = int.parse(value.trim()),
+                    controller: minQuantityController,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Quantidade mínima não pode ser vazio";
+                      }
+                      if (int.parse(value) < 1) {
+                        return "Quantidade mínima deve ser maior que zero";
+                      }
+                      if (int.parse(value) > int.parse(maxQuantityController.value.text)) {
+                        return "Quantidade mínima deve ser menor";
+                      }
+                      return null;
+                    },
+                    //onSaved: (value) => maxQuantity = int.parse(value.trim()),
                   ),
                 ),
                 saveButton(),
@@ -290,15 +375,25 @@ class _NewChoicePageState extends State<NewChoicePage> {
 
   void save() {
     if (validateAndSave()) {
-      var choice = Choice()
-          ..name = name
+      if (widget.choice == null) {
+        var choice = Choice()
+          ..name = nameDescription.value.text
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
-          ..minQuantity = minQuantity
-          ..maxQuantity = maxQuantity;
-      choice.required = required;
-      setState(() {
-        widget.choice = choice;
-      });
+          ..minQuantity = int.parse(minQuantityController.value.text)
+          ..maxQuantity = int.parse(maxQuantityController.value.text)
+          ..required = required;
+        setState(() => widget.choice = choice);
+      } else {
+        setState(() {
+          widget.choice.name = nameDescription.value.text;
+          widget.choice.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
+          widget.choice.minQuantity = int.parse(minQuantityController.value.text);
+          widget.choice.maxQuantity = int.parse(maxQuantityController.value.text);
+          widget.choice.required = required;
+
+          widget.editChoice = false;
+        });
+      }
     }
   }
 

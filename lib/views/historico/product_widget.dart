@@ -32,7 +32,7 @@ class _ProductWidgetState extends State<ProductWidget> {
   Widget build(BuildContext context) {
     return Container(
       child: RaisedButton(
-        padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0),),
         color: true ? Theme.of(context).backgroundColor : Theme.of(context).primaryColorLight,
@@ -50,7 +50,11 @@ class _ProductWidgetState extends State<ProductWidget> {
                 ],
               ),
             ),
-            // FaIcon(FontAwesomeIcons.angleRight, color: Theme.of(context).iconTheme.color,),
+            FaIcon(
+              product.visible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+              size: 20,
+              color: Colors.black45,
+            ),
           ],
         ),
         onPressed: () {

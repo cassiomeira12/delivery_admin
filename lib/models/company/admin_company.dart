@@ -13,20 +13,31 @@ class AdminCompany extends BaseModel<AdminCompany> {
   }
 
   AdminCompany.fromMap(Map<dynamic, dynamic>  map) : super('_User') {
-    objectId = map["objectId"];
-    id = objectId;
+    baseFromMap(map);
     notificationToken = map["notificationToken"] == null ? null : NotificationToken.fromMap(map["notificationToken"]);
     user = BaseUser.fromMap(map["user"]);
     company = Company.fromMap(map["company"]);
   }
 
-  toMap() {
-    var map = Map<String, dynamic>();
-    map["objectId"] = id;
+  @override
+  Map<String, dynamic> toMap() {
+    var map = super.toMap();
     map["notificationToken"] = notificationToken == null ? null : notificationToken.toMap();
     map["user"] = user.toPointer();
     map["company"] = company.toPointer();
     return map;
+  }
+
+  @override
+  void updateData(AdminCompany item) {
+    id = item.id;
+    objectId = item.objectId;
+    createdAt = item.createdAt;
+    updatedAt = item.updatedAt;
+
+    notificationToken = item.notificationToken;
+    user = item.user;
+    company = item.company;
   }
 
 }

@@ -11,10 +11,12 @@ class ParseAddressService extends AddressContractService {
   @override
   Future<Address> create(Address item) {
     return service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      Address temp = Address();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -44,8 +46,10 @@ class ParseAddressService extends AddressContractService {
   @override
   Future<Address> update(Address item) {
     return service.update(item).then((response) {
-      item.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
-      return response == null ? null : Address.fromMap(response);
+      Address temp = Address();
+      temp.updateData(item);
+      temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       switch (error.code) {
         case -1:

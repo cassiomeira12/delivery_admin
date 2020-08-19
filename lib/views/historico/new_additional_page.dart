@@ -1,5 +1,6 @@
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:kidelivercompany/strings.dart';
+import 'package:kidelivercompany/widgets/secondary_button.dart';
 import '../../models/menu/additional.dart';
 import '../../widgets/text_input_field.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
   TextEditingController descriptionController;
   MoneyMaskedTextController costController;
   TextEditingController maxQuantityController;
+  bool visible = true;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
       descriptionController.text = widget.additional.description;
       costController.updateValue(widget.additional.cost);
       maxQuantityController.text = widget.additional.maxQuantity.toString();
+      visible = widget.additional.visible;
     }
   }
 
@@ -117,6 +120,26 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
                     },
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 16, 0, 0),
+                  child: SecondaryButton(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Visível",
+                          textAlign: TextAlign.left,
+                          style: Theme.of(context).textTheme.body2
+                        ),
+                        Checkbox(
+                          value: visible,
+                          onChanged: (value) => setState(() => visible = !visible),
+                        ),
+                      ],
+                    ),
+                    onPressed: () => setState(() => visible = !visible),
+                  ),
+                ),
                 saveButton(),
               ],
             ),
@@ -153,13 +176,15 @@ class _NewAdditionalPageState extends State<NewAdditionalPage> {
           ..name = nameController.value.text.isEmpty ? null : nameController.value.text
           ..description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text
           ..cost = costController.numberValue
-          ..maxQuantity = int.parse(maxQuantityController.text);
+          ..maxQuantity = int.parse(maxQuantityController.text)
+          ..visible = visible;
         PageRouter.pop(context, additional);
       } else {
         widget.additional.name = nameController.value.text.isEmpty ? null : nameController.value.text;
         widget.additional.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
         widget.additional.cost = costController.numberValue;
         widget.additional.maxQuantity = int.parse(maxQuantityController.text);
+        widget.additional.visible = visible;
         PageRouter.pop(context, widget.additional);
       }
     }

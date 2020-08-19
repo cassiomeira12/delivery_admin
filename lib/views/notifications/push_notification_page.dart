@@ -30,6 +30,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
 
   PushNotificationContractPresenter presenter;
 
+  String companyName;
   TextEditingController titleController, messageController;
   String title, message, observacao, imgURL, data;
 
@@ -42,10 +43,10 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
           .company()
           .topic
     },
-    "com.navan.kideliver-android": {
-      "label": "Todos clientes",
-      "key": "com.navan.kideliver-android"
-    }
+//    "com.navan.kideliver-android": {
+//      "label": "Todos clientes",
+//      "key": "com.navan.kideliver-android"
+//    }
   };
   var topicSelected;
 
@@ -53,6 +54,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
   void initState() {
     super.initState();
     presenter = PushNotificationPresenter(this);
+    companyName = widget.notification.senderCompany != null ? widget.notification.senderCompany.name : NOTIFICATION;
     topicSelected = topics[Singletons.company().topic];
     title = widget.notification.title;
     message = widget.notification.message;
@@ -65,7 +67,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(widget.notification.senderCompany.name, style: TextStyle(color: Colors.white),),
+        title: Text(companyName, style: TextStyle(color: Colors.white),),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ModalProgressHUD(
@@ -79,7 +81,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
           child: Column(
             children: <Widget>[
               formPushNotification(),
-              //topic(),
+              topic(),
               testButton(),
               true ? resendButton() : avaliationPushNotification(),
             ],

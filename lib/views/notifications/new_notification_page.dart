@@ -39,10 +39,10 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
           .company()
           .topic
     },
-    "com.navan.kideliver-android": {
-      "label": "Todos clientes",
-      "key": "com.navan.kideliver-android"
-    }
+//    "com.navan.kideliver-android": {
+//      "label": "Todos clientes",
+//      "key": "com.navan.kideliver-android"
+//    }
   };
   var topicSelected;
 
@@ -73,7 +73,7 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
           child: Column(
             children: <Widget>[
               formPushNotification(),
-              //topic(),
+              topic(),
               testButton(),
               sendButton(),
             ],
@@ -101,7 +101,7 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
       child: Center(
         child: TextInputField(
           labelText: "Título",
-          enable: true,
+          enable: false,
           controller: titleController,
         ),
       ),

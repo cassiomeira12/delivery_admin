@@ -22,9 +22,13 @@ class UserNotification extends BaseModel<UserNotification> {
     paymentType = map["type"];
   }
 
+  @override
   updateData(UserNotification item) {
     id = item.id;
-    title = item.title;
+    objectId = item.objectId;
+    createdAt = item.createdAt;
+    updatedAt = item.updatedAt;
+
     message = item.message;
     observacao = item.observacao;
     read = item.read;

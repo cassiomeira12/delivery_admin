@@ -14,6 +14,7 @@ class Choice extends BaseModel<Choice> {
   }
 
   Choice.fromMap(Map<dynamic, dynamic>  map) : super('Choice') {
+    baseFromMap(map);
     name = map["name"];
     description = map["description"];
     required = map["required"] == true;
@@ -24,7 +25,7 @@ class Choice extends BaseModel<Choice> {
 
   @override
   Map<String, dynamic> toMap() {
-    var map = Map<String, dynamic>();
+    var map = super.toMap();
     map["name"] = name;
     map["description"] = description;
     map["required"] = required;
@@ -34,14 +35,19 @@ class Choice extends BaseModel<Choice> {
     return map;
   }
 
-//  @override
-//  update(Choice item) {
-//    name = item.name;
-//    description = item.description;
-//    required = item.required;
-//    maxQuantity = item.maxQuantity;
-//    minQuantity = item.minQuantity;
-//    itens = item.itens;
-//  }
+  @override
+  updateData(Choice item) {
+    id = item.id;
+    objectId = item.objectId;
+    createdAt = item.createdAt;
+    updatedAt = item.updatedAt;
+
+    name = item.name;
+    description = item.description;
+    required = item.required;
+    maxQuantity = item.maxQuantity;
+    minQuantity = item.minQuantity;
+    itens = item.itens;
+  }
 
 }

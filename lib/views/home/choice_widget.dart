@@ -66,7 +66,7 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
 
   Widget choiceItemWidget(Item item) {
     return FlatButton(
-      padding: EdgeInsets.fromLTRB(10, 2.5, 0, 2.5),
+      padding: EdgeInsets.fromLTRB(10, 2.5, 10, 2.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -75,9 +75,21 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.name,
-                  style: Theme.of(context).textTheme.body1,
+                Row(
+                  children: [
+                    FaIcon(
+                      item.visible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                      size: 20,
+                      color: Colors.black45,
+                    ),
+                    SizedBox(width: 5,),
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: Theme.of(context).textTheme.body1,
+                      ),
+                    ),
+                  ],
                 ),
                 item.description != null ?
                 Text(
@@ -98,14 +110,13 @@ class _ChoiceWidgetState extends State<ChoiceWidget> {
                   color: Colors.green,
                 ),
               ) : Container(),
-             widget.editable ?
+              widget.editable ?
                GestureDetector(
                  child: Container(
                    padding: EdgeInsets.only(left: 20, right: 20),
                    child: FaIcon(FontAwesomeIcons.trashAlt,),
                  ),
                  onTap: () {
-                   print("aqui");
                    setState(() {
                      widget.choice.itens.remove(item);
                    });

@@ -287,7 +287,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                           children: [
                             search(),
                             Text(
-                              Singletons.company() != null ? Singletons.company().getOpenTime(date) : "",
+                              Singletons.company().id != null ? Singletons.company().getOpenTime(date) : "",
                               style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
@@ -341,7 +341,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
               SizedBox(width: 10,),
               Expanded(
                 child: Text(
-                  "Pedidos ${DateUtil.getWeekDat(date)} - ${date.day} de ${DateUtil.getMounth(date)}",
+                  "${DateUtil.getWeekDat(date)} - ${date.day} de ${DateUtil.getMounth(date)}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18,

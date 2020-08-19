@@ -19,10 +19,12 @@ class ParseUserService implements UserContractService {
   @override
   Future<BaseUser> create(BaseUser item) async {
     return _service.create(item).then((response) {
-      item.id = response["objectId"];
-      item.objectId = response["objectId"];
-      item.createdAt = DateTime.parse(response["createdAt"]).toLocal();
-      return response == null ? null : item;
+      BaseUser temp = BaseUser();
+      temp.updateData(item);
+      temp.id = response["objectId"];
+      temp.objectId = response["objectId"];
+      temp.createdAt = DateTime.parse(response["createdAt"]).toLocal();
+      return response == null ? null : temp;
     }).catchError((error) {
       Log.e(error);
       switch (error.code) {

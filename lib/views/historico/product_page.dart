@@ -4,7 +4,7 @@ import '../../models/menu/menu.dart';
 import '../../presenters/file_presenter.dart';
 import '../../presenters/menu/menu_presenter.dart';
 import '../../utils/log_util.dart';
-import '../../views/historico/new_product_page.dart';
+import 'new_product_page.dart';
 import '../../widgets/secondary_button.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,8 +18,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import '../../models/menu/item.dart';
 import '../../models/menu/product.dart';
 import '../../strings.dart';
-import '../../views/home/additional_widget.dart';
-import '../../views/image_view_page.dart';
+import '../home/additional_widget.dart';
+import '../image_view_page.dart';
 import '../../widgets/count_widget.dart';
 import '../../widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,7 +27,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../widgets/background_card.dart';
 import '../page_router.dart';
-import 'choice_widget.dart';
+import '../home/choice_widget.dart';
 
 class ProductPage extends StatefulWidget {
   final VoidCallback loginCallback;
@@ -287,7 +287,7 @@ class _ProductPageState extends State<ProductPage> implements MenuContractView {
 
           //SizedBox(height: 20,),
 
-          adicionarButton(),
+          //adicionarButton(),
 
           SizedBox(height: 30,),
         ],
