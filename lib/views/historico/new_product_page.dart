@@ -45,7 +45,7 @@ class _NewProductPageState extends State<NewProductPage> {
   List<Choice> choiceList = List();
   List<Additional> additionalList = List();
   List<ChoiceWidget> selectedChoices = List();
-  bool visible;
+  bool visible = true;
 
   @override
   void initState() {
