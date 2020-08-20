@@ -8,6 +8,7 @@ abstract class OrderContractView extends BaseResultContract<Order> {
 
 abstract class OrderContractPresenter extends Crud<Order> {
   dispose();
+  readSnapshot(Order item);
   listDayOrdersSnapshot(DateTime day);
   listDayOrders(DateTime day);
 }

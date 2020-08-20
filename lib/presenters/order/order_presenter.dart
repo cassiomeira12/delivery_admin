@@ -1,3 +1,6 @@
+import '../../models/order/cupon.dart';
+import '../../contracts/order/cupon_contract.dart';
+import '../../services/parse/parse_cupon_service.dart';
 import '../../utils/log_util.dart';
 import '../../utils/preferences_util.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
@@ -13,10 +16,11 @@ class OrdersPresenter implements OrderContractPresenter {
 
   OrdersPresenter(this._view);
 
-  OrderContractService service = ParseOrderService();
+  OrderContractService orderService = ParseOrderService();
+  CuponContractService cuponService = ParseCuponService();
 
   LiveQuery liveQuery;
-  Subscription subscription;
+  Subscription subscriptionCreate, subscriptionUpdate;
 
   void pause() {
     if (liveQuery != null) liveQuery.client.disconnect();
@@ -27,18 +31,28 @@ class OrdersPresenter implements OrderContractPresenter {
   }
 
   void unSubscribe() {
-    if (liveQuery != null) liveQuery.client.unSubscribe(subscription);
+    if (liveQuery != null) {
+      liveQuery.client.unSubscribe(subscriptionCreate);
+      liveQuery.client.unSubscribe(subscriptionUpdate);
+    }
   }
 
   @override
   dispose() {
-    service = null;
-    if (liveQuery != null) liveQuery.client.unSubscribe(subscription);
+    orderService = null;
+    if (liveQuery != null) {
+      if (subscriptionCreate != null) {
+        liveQuery.client.unSubscribe(subscriptionCreate);
+      }
+      if (subscriptionUpdate != null) {
+        liveQuery.client.unSubscribe(subscriptionUpdate);
+      }
+    }
   }
 
   @override
   Future<Order> create(Order item) async {
-    return await service.create(item).then((value) {
+    return await orderService.create(item).then((value) {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
@@ -49,7 +63,7 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<Order> read(Order item) async {
-    return await service.read(item).then((value) {
+    return await orderService.read(item).then((value) {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
@@ -60,7 +74,7 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<Order> update(Order item) async {
-    return await service.update(item).then((value) {
+    return await orderService.update(item).then((value) {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
@@ -71,7 +85,7 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<Order> delete(Order item) async {
-    return await service.delete(item).then((value) {
+    return await orderService.delete(item).then((value) {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
@@ -82,7 +96,7 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<List<Order>> findBy(String field, value) async {
-    return await service.findBy(field, value).then((value) {
+    return await orderService.findBy(field, value).then((value) {
       if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
@@ -93,7 +107,7 @@ class OrdersPresenter implements OrderContractPresenter {
 
   @override
   Future<List<Order>> list() async {
-    return await service.list().then((value) {
+    return await orderService.list().then((value) {
       if (_view != null) _view.listSuccess(value);
       return value;
     }).catchError((error) {
@@ -103,19 +117,47 @@ class OrdersPresenter implements OrderContractPresenter {
   }
 
   @override
+  Future<Order> readSnapshot(Order item) async {
+    liveQuery = LiveQuery();
+
+    QueryBuilder query = QueryBuilder(ParseObject("Order"))
+      ..whereEqualTo("objectId", item.id);
+
+    subscriptionUpdate = await liveQuery.client.subscribe(query);
+
+    subscriptionUpdate.on(LiveQueryEvent.update, (value) async {
+      var order = Order.fromMap(value.toJson());
+      var cuponJson = value["cupon"];
+      if (cuponJson != null) {
+        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        order.cupon = cupon;
+      }
+      _view != null ? _view.onSuccess(order) : null;
+    });
+  }
+
+  @override
   Future<List<Order>> listDayOrdersSnapshot(DateTime day) async {
+    var includes = ["cupon"];
     liveQuery = LiveQuery();
 
     QueryBuilder query = QueryBuilder(ParseObject("Order"))
       ..whereEqualTo("company", Singletons.company().toPointer())
       ..whereGreaterThanOrEqualsTo("createdAt", day)
       ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+      ..includeObject(includes)
       ..orderByDescending("createdAt");
 
-    subscription = await liveQuery.client.subscribe(query);
+    subscriptionCreate = await liveQuery.client.subscribe(query);
+    subscriptionUpdate = await liveQuery.client.subscribe(query);
 
-    subscription.on(LiveQueryEvent.create, (value) {
+    subscriptionCreate.on(LiveQueryEvent.create, (value) async {
       var order = Order.fromMap(value.toJson());
+      var cuponJson = value["cupon"];
+      if (cuponJson != null) {
+        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        order.cupon = cupon;
+      }
       if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
         if (_view != null) {
           _view.listSuccess([order]);
@@ -125,9 +167,13 @@ class OrdersPresenter implements OrderContractPresenter {
 
     int filter = await PreferencesUtil.getOrderFilter();
 
-    subscription.on(LiveQueryEvent.update, (value) {
+    subscriptionUpdate.on(LiveQueryEvent.update, (value) async {
       var order = Order.fromMap(value.toJson());
-      print(order.toMap());
+      var cuponJson = value["cupon"];
+      if (cuponJson != null) {
+        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        order.cupon = cupon;
+      }
       if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
         var current = order.status.current;
         var index = order.status.getIndex(current);

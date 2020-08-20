@@ -70,11 +70,11 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       companyName = Singletons.company().name;
       if (Singletons.orders().isEmpty) {
         setState(() => _loading = true);
-        orderPresenter.listDayOrdersSnapshot(date);
         orderPresenter.listDayOrders(date);
       } else {
         listSuccess(Singletons.orders());
       }
+      orderPresenter.listDayOrdersSnapshot(date);
     }
   }
 
@@ -126,7 +126,6 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   @override
   removeOrder(Order order) {
-    print("remover");
     try {
       var item = Singletons.orders().singleWhere((element) => element.id == order.id);
       setState(() {
@@ -169,14 +168,19 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   void calculateTotalToday(List<Order> list) {
     totalToday = 0;
     for (var value in list) {
+      double parcialTotal = 0;
       if (!value.canceled && !value.status.isFirst()) {
-        totalToday += value.deliveryCost;
+        parcialTotal += value.deliveryCost;
         value.items.forEach((element) {
           setState(() {
-            totalToday += element.getTotal();
+            parcialTotal += element.getTotal();
           });
         });
+        if (value.cupon != null) {
+          parcialTotal += -value.cupon.calcPercentDiscount(parcialTotal) - value.cupon.getMoneyDiscount();
+        }
       }
+      totalToday += parcialTotal;
     }
   }
 
@@ -424,13 +428,12 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
         child: GestureDetector(
-          child: HistoricWidget(
-            item: item,
-          ),
+          child: HistoricWidget(item: item),
           onTap: () async {
-            orderPresenter.pause();
-            await PageRouter.push(context, OrderPage(item: item,));
-            orderPresenter.resume();
+            orderPresenter.unSubscribe();
+            var result = await PageRouter.push(context, OrderPage(item: item,));
+            setState(() => item = result);
+            orderPresenter.listDayOrdersSnapshot(date);
           },
         ),
       ),

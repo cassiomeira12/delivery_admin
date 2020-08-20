@@ -1,5 +1,3 @@
-import 'package:kidelivercompany/utils/log_util.dart';
-
 import '../../models/base_user.dart';
 import '../../models/menu/product.dart';
 import '../../models/phone_number.dart';

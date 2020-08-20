@@ -1,16 +1,16 @@
-import '../../contracts/order/order_contract.dart';
-import '../../models/order/order.dart';
+import '../../models/order/cupon.dart';
+import '../../contracts/order/cupon_contract.dart';
 import '../../services/parse/base_parse_service.dart';
 import '../../strings.dart';
 
-class ParseOrderService extends OrderContractService {
+class ParseCuponService extends CuponContractService {
 
-  BaseParseService service = BaseParseService("Order");
+  BaseParseService service = BaseParseService("Cupon");
 
   @override
-  Future<Order> create(Order item) async {
+  Future<Cupon> create(Cupon item) async {
     return service.create(item).then((response) {
-      Order temp = Order();
+      Cupon temp = Cupon();
       temp.updateData(item);
       temp.id = response["objectId"];
       temp.objectId = response["objectId"];
@@ -28,9 +28,9 @@ class ParseOrderService extends OrderContractService {
   }
 
   @override
-  Future<Order> read(Order item) {
+  Future<Cupon> read(Cupon item) {
     return service.read(item).then((response) {
-      return response == null ? null : Order.fromMap(response);
+      return response == null ? null : Cupon.fromMap(response);
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -43,11 +43,10 @@ class ParseOrderService extends OrderContractService {
   }
 
   @override
-  Future<Order> update(Order item) {
+  Future<Cupon> update(Cupon item) {
     return service.update(item).then((response) {
-      Order temp = Order();
+      Cupon temp = Cupon();
       temp.updateData(item);
-      temp.cupon = item.cupon;
       temp.updatedAt = DateTime.parse(response["updatedAt"]).toLocal();
       return response == null ? null : temp;
     }).catchError((error) {
@@ -62,9 +61,9 @@ class ParseOrderService extends OrderContractService {
   }
 
   @override
-  Future<Order> delete(Order item) {
+  Future<Cupon> delete(Cupon item) {
     return service.delete(item).then((response) {
-      return response == null ? null : Order.fromMap(response);
+      return response == null ? null : Cupon.fromMap(response);
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -77,9 +76,9 @@ class ParseOrderService extends OrderContractService {
   }
 
   @override
-  Future<List<Order>> findBy(String field, value) async {
+  Future<List<Cupon>> findBy(String field, value) async {
     return service.findBy(field, value).then((response) {
-      return response.isEmpty ? List<Order>() : response.map<Order>((item) => Order.fromMap(item)).toList();
+      return response.isEmpty ? List<Cupon>() : response.map<Cupon>((item) => Cupon.fromMap(item)).toList();
     }).catchError((error) {
       switch (error.code) {
         case -1:
@@ -92,9 +91,9 @@ class ParseOrderService extends OrderContractService {
   }
 
   @override
-  Future<List<Order>> list() {
+  Future<List<Cupon>> list() {
     return service.list().then((response) {
-      return response.isEmpty ? List<Order>() : response.map<Order>((item) => Order.fromMap(item)).toList();
+      return response.isEmpty ? List<Cupon>() : response.map<Cupon>((item) => Cupon.fromMap(item)).toList();
     }).catchError((error) {
       switch (error.code) {
         case -1:

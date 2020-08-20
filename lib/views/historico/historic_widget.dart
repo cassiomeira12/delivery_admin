@@ -43,8 +43,20 @@ class _HistoricWidgetState extends State<HistoricWidget> {
     return Card(
       margin: EdgeInsets.fromLTRB(5, 5, 5, 10),
       elevation: 5,
-      shadowColor: order.canceled ? Colors.red : (order.status.isLast() ? order.evaluation == null ? Colors.amber : Colors.white : Colors.green),
-      color: order.canceled ? Colors.white : (order.status.isLast() ? order.evaluation == null ? Colors.amber[100] : Colors.white : Colors.green[50]),
+      shadowColor: order.canceled ?
+          Colors.red
+            :
+          order.status.isLast() ?
+            order.evaluation == null ? Colors.amber : Colors.white
+              :
+            order.status.isFirst() ? Colors.green : Colors.lightBlue,
+      color: order.canceled ?
+          Colors.white
+            :
+          order.status.isLast() ?
+            order.evaluation == null ? Colors.amber[100] : Colors.white
+              :
+            order.status.isFirst() ? Colors.green[50] : Colors.lightBlue[50],
       borderOnForeground: true,
       child: Container(
         padding: EdgeInsets.all(10),

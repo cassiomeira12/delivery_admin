@@ -1,6 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:kidelivercompany/models/order/cupon.dart';
+import 'package:kidelivercompany/utils/log_util.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../models/company/type_payment.dart';
@@ -20,6 +21,8 @@ import '../../presenters/order/order_presenter.dart';
 import '../../utils/date_util.dart';
 import '../../widgets/stars_widget.dart';
 import 'package:flutter/material.dart';
+
+import '../page_router.dart';
 
 class OrderPage extends StatefulWidget {
   final dynamic item;
@@ -70,6 +73,13 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
       }
       index++;
     });
+    presenter.readSnapshot(order);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    presenter.dispose();
   }
 
   @override
@@ -80,14 +90,13 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
   @override
   onFailure(String error)  {
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
-    setState(() {
-      _loading = false;
-    });
+    setState(() => _loading = false);
   }
 
   @override
   onSuccess(Order result) {
-    order.updateData(result);
+    result.cupon = order.cupon;
+    setState(() => order.updateData(result));
     int index = 0;
     order.status.values.forEach((element) {
       if (element.name == order.status.current.name) {
@@ -98,9 +107,7 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
       }
       index++;
     });
-    setState(() {
-      _loading = false;
-    });
+    setState(() => _loading = false);
   }
 
   @override
@@ -110,63 +117,66 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text(order.companyName, style: TextStyle(color: Colors.white),),
-        iconTheme: IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: FaIcon(FontAwesomeIcons.whatsapp,),
-            onPressed: () async {
-              var whatsAppLink = order.userPhoneNumber.whatsAppLink();
-              if (await canLaunch(whatsAppLink)) {
-                await launch(whatsAppLink);
-              } else {
-                ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
-              }
-            },
-          ),
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) {
-              return ["WhatsApp", "Ligar", "Cancelar"].map((String choice) {
-                return PopupMenuItem(value: choice, child: Text(choice),);
-              }).toList();
-            },
-            onSelected: (value) async {
-              switch (value) {
-                case "WhatsApp":
-                  var whatsAppLink = order.userPhoneNumber.whatsAppLink();
-                  if (await canLaunch(whatsAppLink)) {
-                    await launch(whatsAppLink);
-                  } else {
-                    ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
-                  }
-                  break;
-                case "Ligar":
-                  var url = "tel: ${order.userPhoneNumber.toString()}";
-                  if (await canLaunch(url)) {
-                    await launch(url);
-                  } else {
-                    ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
-                  }
-                  break;
-                case "Cancelar":
-                  showDialogCancelOrder();
-                  break;
-              }
-            },
-          ),
-        ],
-      ),
-      body: ModalProgressHUD(
-        inAsyncCall: _loading,
-        progressIndicator: Card(
-          elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text(order.companyName, style: TextStyle(color: Colors.white),),
+          iconTheme: IconThemeData(color: Colors.white),
+          actions: [
+            IconButton(
+              icon: FaIcon(FontAwesomeIcons.whatsapp,),
+              onPressed: () async {
+                var whatsAppLink = order.userPhoneNumber.whatsAppLink();
+                if (await canLaunch(whatsAppLink)) {
+                  await launch(whatsAppLink);
+                } else {
+                  ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+                }
+              },
+            ),
+            PopupMenuButton(
+              itemBuilder: (BuildContext context) {
+                return ["WhatsApp", "Ligar", "Cancelar"].map((String choice) {
+                  return PopupMenuItem(value: choice, child: Text(choice),);
+                }).toList();
+              },
+              onSelected: (value) async {
+                switch (value) {
+                  case "WhatsApp":
+                    var whatsAppLink = order.userPhoneNumber.whatsAppLink();
+                    if (await canLaunch(whatsAppLink)) {
+                      await launch(whatsAppLink);
+                    } else {
+                      ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+                    }
+                    break;
+                  case "Ligar":
+                    var url = "tel: ${order.userPhoneNumber.toString()}";
+                    if (await canLaunch(url)) {
+                      await launch(url);
+                    } else {
+                      ScaffoldSnackBar.failure(context, _scaffoldKey, SOME_ERROR);
+                    }
+                    break;
+                  case "Cancelar":
+                    showDialogCancelOrder();
+                    break;
+                }
+              },
+            ),
+          ],
         ),
-        child: nestedScrollView(),
+        body: ModalProgressHUD(
+          inAsyncCall: _loading,
+          progressIndicator: Card(
+            elevation: 5,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
+            child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          ),
+          child: nestedScrollView(),
+        ),
       ),
     );
   }
@@ -209,8 +219,12 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
           ),
         ];
       },
-      body: order.status.isFirst() || order.canceled ? Container() : body(),
+      body: order.status.isFirst() || order.canceled ? Container() : listView(),//body(),
     );
+  }
+
+  Future<bool> _onBackPressed() {
+    PageRouter.pop(context, order);
   }
 
   Widget nestedHeader() {
@@ -290,14 +304,15 @@ class _OrderPageState extends State<OrderPage> implements OrderContractView {
                     times.add({"hour": 0, "minute": 5, "key": 1, "message": "Daqui 5 minutos"});
                     times.add({"hour": 0, "minute": 10, "key": 2, "message": "Daqui 10 minutos"});
                     times.add({"hour": 0, "minute": 15, "key": 3, "message": "Daqui 15 minutos"});
-                    times.add({"hour": 0, "minute": 30, "key": 4, "message": "Daqui 30 minutos"});
-                    times.add({"hour": 0, "minute": 45, "key": 5, "message": "Daqui 45 minutos"});
-                    times.add({"hour": 1, "minute": 0, "key": 6, "message": "Daqui 1 hora"});
-                    times.add({"hour": 1, "minute": 15, "key": 7, "message": "Daqui 1 hora e 15 minutos"});
-                    times.add({"hour": 1, "minute": 30, "key": 8, "message": "Daqui 1 hora e 30 minutos"});
-                    times.add({"hour": 1, "minute": 45, "key": 9, "message": "Daqui 1 hora e 45 minutos"});
-                    times.add({"hour": 2, "minute": 0, "key": 10, "message": "Daqui 2 horas"});
-                    times.add({"hour": -1, "minute": -1, "key": 11, "message": "Escolher horário"});
+                    times.add({"hour": 0, "minute": 20, "key": 4, "message": "Daqui 20 minutos"});
+                    times.add({"hour": 0, "minute": 30, "key": 5, "message": "Daqui 30 minutos"});
+                    times.add({"hour": 0, "minute": 45, "key": 6, "message": "Daqui 45 minutos"});
+                    times.add({"hour": 1, "minute": 0, "key": 7, "message": "Daqui 1 hora"});
+                    times.add({"hour": 1, "minute": 15, "key": 8, "message": "Daqui 1 hora e 15 minutos"});
+                    times.add({"hour": 1, "minute": 30, "key": 9, "message": "Daqui 1 hora e 30 minutos"});
+                    times.add({"hour": 1, "minute": 45, "key": 10, "message": "Daqui 1 hora e 45 minutos"});
+                    times.add({"hour": 2, "minute": 0, "key": 11, "message": "Daqui 2 horas"});
+                    times.add({"hour": -1, "minute": -1, "key": 12, "message": "Escolher horário"});
                     final result = await showConfirmationDialog<int>(
                       context: context,
                       title: "Quando o pedido ficará pronto?",
