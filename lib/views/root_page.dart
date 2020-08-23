@@ -1,24 +1,25 @@
-import '../views/new_company_page.dart';
-import '../models/singleton/singletons.dart';
-import '../contracts/user/user_contract.dart';
-import '../models/version_app.dart';
-import '../presenters/user/user_presenter.dart';
-import '../presenters/version_app_presenter.dart';
-import '../strings.dart';
-import '../themes/my_themes.dart';
-import '../themes/custom_theme.dart';
-import '../utils/preferences_util.dart';
-import '../views/tabs_page.dart';
-import '../widgets/primary_button.dart';
-import '../widgets/secondary_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info/package_info.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../contracts/user/user_contract.dart';
+import '../models/singleton/singletons.dart';
+import '../models/version_app.dart';
+import '../presenters/user/user_presenter.dart';
+import '../presenters/version_app_presenter.dart';
+import '../strings.dart';
+import '../themes/custom_theme.dart';
+import '../themes/my_themes.dart';
+import '../utils/preferences_util.dart';
+import '../views/new_company_page.dart';
+import '../views/tabs_page.dart';
+import '../widgets/background_card.dart';
+import '../widgets/primary_button.dart';
+import '../widgets/secondary_button.dart';
 import 'intro_page.dart';
 import 'login/login_page.dart';
 import 'login/verified_email_page.dart';
-import '../widgets/background_card.dart';
 
 enum AuthStatus {
   INTRO,
@@ -99,19 +100,32 @@ class _RootPageState extends State<RootPage> {
   Widget build(BuildContext context) {
     switch (authStatus) {
       case AuthStatus.INTRO:
-        return IntroPage(introDoneCallback: introDoneCallback,);
+        return IntroPage(
+          introDoneCallback: introDoneCallback,
+        );
       case AuthStatus.NOT_DETERMINED:
         return buildWaitingScreen();
       case AuthStatus.NOT_LOGGED_IN:
-        return LoginPage(loginCallback: loginCallback,);
+        return LoginPage(
+          loginCallback: loginCallback,
+        );
       case AuthStatus.LOGGED_IN:
-        return TabsPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
+        return TabsPage(
+          loginCallback: loginCallback,
+          logoutCallback: logoutCallback,
+        );
       case AuthStatus.EMAIL_NOT_VERIFIED:
-        return VerifiedEmailPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
+        return VerifiedEmailPage(
+          loginCallback: loginCallback,
+          logoutCallback: logoutCallback,
+        );
       case AuthStatus.UPDATE_APP:
         return updateAppScreen();
       case AuthStatus.NOT_COMPANY:
-        return NewCompanyPage(loginCallback: loginCallback, logoutCallback: logoutCallback,);
+        return NewCompanyPage(
+          loginCallback: loginCallback,
+          logoutCallback: logoutCallback,
+        );
       default:
         return buildWaitingScreen();
     }
@@ -146,12 +160,14 @@ class _RootPageState extends State<RootPage> {
 
   void checkLastVersionApp() async {
     var last = await PreferencesUtil.getLastCheckUpdate();
-    if (last == null) {//First check
+    if (last == null) {
+      //First check
       checkCurrentVersion();
     } else {
       var now = DateTime.now();
       var dif = now.difference(last);
-      if (dif.inDays > 3) {//Check update
+      if (dif.inDays > 3) {
+        //Check update
         checkCurrentVersion();
       }
       checkCurrentVersion();
@@ -173,7 +189,8 @@ class _RootPageState extends State<RootPage> {
         });
       }
     }
-    PreferencesUtil.setLastCheckUpdate(DateTime.now());//Atualizando ultimo check de versao
+    PreferencesUtil.setLastCheckUpdate(
+        DateTime.now()); //Atualizando ultimo check de versao
   }
 
   Widget updateAppScreen() {
@@ -183,10 +200,14 @@ class _RootPageState extends State<RootPage> {
         children: <Widget>[
           Stack(
             children: <Widget>[
-              BackgroundCard(height: 200,),
+              BackgroundCard(
+                height: 200,
+              ),
               Container(
                 alignment: Alignment.center,
-                margin: EdgeInsets.only(top: 130,),
+                margin: EdgeInsets.only(
+                  top: 130,
+                ),
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -209,28 +230,27 @@ class _RootPageState extends State<RootPage> {
             style: Theme.of(context).textTheme.subtitle,
             textAlign: TextAlign.center,
           ),
-          minimumUpdate ?
-          Container()
-              :
-          Text(
-            VERSION_OLDER,
-            style: Theme.of(context).textTheme.body1,
-            textAlign: TextAlign.center,
-          ),
+          minimumUpdate
+              ? Container()
+              : Text(
+                  VERSION_OLDER,
+                  style: Theme.of(context).textTheme.body1,
+                  textAlign: TextAlign.center,
+                ),
           Row(
             children: <Widget>[
-              minimumUpdate ?
-              Flexible(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                  child: SecondaryButton(
-                    text: NOT_NOW,
-                    onPressed: () => setState(() => authStatus = AuthStatus.LOGGED_IN),
-                  ),
-                ),
-              )
-                  :
-              Container(),
+              minimumUpdate
+                  ? Flexible(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                        child: SecondaryButton(
+                          text: NOT_NOW,
+                          onPressed: () =>
+                              setState(() => authStatus = AuthStatus.LOGGED_IN),
+                        ),
+                      ),
+                    )
+                  : Container(),
               Flexible(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
@@ -263,9 +283,9 @@ class _RootPageState extends State<RootPage> {
     if (Singletons.user().emailVerified) {
       String companyId = await PreferencesUtil.getAdminCompany();
       if (companyId == null) {
-          setState(() {
-            authStatus = AuthStatus.NOT_COMPANY;
-          });
+        setState(() {
+          authStatus = AuthStatus.NOT_COMPANY;
+        });
       } else {
         setState(() {
           authStatus = AuthStatus.LOGGED_IN;
@@ -300,10 +320,10 @@ class _RootPageState extends State<RootPage> {
   }
 
   void updateNotificationToken() async {
-    var notificationToken = await Singletons.pushNotification().updateNotificationToken();
+    var notificationToken =
+        await Singletons.pushNotification().updateNotificationToken();
     Singletons.user().notificationToken = notificationToken;
     PreferencesUtil.setUserData(Singletons.user().toMap());
     presenter.update(Singletons.user());
   }
-
 }
