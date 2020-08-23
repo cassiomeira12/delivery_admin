@@ -1,9 +1,9 @@
 import 'dart:io';
-import '../../models/base_user.dart';
-import '../../utils/log_util.dart';
-import '../../services/parse/parse_company_service.dart';
+
 import '../../contracts/company/company_contract.dart';
+import '../../models/base_user.dart';
 import '../../models/company/company.dart';
+import '../../services/parse/parse_company_service.dart';
 
 class CompanyPresenter implements CompanyContractPresenter {
   CompanyContractView _view;
@@ -47,7 +47,6 @@ class CompanyPresenter implements CompanyContractPresenter {
       if (_view != null) _view.onSuccess(value);
       return value;
     }).catchError((error) {
-      Log.e(error);
       if (_view != null) _view.onFailure(error.message);
       return null;
     });
@@ -144,5 +143,4 @@ class CompanyPresenter implements CompanyContractPresenter {
       return null;
     });
   }
-
 }

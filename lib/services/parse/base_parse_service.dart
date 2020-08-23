@@ -1,4 +1,5 @@
 import 'package:parse_server_sdk/parse_server_sdk.dart';
+
 import '../../models/base_model.dart';
 
 class BaseParseService {
@@ -81,5 +82,4 @@ class BaseParseService {
       }
     });
   }
-
 }

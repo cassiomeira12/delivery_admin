@@ -1,38 +1,34 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import '../../utils/date_util.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../contracts/company/company_contract.dart';
+import '../../contracts/order/order_contract.dart';
 import '../../contracts/user/user_contract.dart';
 import '../../models/company/company.dart';
+import '../../models/order/order.dart';
+import '../../models/singleton/singletons.dart';
+import '../../presenters/company/company_presenter.dart';
+import '../../presenters/order/order_presenter.dart';
 import '../../presenters/user/user_presenter.dart';
 import '../../services/notifications/firebase_push_notification.dart';
 import '../../strings.dart';
+import '../../utils/date_util.dart';
 import '../../utils/preferences_util.dart';
-import '../../widgets/scaffold_snackbar.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../models/singleton/singletons.dart';
-import '../../contracts/order/order_contract.dart';
-import '../../models/order/order.dart';
-import '../../presenters/order/order_presenter.dart';
-import '../../views/home/order_page.dart';
 import '../../views/historico/historic_widget.dart';
-import '../../contracts/company/company_contract.dart';
-import '../../presenters/company/company_presenter.dart';
+import '../../views/home/order_page.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import '../../widgets/background_card.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import '../page_router.dart';
-import 'search_page.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback loginCallback;
   final VoidCallback orderCallback;
 
-  HomePage({
-    @required this.loginCallback,
-    @required this.orderCallback
-  });
+  HomePage({@required this.loginCallback, @required this.orderCallback});
 
   @override
   State<StatefulWidget> createState() => _HomePageState();
@@ -50,7 +46,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   OrdersPresenter orderPresenter;
   //List<Order> ordersList;
 
-  static DateTime date = DateUtil.todayTime(0, 0);
+  DateTime dateNow = DateUtil.todayTime(0, 0);
 
   String filterName;
 
@@ -70,11 +66,11 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       companyName = Singletons.company().name;
       if (Singletons.orders().isEmpty) {
         setState(() => _loading = true);
-        orderPresenter.listDayOrders(date);
+        orderPresenter.listDayOrders(dateNow);
       } else {
         listSuccess(Singletons.orders());
       }
-      orderPresenter.listDayOrdersSnapshot(date);
+      orderPresenter.listDayOrdersSnapshot(dateNow);
     }
   }
 
@@ -91,7 +87,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     if (filter == null) {
       filterName = "Todos";
     } else {
-      switch(filter) {
+      switch (filter) {
         case 0:
           filterName = "Todos";
           break;
@@ -110,11 +106,12 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     if (result != null) {
       Singletons.company().updateData(result);
       setState(() => companyName = result.name);
-      orderPresenter.listDayOrdersSnapshot(date);
-      orderPresenter.listDayOrders(date);
+      orderPresenter.listDayOrdersSnapshot(dateNow);
+      orderPresenter.listDayOrders(dateNow);
       var companyTopic = result.id;
       if (!Singletons.user().notificationToken.topics.contains(companyTopic)) {
-        var saved = await FirebasePushNotifications.subscribeToTopic(companyTopic);
+        var saved =
+            await FirebasePushNotifications.subscribeToTopic(companyTopic);
         if (saved) {
           Singletons.user().notificationToken.topics.add(companyTopic);
           PreferencesUtil.setUserData(Singletons.user().toMap());
@@ -127,11 +124,12 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   @override
   removeOrder(Order order) {
     try {
-      var item = Singletons.orders().singleWhere((element) => element.id == order.id);
+      var item =
+          Singletons.orders().singleWhere((element) => element.id == order.id);
       setState(() {
         Singletons.orders().remove(item);
       });
-    } catch (error) { }
+    } catch (error) {}
   }
 
   @override
@@ -140,7 +138,6 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       list.forEach((item) {
         var temp;
         for (var element in Singletons.orders()) {
-          print("${item.id} - ${element.id}");
           if (item.id == element.id) {
             temp = element;
             break;
@@ -177,7 +174,8 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
           });
         });
         if (value.cupon != null) {
-          parcialTotal += -value.cupon.calcPercentDiscount(parcialTotal) - value.cupon.getMoneyDiscount();
+          parcialTotal += -value.cupon.calcPercentDiscount(parcialTotal) -
+              value.cupon.getMoneyDiscount();
         }
       }
       totalToday += parcialTotal;
@@ -185,7 +183,7 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
   }
 
   @override
-  onFailure(String error)  {
+  onFailure(String error) {
     setState(() {
       Singletons.orders().clear();
     });
@@ -203,13 +201,19 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(companyName, style: TextStyle(color: Colors.white),),
+        title: Text(
+          companyName,
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
           PopupMenuButton(
             itemBuilder: (BuildContext context) {
               return ["Filtro"].map((String choice) {
-                return PopupMenuItem(value: choice, child: Text(choice),);
+                return PopupMenuItem(
+                  value: choice,
+                  child: Text(choice),
+                );
               }).toList();
             },
             onSelected: (value) async {
@@ -228,7 +232,9 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
 
   void filterOrders() async {
     List<Map> times = List();
-    times.add({"key": 0, "title": "Todos"},);
+    times.add(
+      {"key": 0, "title": "Todos"},
+    );
     times.add({"key": 1, "title": "Cozinha"});
     times.add({"key": 2, "title": "Entrega/Retirada"});
     times.add({"key": 3, "title": "Finalizados"});
@@ -239,15 +245,12 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       cancelLabel: CANCELAR,
       barrierDismissible: false,
       actions: times.map((e) {
-        return AlertDialogAction<int>(
-            label: e["title"],
-            key: e["key"]
-        );
+        return AlertDialogAction<int>(label: e["title"], key: e["key"]);
       }).toList(),
     );
     if (result != null) {
       PreferencesUtil.setOrderFilter(result);
-      switch(result) {
+      switch (result) {
         case 0:
           setState(() => filterName = "Todos");
           break;
@@ -266,8 +269,8 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
       });
       orderPresenter.unSubscribe();
       await Future.delayed(Duration(milliseconds: 500));
-      orderPresenter.listDayOrders(date);
-      orderPresenter.listDayOrdersSnapshot(date);
+      orderPresenter.listDayOrders(dateNow);
+      orderPresenter.listDayOrdersSnapshot(dateNow);
     }
   }
 
@@ -291,28 +294,31 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
                           children: [
                             search(),
                             Text(
-                              Singletons.company().id != null ? Singletons.company().getOpenTime(date) : "",
+                              Singletons.company().id != null
+                                  ? Singletons.company()
+                                      .getOpenCloseTime(day: dateNow)
+                                  : "",
                               style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).backgroundColor
-                              ),
+                                  color: Theme.of(context).backgroundColor),
                             ),
-                            filterName != null ? Text(
-                              "Filtro - $filterName",
-                              style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).backgroundColor
-                              ),
-                            ) : Container(),
+                            filterName != null
+                                ? Text(
+                                    "Filtro - $filterName",
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(context).backgroundColor),
+                                  )
+                                : Container(),
                             Text(
                               "Total vendido hoje: R\$: ${totalToday.toStringAsFixed(2)}",
                               style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).backgroundColor
-                              ),
+                                  color: Theme.of(context).backgroundColor),
                             ),
                           ],
                         ),
@@ -337,15 +343,22 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
         height: 60,
         child: RaisedButton(
           elevation: 5.0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
           color: Colors.white,
           child: Row(
             children: <Widget>[
-              FaIcon(FontAwesomeIcons.calendarAlt, color: Colors.grey,),
-              SizedBox(width: 10,),
+              FaIcon(
+                FontAwesomeIcons.calendarAlt,
+                color: Colors.grey,
+              ),
+              SizedBox(
+                width: 10,
+              ),
               Expanded(
                 child: Text(
-                  "${DateUtil.getWeekDat(date)} - ${date.day} de ${DateUtil.getMounth(date)}",
+                  "${DateUtil.getWeekDat(dateNow)} - ${dateNow.day} de ${DateUtil.getMounth(dateNow)}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 18,
@@ -358,22 +371,25 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
           onPressed: () {
             showDatePicker(
               context: context,
-              initialDate: date,
-              firstDate: date.subtract(Duration(days: 365)),
-              lastDate: date.add(Duration(days: 365)),
+              initialDate: dateNow,
+              firstDate: dateNow.subtract(Duration(days: 365)),
+              lastDate: dateNow.add(Duration(days: 365)),
               builder: (BuildContext context, Widget child) {
-                return Theme(data: Theme.of(context), child: child,);
+                return Theme(
+                  data: Theme.of(context),
+                  child: child,
+                );
               },
             ).then((value) {
               if (value != null) {
                 orderPresenter.unSubscribe();
                 setState(() {
                   _loading = true;
-                  date = value;
+                  dateNow = value;
                   Singletons.orders().clear();
                 });
-                orderPresenter.listDayOrdersSnapshot(date);
-                orderPresenter.listDayOrders(date);
+                orderPresenter.listDayOrdersSnapshot(dateNow);
+                orderPresenter.listDayOrders(dateNow);
               }
             });
           },
@@ -391,24 +407,22 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
           _loading = true;
           Singletons.orders().clear();
         });
-        return orderPresenter.listDayOrders(date);
+        return orderPresenter.listDayOrders(dateNow);
       },
       child: Center(
-        child: _loading ?
-          LoadingShimmerList()
-            :
-          Stack(
-            children: [
-              listView(),
-              Singletons.orders().isEmpty ?
-                EmptyListWidget(
-                  message: "Você ainda não recebeu pedidos hoje",
-                  //assetsImage: "assets/notification.png",
-                )
-                  :
-                Container(),
-            ],
-          ),
+        child: _loading
+            ? LoadingShimmerList()
+            : Stack(
+                children: [
+                  listView(),
+                  Singletons.orders().isEmpty
+                      ? EmptyListWidget(
+                          message: "Você ainda não recebeu pedidos hoje",
+                          //assetsImage: "assets/notification.png",
+                        )
+                      : Container(),
+                ],
+              ),
       ),
     );
   }
@@ -431,13 +445,16 @@ class _HomePageState extends State<HomePage> implements OrderContractView {
           child: HistoricWidget(item: item),
           onTap: () async {
             orderPresenter.unSubscribe();
-            var result = await PageRouter.push(context, OrderPage(item: item,));
+            var result = await PageRouter.push(
+                context,
+                OrderPage(
+                  item: item,
+                ));
             setState(() => item = result);
-            orderPresenter.listDayOrdersSnapshot(date);
+            orderPresenter.listDayOrdersSnapshot(dateNow);
           },
         ),
       ),
     );
   }
-
 }

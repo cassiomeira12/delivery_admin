@@ -1,34 +1,36 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../../contracts/company/company_contract.dart';
 import '../../models/company/company.dart';
 import '../../models/company/delivery.dart';
 import '../../models/singleton/singletons.dart';
 import '../../presenters/company/company_presenter.dart';
+import '../../strings.dart';
 import '../../utils/log_util.dart';
+import '../../widgets/background_card.dart';
+import '../../widgets/primary_button.dart';
 import '../../widgets/scaffold_snackbar.dart';
 import '../../widgets/shape_round.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import '../../widgets/primary_button.dart';
 import '../../widgets/text_input_field.dart';
-import '../../strings.dart';
-import '../../widgets/background_card.dart';
 
 class DeliveryPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _DeliveryState();
 }
 
-class _DeliveryState extends State<DeliveryPage> implements CompanyContractView {
+class _DeliveryState extends State<DeliveryPage>
+    implements CompanyContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _loading = false;
 
+  Delivery delivery;
+
   MoneyMaskedTextController deliveryCostController;
   bool deliveryType = false;
   bool pickupType = false;
-  Delivery delivery;
 
   CompanyContractPresenter companyPresenter;
 
@@ -39,12 +41,12 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
     deliveryCostController = MoneyMaskedTextController(leftSymbol: "R\$ ");
     deliveryCostController.updateValue(0);
     delivery = Singletons.company().delivery;
-    deliveryType = delivery != null;
-    if (delivery == null) {
-      deliveryType = false;
-    } else {
-      deliveryCostController.updateValue(delivery.cost/100);
-      pickupType = delivery.pickup;
+
+    deliveryType = delivery?.delivery ?? false;
+    pickupType = delivery?.pickup ?? true;
+
+    if (delivery != null) {
+      deliveryCostController.updateValue(delivery.cost / 100);
     }
   }
 
@@ -58,13 +60,21 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar( iconTheme: IconThemeData(color: Colors.white), elevation: 0,),
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -119,18 +129,16 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
   }
 
   Widget textPickup() {
-    return ShapeRound(
-      Padding(
-        padding: EdgeInsets.all(20),
-        child: Center(
-          child: Text(
-            "Seu estabelecimento está aceitando apenas retirada",
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.body2,
-          ),
+    return ShapeRound(Padding(
+      padding: EdgeInsets.all(20),
+      child: Center(
+        child: Text(
+          "Seu estabelecimento está aceitando apenas retirada",
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.body2,
         ),
-      )
-    );
+      ),
+    ));
   }
 
   Widget textTitle() {
@@ -238,7 +246,7 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
     );
   }
 
-  Widget showNumberInput () {
+  Widget showNumberInput() {
     return Padding(
       padding: EdgeInsets.only(left: 10, top: 10, right: 10),
       child: TextInputField(
@@ -273,33 +281,24 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
   }
 
   void validateAndSubmit() {
-    if (deliveryType) {
-      if (validateAndSave()) {
-        var cost = deliveryCostController.numberValue * 100;
-        if (delivery == null) {
-          delivery = Delivery();
-          delivery.name = "Entrega a domicílio";
-        }
-        delivery.cost = cost;
-        delivery.pickup = pickupType;
-        Singletons.company().delivery = delivery;
-        setState(() => _loading = true);
-        companyPresenter.update(Singletons.company());
-      }
-    } else {
-      Singletons.company().delivery = null;
-      setState(() => _loading = true);
-      companyPresenter.update(Singletons.company());
+    var cost = deliveryCostController.numberValue * 100;
+    if (delivery == null) {
+      delivery = Delivery();
+      delivery.name = "Entrega a domicílio";
     }
+    delivery.cost = cost;
+    delivery.pickup = !deliveryType || pickupType;
+    delivery.delivery = deliveryType;
+    Singletons.company().delivery = delivery;
+    setState(() => _loading = true);
+    companyPresenter.update(Singletons.company());
   }
 
   @override
-  listSuccess(List<Company> list) {
-
-  }
+  listSuccess(List<Company> list) {}
 
   @override
-  onFailure(String error)  {
+  onFailure(String error) {
     Log.d(error);
     setState(() => _loading = false);
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
@@ -310,5 +309,4 @@ class _DeliveryState extends State<DeliveryPage> implements CompanyContractView 
     setState(() => _loading = false);
     ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
-
 }

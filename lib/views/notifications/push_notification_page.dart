@@ -1,16 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../widgets/scaffold_snackbar.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../../contracts/notification/push_notification_contract.dart';
 import '../../models/notification/push_notification.dart';
-import '../../presenters/notification/push_notification_presenter.dart';
-import '../../widgets/secondary_button.dart';
 import '../../models/singleton/singletons.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
+import '../../strings.dart';
 import '../../widgets/area_input_field.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import '../../widgets/secondary_button.dart';
 import '../../widgets/text_input_field.dart';
-import '../../strings.dart';
-import 'package:flutter/material.dart';
 
 class PushNotificationPage extends StatefulWidget {
   final PushNotification notification;
@@ -23,7 +24,8 @@ class PushNotificationPage extends StatefulWidget {
   _PushNotificationPageState createState() => _PushNotificationPageState();
 }
 
-class _PushNotificationPageState extends State<PushNotificationPage> implements PushNotificationContractView {
+class _PushNotificationPageState extends State<PushNotificationPage>
+    implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _loading = false;
@@ -35,13 +37,9 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
   String title, message, observacao, imgURL, data;
 
   var topics = {
-    Singletons
-        .company()
-        .topic : {
+    Singletons.company().topic: {
       "label": "Meus clientes",
-      "key": Singletons
-          .company()
-          .topic
+      "key": Singletons.company().topic
     },
 //    "com.navan.kideliver-android": {
 //      "label": "Todos clientes",
@@ -54,7 +52,9 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
   void initState() {
     super.initState();
     presenter = PushNotificationPresenter(this);
-    companyName = widget.notification.senderCompany != null ? widget.notification.senderCompany.name : NOTIFICATION;
+    companyName = widget.notification.senderCompany != null
+        ? widget.notification.senderCompany.name
+        : NOTIFICATION;
     topicSelected = topics[Singletons.company().topic];
     title = widget.notification.title;
     message = widget.notification.message;
@@ -67,15 +67,23 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(companyName, style: TextStyle(color: Colors.white),),
+        title: Text(
+          companyName,
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -138,7 +146,9 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
         child: RaisedButton(
           elevation: 2,
           padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
           color: Colors.white,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,7 +160,9 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     //FaIcon(FontAwesomeIcons.searchLocation, color: Colors.grey,),
-                    SizedBox(width: 10,),
+                    SizedBox(
+                      width: 10,
+                    ),
                     Flexible(
                       flex: 1,
                       child: Column(
@@ -170,7 +182,10 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
                   ],
                 ),
               ),
-              FaIcon(FontAwesomeIcons.caretDown, color: Colors.grey[400], ),
+              FaIcon(
+                FontAwesomeIcons.caretDown,
+                color: Colors.grey[400],
+              ),
             ],
           ),
           onPressed: () async {
@@ -211,7 +226,8 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
         text: "Testar nesse celular",
         onPressed: () {
           if (validateAndSave()) {
-            Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+            Singletons.pushNotification()
+                .pushLocalNotification(titleController.text, message);
           }
         },
       ),
@@ -253,7 +269,9 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
               },
             ),
           ),
-          SizedBox(width: 10,),
+          SizedBox(
+            width: 10,
+          ),
           Flexible(
             flex: 1,
             child: PrimaryButton(
@@ -273,9 +291,7 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
   }
 
   @override
-  listSuccess(List<PushNotification> list) {
-
-  }
+  listSuccess(List<PushNotification> list) {}
 
   @override
   onFailure(String error) {
@@ -288,5 +304,4 @@ class _PushNotificationPageState extends State<PushNotificationPage> implements 
     setState(() => _loading = false);
     ScaffoldSnackBar.success(context, _scaffoldKey, SUCCESS_UPDATE_DATA);
   }
-
 }

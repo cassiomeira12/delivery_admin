@@ -1,15 +1,17 @@
-import '../../models/order/cupon.dart';
+import 'dart:async';
+
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+
 import '../../contracts/order/cupon_contract.dart';
+import '../../contracts/order/order_contract.dart';
+import '../../models/order/cupon.dart';
+import '../../models/order/order.dart';
+import '../../models/singleton/singletons.dart';
 import '../../services/parse/parse_cupon_service.dart';
+import '../../services/parse/parse_order_service.dart';
+import '../../strings.dart';
 import '../../utils/log_util.dart';
 import '../../utils/preferences_util.dart';
-import 'package:parse_server_sdk/parse_server_sdk.dart';
-import 'dart:async';
-import '../../models/singleton/singletons.dart';
-import '../../services/parse/parse_order_service.dart';
-import '../../contracts/order/order_contract.dart';
-import '../../models/order/order.dart';
-import '../../strings.dart';
 
 class OrdersPresenter implements OrderContractPresenter {
   final OrderContractView _view;
@@ -129,7 +131,8 @@ class OrdersPresenter implements OrderContractPresenter {
       var order = Order.fromMap(value.toJson());
       var cuponJson = value["cupon"];
       if (cuponJson != null) {
-        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        var cupon =
+            await cuponService.read(Cupon()..id = cuponJson["objectId"]);
         order.cupon = cupon;
       }
       _view != null ? _view.onSuccess(order) : null;
@@ -155,10 +158,12 @@ class OrdersPresenter implements OrderContractPresenter {
       var order = Order.fromMap(value.toJson());
       var cuponJson = value["cupon"];
       if (cuponJson != null) {
-        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        var cupon =
+            await cuponService.read(Cupon()..id = cuponJson["objectId"]);
         order.cupon = cupon;
       }
-      if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
+      if (order.createdAt.isAfter(day) &&
+          order.createdAt.isBefore(day.add(Duration(days: 1)))) {
         if (_view != null) {
           _view.listSuccess([order]);
         }
@@ -171,10 +176,12 @@ class OrdersPresenter implements OrderContractPresenter {
       var order = Order.fromMap(value.toJson());
       var cuponJson = value["cupon"];
       if (cuponJson != null) {
-        var cupon = await cuponService.read(Cupon()..id = cuponJson["objectId"]);
+        var cupon =
+            await cuponService.read(Cupon()..id = cuponJson["objectId"]);
         order.cupon = cupon;
       }
-      if (order.createdAt.isAfter(day) && order.createdAt.isBefore(day.add(Duration(days: 1)))) {
+      if (order.createdAt.isAfter(day) &&
+          order.createdAt.isBefore(day.add(Duration(days: 1)))) {
         var current = order.status.current;
         var index = order.status.getIndex(current);
 
@@ -228,7 +235,7 @@ class OrdersPresenter implements OrderContractPresenter {
     await query.query().then((value) async {
       if (value.success) {
         if (value.result == null) {
-          if(_view != null) _view.listSuccess([]);
+          if (_view != null) _view.listSuccess([]);
         } else {
           List<ParseObject> listObj = value.result;
 
@@ -255,16 +262,20 @@ class OrdersPresenter implements OrderContractPresenter {
             var current = order.status.current;
             var index = order.status.getIndex(current);
             switch (filter) {
-              case 0: return true;
-              case 1: return index > 0 && index < 3;
-              case 2: return index > 2 && index < 5;
-              case 3: return index > 4;
+              case 0:
+                return true;
+              case 1:
+                return index > 0 && index < 3;
+              case 2:
+                return index > 2 && index < 5;
+              case 3:
+                return index > 4;
             }
             return false;
           }).toList();
 
           filterList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          if(_view != null) _view.listSuccess(filterList);
+          if (_view != null) _view.listSuccess(filterList);
           return filterList;
         }
       } else {
@@ -281,5 +292,4 @@ class OrdersPresenter implements OrderContractPresenter {
       }
     });
   }
-
 }
