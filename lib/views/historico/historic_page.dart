@@ -1,44 +1,39 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:kidelivercompany/widgets/scaffold_snackbar.dart';
-import '../../presenters/company/company_presenter.dart';
-import '../../presenters/file_presenter.dart';
-import '../../utils/log_util.dart';
-import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import '../../models/singleton/singletons.dart';
-import '../../views/historico/new_product_page.dart';
-import 'product_page.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:kidelivercompany/widgets/scaffold_snackbar.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../../contracts/menu/menu_contract.dart';
-import '../../models/menu/additional.dart';
+import '../../models/company/company.dart';
 import '../../models/menu/category.dart';
-import '../../models/menu/choice.dart';
-import '../../models/menu/item.dart';
-import '../../models/menu/product.dart';
 import '../../models/menu/menu.dart';
+import '../../models/menu/product.dart';
+import '../../models/singleton/singletons.dart';
+import '../../presenters/company/company_presenter.dart';
 import '../../presenters/menu/menu_presenter.dart';
+import '../../strings.dart';
+import '../../views/historico/new_product_page.dart';
 import '../../views/home/order_slidding_widget.dart';
-import 'product_widget.dart';
+import '../../widgets/background_card.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/image_network_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
-import '../../models/company/company.dart';
-import '../../strings.dart';
-import '../../widgets/background_card.dart';
 import '../page_router.dart';
+import 'product_page.dart';
+import 'product_widget.dart';
 
 class HistoricPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _HistoricPageState();
 }
 
-class _HistoricPageState extends State<HistoricPage> implements MenuContractView {
+class _HistoricPageState extends State<HistoricPage>
+    implements MenuContractView {
   final _formKey = new GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -90,15 +85,25 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: nestedScrollView(),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, color: Colors.white,),
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
         onPressed: () async {
-          var categorySelect = [{"name": "Nova categoria"}];
+          var categorySelect = [
+            {"name": "Nova categoria"}
+          ];
           menu.categories.forEach((element) {
             categorySelect.add({"name": element.name});
           });
@@ -110,7 +115,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             barrierDismissible: false,
             //message: "Deseja sair do $APP_NAME ?",
             actions: categorySelect.map((e) {
-              return AlertDialogAction<String>(label: e["name"], key: e["name"]);
+              return AlertDialogAction<String>(
+                  label: e["name"], key: e["name"]);
             }).toList(),
           );
 
@@ -126,8 +132,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                 title: 'Nova categoria',
                 message: 'Digite aqui a nova categoria',
               );
-              var category = Category();
-              category.name = newCategory[0];
+              var category = Category(name: newCategory[0]);
               setState(() {
                 menu.categories.add(category);
                 _loading = true;
@@ -183,7 +188,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   }
 
   @override
-  onFailure(String error)  {
+  onFailure(String error) {
     print(error);
     setState(() {
       _loading = false;
@@ -195,11 +200,9 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   @override
   onSuccess(Menu result) {
     List<Product> temp = List();
-
-    result.categories.forEach((product) {
-      temp.addAll(product.products);
+    result.categories.forEach((category) {
+      temp.addAll(category.products);
     });
-
     setState(() {
       _loading = false;
       menu = result;
@@ -208,25 +211,27 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   }
 
   Widget notificationCount(int notifications) {
-    return notifications > 0 ?
-    Align(
-      //alignment: Alignment.topCenter,
-      child: ClipOval(
-        child: Container(
-          height: 40, width: 40,
-          color: Colors.white,
-          alignment: Alignment.center,
-          child: Text(
-            notifications.toString(),
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+    return notifications > 0
+        ? Align(
+            //alignment: Alignment.topCenter,
+            child: ClipOval(
+              child: Container(
+                height: 40,
+                width: 40,
+                color: Colors.white,
+                alignment: Alignment.center,
+                child: Text(
+                  notifications.toString(),
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
-    ) : Container();
+          )
+        : Container();
   }
 
   Widget nestedScrollView() {
@@ -246,23 +251,24 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
                         children: <Widget>[
                           Column(
                             children: [
-                              BackgroundCard(height: 100,),
+                              BackgroundCard(
+                                height: 100,
+                              ),
                               //infoCompanyWidget(),
                             ],
                           ),
-                          bannerURL == null ?
-                          Container()
-                              :
-                          Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              image: DecorationImage(
-                                fit: BoxFit.fitWidth,
-                                image: NetworkImage(bannerURL),
-                              ),
-                            ),
-                          ),
+                          bannerURL == null
+                              ? Container()
+                              : Container(
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.rectangle,
+                                    image: DecorationImage(
+                                      fit: BoxFit.fitWidth,
+                                      image: NetworkImage(bannerURL),
+                                    ),
+                                  ),
+                                ),
                           //imageUser(logoURL),
                           imageCircle(),
                         ],
@@ -290,19 +296,19 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         return menuPresenter.read(menu);
       },
       child: Center(
-        child: list == null ?
-          LoadingShimmerList()
-            :
-          Stack(
-            children: [
-              listView(),
-              list.isEmpty ?
-                EmptyListWidget(
-                  message: "Nenhum item foi encontrado",
-                  //assetsImage: "assets/notification.png",
-                ) : Container(),
-            ],
-          ),
+        child: list == null
+            ? LoadingShimmerList()
+            : Stack(
+                children: [
+                  listView(),
+                  list.isEmpty
+                      ? EmptyListWidget(
+                          message: "Nenhum item foi encontrado",
+                          //assetsImage: "assets/notification.png",
+                        )
+                      : Container(),
+                ],
+              ),
       ),
     );
   }
@@ -313,11 +319,9 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       child: CustomScrollView(
         slivers: <Widget>[
           SliverList(
-            delegate: SliverChildListDelegate(
-                list.map<Widget>((item) {
-                  return listItem(item);
-                }).toList()
-            ),
+            delegate: SliverChildListDelegate(list.map<Widget>((item) {
+              return listItem(item);
+            }).toList()),
           ),
         ],
       ),
@@ -333,7 +337,12 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         child: ProductWidget(
           item: item,
           onPressed: (value) async {
-            var result = await PageRouter.push(context, ProductPage(item: item, menu: menu,));
+            var result = await PageRouter.push(
+                context,
+                ProductPage(
+                  item: item,
+                  menu: menu,
+                ));
             onSuccess(menu);
           },
         ),
@@ -410,19 +419,23 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-
-          company.delivery.pickup ?
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: FaIcon(FontAwesomeIcons.running, size: 16, color: Theme.of(context).errorColor,),
-          ) : Container(),
-
-          SizedBox(width: 5,),
-
+          company.delivery.pickup
+              ? Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: FaIcon(
+                    FontAwesomeIcons.running,
+                    size: 16,
+                    color: Theme.of(context).errorColor,
+                  ),
+                )
+              : Container(),
+          SizedBox(
+            width: 5,
+          ),
           Container(
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -431,10 +444,18 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
             ),
             child: Row(
               children: [
-                FaIcon(FontAwesomeIcons.motorcycle, size: 16, color: Theme.of(context).errorColor,),
-                SizedBox(width: 5,),
+                FaIcon(
+                  FontAwesomeIcons.motorcycle,
+                  size: 16,
+                  color: Theme.of(context).errorColor,
+                ),
+                SizedBox(
+                  width: 5,
+                ),
                 Text(
-                  company.delivery.cost == 0 ? "Grátis" : "R\$ ${(company.delivery.cost/100).toStringAsFixed(2)}",
+                  company.delivery.cost == 0
+                      ? "Grátis"
+                      : "R\$ ${(company.delivery.cost / 100).toStringAsFixed(2)}",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -444,7 +465,6 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -458,7 +478,7 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       cancelLabel: GALERIA,
     );
     var imageSource;
-    switch(result) {
+    switch (result) {
       case OkCancelResult.ok:
         imageSource = ImageSource.camera;
         break;
@@ -469,7 +489,8 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
     if (imageSource != null) {
       final file = await ImagePicker.pickImage(source: imageSource);
       if (file != null) {
-        var compressedFile = await FlutterNativeImage.compressImage(file.path, percentage: 50);
+        var compressedFile =
+            await FlutterNativeImage.compressImage(file.path, percentage: 50);
         setState(() => _loading = true);
         var result = await companyPresenter.changeLogoPhoto(compressedFile);
         setState(() {
@@ -492,7 +513,10 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
           Align(
             alignment: Alignment.bottomRight,
             child: RawMaterialButton(
-              child: Icon(Icons.camera_alt, color: Colors.white,),
+              child: Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+              ),
               shape: CircleBorder(),
               elevation: 2.0,
               fillColor: Theme.of(context).primaryColorDark,
@@ -523,13 +547,12 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
               color: Theme.of(context).hintColor,
             ),
           ),
-          child: url == null ?
-          Padding(
-            padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-            child: Image.asset("assets/logo_app.png"),
-          )
-              :
-          Container(),
+          child: url == null
+              ? Padding(
+                  padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+                  child: Image.asset("assets/logo_app.png"),
+                )
+              : Container(),
         ),
         url == null ? Container() : imageNetworkURL(url),
       ],
@@ -539,7 +562,10 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
   Widget imageNetworkURL(String url) {
     return Container(
       margin: EdgeInsets.only(top: 40),
-      child: ImageNetworkWidget(url: url, size: 98,),
+      child: ImageNetworkWidget(
+        url: url,
+        size: 98,
+      ),
     );
   }
 
@@ -549,9 +575,10 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
       title: "Você tem peidos selecionados",
       okLabel: "Limpar",
       cancelLabel: CANCELAR,
-      message: "Deseja realmente limpar os pedidos selecionados de ${company.name} ?",
+      message:
+          "Deseja realmente limpar os pedidos selecionados de ${company.name} ?",
     );
-    switch(result) {
+    switch (result) {
       case OkCancelResult.ok:
         Singletons.order().clear();
         PageRouter.pop(context);
@@ -560,5 +587,4 @@ class _HistoricPageState extends State<HistoricPage> implements MenuContractView
         break;
     }
   }
-
 }

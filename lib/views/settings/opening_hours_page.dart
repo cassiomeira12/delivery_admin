@@ -1,41 +1,36 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../../contracts/company/company_contract.dart';
-import '../../models/company/company.dart';
 import '../../models/company/opening_hour.dart';
 import '../../models/singleton/singletons.dart';
 import '../../presenters/company/company_presenter.dart';
+import '../../strings.dart';
 import '../../views/settings/opening_hour_dialog.dart';
 import '../../widgets/empty_list_widget.dart';
 import '../../widgets/loading_shimmer_list.dart';
 import '../../widgets/scaffold_snackbar.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import '../../strings.dart';
-import 'package:flutter/material.dart';
 
 class OpenningHoursPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _OpenningHoursState();
 }
 
-class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyContractView {
+class _OpenningHoursState extends State<OpenningHoursPage> {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _loading = false;
-
-  List<OpeningHour> openingHourList;
 
   CompanyContractPresenter companyPresenter;
 
   @override
   void initState() {
     super.initState();
-    companyPresenter = CompanyPresenter(this);
-    if (Singletons.company().openHours == null) {
-      Singletons.company().openHours = List();
-    }
-    openingHourList = Singletons.company().openHours;
-    openingHourList.sort((a, b) => a.weekDay.compareTo(b.weekDay));
+    companyPresenter = CompanyPresenter(null);
+    Singletons.company()
+        .openHours
+        .sort((a, b) => a.weekDay.compareTo(b.weekDay));
   }
 
   @override
@@ -43,47 +38,60 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Horários", style: TextStyle(color: Colors.white),),
+        title: Text(
+          "Horários",
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: Center(
-          child: openingHourList == null ?
-          LoadingShimmerList()
-              :
-          openingHourList.isEmpty ?
-          EmptyListWidget(
-            message: "Nenhum horário foi encontrado",
-            //assetsImage: "assets/notification.png",
-          )
-              :
-          listView(),
+          child: _loading
+              ? LoadingShimmerList()
+              : Singletons.company().openHours.isEmpty
+                  ? EmptyListWidget(
+                      message: "Nenhum horário foi encontrado",
+                      //assetsImage: "assets/notification.png",
+                    )
+                  : listView(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, color: Colors.white,),
+        child: Icon(Icons.add, color: Colors.white),
         onPressed: () async {
           showDialog(
             context: context,
             barrierDismissible: false,
             builder: (BuildContext context) => OpeningHourDialog(),
-          ).then((value) {
-            setState(() {
-              openingHourList.add(value);
-              openingHourList.sort((a, b) => a.weekDay.compareTo(b.weekDay));
-              _loading = true;
-            });
-            var result = companyPresenter.update(Singletons.company());
-            if (result == null) {
+          ).then((value) async {
+            if (value != null) {
               setState(() {
-                openingHourList.remove(value);
+                _loading = true;
+                Singletons.company().openHours.add(value);
+                Singletons.company()
+                    .openHours
+                    .sort((a, b) => a.weekDay.compareTo(b.weekDay));
               });
+              var result = await companyPresenter.update(Singletons.company());
+              if (result == null) {
+                setState(() {
+                  Singletons.company().openHours.remove(value);
+                });
+                onFailure(SOME_ERROR);
+              } else {
+                onSuccess();
+              }
             }
           });
         },
@@ -96,30 +104,37 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
       slivers: <Widget>[
         SliverList(
           delegate: SliverChildListDelegate(
-              openingHourList.map<Widget>((item) {
-                return Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                  child: GestureDetector(
-                    child: listItem(item),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) => OpeningHourDialog(openingHour: item,),
-                      ).then((value) {
-                        if (value != null) {
-                          setState(() {
-                            item = value;
-                            _loading = true;
-                          });
-                          companyPresenter.update(Singletons.company());
-                        }
-                      });
-                    },
-                  ),
-                );
-              }).toList()
-          ),
+              Singletons.company().openHours.map<Widget>((item) {
+            return Padding(
+              padding: EdgeInsets.only(left: 10, top: 10, right: 10),
+              child: GestureDetector(
+                child: listItem(item),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) =>
+                        OpeningHourDialog(openingHour: item),
+                  ).then((value) async {
+                    if (value != null) {
+                      var temp = OpeningHour();
+                      temp.updateData(item);
+                      setState(() => _loading = true);
+                      setState(() => item = value);
+                      var result =
+                          await companyPresenter.update(Singletons.company());
+                      if (result == null) {
+                        setState(() => item = temp);
+                        onFailure(SOME_ERROR);
+                      } else {
+                        onSuccess();
+                      }
+                    }
+                  });
+                },
+              ),
+            );
+          }).toList()),
         ),
       ],
     );
@@ -135,16 +150,22 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
           caption: DELETAR,
           color: Colors.red,
           icon: Icons.delete,
-          onTap: () {
+          onTap: () async {
+            setState(() => _loading = true);
             setState(() {
-              openingHourList.remove(openingHour);
-              _loading = true;
+              Singletons.company().openHours.remove(openingHour);
             });
-            var result = companyPresenter.update(Singletons.company());
+            var result = await companyPresenter.update(Singletons.company());
             if (result == null) {
               setState(() {
-                openingHourList.add(openingHour);
+                Singletons.company().openHours.add(openingHour);
+                Singletons.company()
+                    .openHours
+                    .sort((a, b) => a.weekDay.compareTo(b.weekDay));
               });
+              onFailure(SOME_ERROR);
+            } else {
+              onSuccess();
             }
           },
         ),
@@ -188,21 +209,13 @@ class _OpenningHoursState extends State<OpenningHoursPage> implements CompanyCon
     );
   }
 
-  @override
-  listSuccess(List<Company> list) {
-
-  }
-
-  @override
-  onFailure(String error)  {
+  onFailure(String error) {
     setState(() => _loading = false);
     ScaffoldSnackBar.failure(context, _scaffoldKey, error);
   }
 
-  @override
-  onSuccess(Company result) {
+  onSuccess() {
     setState(() => _loading = false);
     ScaffoldSnackBar.success(context, _scaffoldKey, "Atualizado com sucesso!");
   }
-
 }

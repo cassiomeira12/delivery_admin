@@ -5,19 +5,27 @@ class Category extends BaseModel<Category> {
   String name;
   List<Product> products;
 
-  Category() : super('Category');
+  Category({this.name}) : super('Category') {
+    products = List();
+  }
 
-  Category.fromMap(Map<dynamic, dynamic>  map) : super('Category') {
+  Category.fromMap(Map<dynamic, dynamic> map) : super('Category') {
     baseFromMap(map);
     name = map["name"];
-    products = map["products"] == null ? List() : List.from(map["products"]).map<Product>((e) => Product.fromMap(e)).toList();
+    products = map["products"] == null
+        ? List()
+        : List.from(map["products"])
+            .map<Product>((e) => Product.fromMap(e))
+            .toList();
   }
 
   @override
   Map<String, dynamic> toMap() {
     var map = super.toMap();
     map["name"] = name;
-    map["products"] = products == null ? List() : products.map<Map>((e) => e.toMap()).toList();
+    map["products"] = products == null
+        ? List()
+        : products.map<Map>((e) => e.toMap()).toList();
     return map;
   }
 
@@ -31,5 +39,4 @@ class Category extends BaseModel<Category> {
     name = item.name;
     products = item.products;
   }
-
 }
