@@ -1,11 +1,11 @@
 import 'package:parse_server_sdk/parse_server_sdk.dart';
-import '../../models/notification/push_notification.dart';
+
 import '../../contracts/notification/push_notification_contract.dart';
+import '../../models/notification/push_notification.dart';
 import '../../services/parse/base_parse_service.dart';
 import '../../strings.dart';
 
 class ParsePushNotificationService extends PushNotificationContractService {
-
   BaseParseService service = BaseParseService("PushNotification");
 
   @override
@@ -80,7 +80,8 @@ class ParsePushNotificationService extends PushNotificationContractService {
   Future<List<PushNotification>> findBy(String field, value) async {
     var query = QueryBuilder<ParseObject>(service.getObject())
       ..whereEqualTo(field, value)
-      ..includeObject(["senderCompany", "senderUser", "destinationUser"]);
+      ..includeObject(["senderCompany", "senderUser", "destinationUser"])
+      ..orderByDescending("createdAt");
 
     return await query.query().then((value) async {
       if (value.success) {
@@ -136,7 +137,8 @@ class ParsePushNotificationService extends PushNotificationContractService {
   @override
   Future<List<PushNotification>> list() async {
     var query = QueryBuilder<ParseObject>(service.getObject())
-      ..includeObject(["senderCompany", "senderUser", "destinationUser"]);
+      ..includeObject(["senderCompany", "senderUser", "destinationUser"])
+      ..orderByDescending("createdAt");
 
     return await query.query().then((value) async {
       if (value.success) {
@@ -188,5 +190,4 @@ class ParsePushNotificationService extends PushNotificationContractService {
       }
     });
   }
-
 }
