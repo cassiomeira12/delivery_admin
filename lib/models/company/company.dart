@@ -155,7 +155,7 @@ class Company extends BaseModel<Company> {
   String openTime({DateTime day}) {
     OpeningHour openingHourToday;
     openHours.forEach((element) {
-      if (element.weekDay == day?.weekday ?? DateTime.now().weekday) {
+      if (element.weekDay == (day?.weekday ?? DateTime.now().weekday)) {
         openingHourToday = element;
         return;
       }
@@ -175,7 +175,7 @@ class Company extends BaseModel<Company> {
   String closeTime({DateTime day}) {
     OpeningHour openingHourToday;
     openHours.forEach((element) {
-      if (element.weekDay == day?.weekday ?? DateTime.now().weekday) {
+      if (element.weekDay == (day?.weekday ?? DateTime.now().weekday)) {
         openingHourToday = element;
         return;
       }
@@ -210,9 +210,9 @@ class Company extends BaseModel<Company> {
     var close = DateUtil.todayTime(
         openingHourToday.closeHour, openingHourToday.closeMinute);
 
-    print("Agora ${date}");
-    print("Abre ${open}");
-    print("Fecha ${close}");
+    //print("Agora ${date}");
+    //print("Abre ${open}");
+    //print("Fecha ${close}");
 
     if (close.isBefore(open)) {
       close = close.add(Duration(days: 1));

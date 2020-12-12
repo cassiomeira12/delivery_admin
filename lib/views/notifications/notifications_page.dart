@@ -1,26 +1,28 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import '../../widgets/scaffold_snackbar.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import '../../views/notifications/push_notification_page.dart';
+
 import '../../contracts/notification/push_notification_contract.dart';
 import '../../models/notification/push_notification.dart';
-import '../../presenters/notification/push_notification_presenter.dart';
 import '../../models/singleton/singletons.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
 import '../../strings.dart';
 import '../../views/notifications/notification_widget.dart';
 import '../../views/notifications/notifications_settings_page.dart';
+import '../../views/notifications/push_notification_page.dart';
 import '../../views/page_router.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+import '../../widgets/scaffold_snackbar.dart';
 import 'new_notification_page.dart';
 
 class NotificationsPage extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> implements PushNotificationContractView {
+class _NotificationsPageState extends State<NotificationsPage>
+    implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
@@ -34,8 +36,18 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
   void initState() {
     super.initState();
     presenter = PushNotificationPresenter(this);
-    presenter.findBy("senderCompany", Singletons.company().toPointer());
-    //presenter.list();
+    listNotifications();
+  }
+
+  listNotifications() {
+    if (kDebugMode) {
+      return presenter.list();
+    } else {
+      return presenter.findBy(
+        "senderCompany",
+        Singletons.company().toPointer(),
+      );
+    }
   }
 
   @override
@@ -68,7 +80,10 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(TAB2, style: TextStyle(color: Colors.white),),
+        title: Text(
+          TAB2,
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
         actions: <Widget>[
           MaterialButton(
@@ -80,7 +95,8 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
                 fontWeight: FontWeight.bold,
               ),
             ),
-            onPressed: () => PageRouter.push(context, NotificationsSettingsPage()),
+            onPressed: () =>
+                PageRouter.push(context, NotificationsSettingsPage()),
           ),
         ],
       ),
@@ -88,13 +104,21 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: body(),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add, color: Colors.white,),
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
         onPressed: () async {
           var result = await PageRouter.push(context, NewNotificationPage());
           if (result != null) {
@@ -112,34 +136,29 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
       key: _refreshIndicatorKey,
       onRefresh: () {
         Singletons.notifications().clear();
-        return presenter.findBy("senderCompany", Singletons.company().toPointer());
+        return listNotifications();
       },
       child: Center(
-        child: notificationsList == null ?
-          showCircularProgress()
-              :
-          Stack(
-            children: [
-              CustomScrollView(
-                slivers: <Widget>[
-                  SliverList(
-                    delegate: SliverChildListDelegate(
-                        notificationsList.map<Widget>((item) {
+        child: notificationsList == null
+            ? showCircularProgress()
+            : Stack(
+                children: [
+                  CustomScrollView(
+                    slivers: <Widget>[
+                      SliverList(
+                        delegate: SliverChildListDelegate(
+                            notificationsList.map<Widget>((item) {
                           return Padding(
                             padding: EdgeInsets.fromLTRB(5, 10, 5, 0),
                             child: listItem(item),
                           );
-                        }).toList()
-                    ),
+                        }).toList()),
+                      ),
+                    ],
                   ),
+                  notificationsList.isEmpty ? semNotificacoes() : Container(),
                 ],
               ),
-              notificationsList.isEmpty ?
-                semNotificacoes()
-                  :
-                Container(),
-            ],
-          ),
       ),
     );
   }
@@ -151,8 +170,11 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
       child: NotificationWidget(
         notification: item,
         onPressed: () async {
-          await PageRouter.push(context, PushNotificationPage(notification: item));
-          presenter.findBy("senderCompany", Singletons.company().toPointer());
+          await PageRouter.push(
+            context,
+            PushNotificationPage(notification: item),
+          );
+          listNotifications();
         },
       ),
       secondaryActions: <Widget>[
@@ -176,7 +198,7 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
       cancelLabel: CANCELAR,
       message: "Deseja realmente deletar essa notificação?",
     );
-    switch(result) {
+    switch (result) {
       case OkCancelResult.ok:
         setState(() => _loading = true);
         setState(() {
@@ -225,5 +247,4 @@ class _NotificationsPageState extends State<NotificationsPage> implements PushNo
       ],
     );
   }
-
 }

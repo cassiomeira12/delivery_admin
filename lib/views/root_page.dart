@@ -61,7 +61,6 @@ class _RootPageState extends State<RootPage> {
 
   void initPushNotification() async {
     Singletons.pushNotification();
-    await Singletons.pushNotification().init();
   }
 
   void currentUser() async {

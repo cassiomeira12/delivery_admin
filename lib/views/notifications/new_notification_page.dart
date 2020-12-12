@@ -1,26 +1,28 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
 import '../../contracts/notification/push_notification_contract.dart';
 import '../../models/notification/push_notification.dart';
-import '../../presenters/notification/push_notification_presenter.dart';
-import '../../views/page_router.dart';
-import '../../widgets/scaffold_snackbar.dart';
-import '../../widgets/secondary_button.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../../models/singleton/singletons.dart';
+import '../../presenters/notification/push_notification_presenter.dart';
+import '../../strings.dart';
+import '../../views/page_router.dart';
 import '../../widgets/area_input_field.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/scaffold_snackbar.dart';
+import '../../widgets/secondary_button.dart';
 import '../../widgets/text_input_field.dart';
-import '../../strings.dart';
-import 'package:flutter/material.dart';
 
 class NewNotificationPage extends StatefulWidget {
-
   @override
   _NewNotificationPageState createState() => _NewNotificationPageState();
 }
 
-class _NewNotificationPageState extends State<NewNotificationPage> implements PushNotificationContractView {
+class _NewNotificationPageState extends State<NewNotificationPage>
+    implements PushNotificationContractView {
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _loading = false;
@@ -31,18 +33,14 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
   String title, message, observacao, imgURL, data;
 
   var topics = {
-    Singletons
-        .company()
-        .topic : {
+    Singletons.company().topic: {
       "label": "Meus clientes",
-      "key": Singletons
-          .company()
-          .topic
+      "key": Singletons.company().topic
     },
-//    "com.navan.kideliver-android": {
-//      "label": "Todos clientes",
-//      "key": "com.navan.kideliver-android"
-//    }
+    "com.navan.kideliver-android": {
+      "label": "Todos clientes",
+      "key": "com.navan.kideliver-android"
+    }
   };
   var topicSelected;
 
@@ -51,7 +49,12 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     super.initState();
     presenter = PushNotificationPresenter(this);
     topicSelected = topics[Singletons.company().topic];
-    titleController = TextEditingController(text: Singletons.company().name);
+    if (kDebugMode) {
+      titleController = TextEditingController();
+      topics['ALL'] = {"label": "Todos usuários", "key": "ALL"};
+    } else {
+      titleController = TextEditingController(text: Singletons.company().name);
+    }
   }
 
   @override
@@ -59,15 +62,23 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Nova notificação", style: TextStyle(color: Colors.white),),
+        title: Text(
+          "Nova notificação",
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ModalProgressHUD(
         inAsyncCall: _loading,
         progressIndicator: Card(
           elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),),
-          child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          ),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -101,8 +112,9 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
       child: Center(
         child: TextInputField(
           labelText: "Título",
-          enable: false,
+          enable: kDebugMode,
           controller: titleController,
+          textCapitalization: TextCapitalization.sentences,
         ),
       ),
     );
@@ -129,7 +141,9 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
         child: RaisedButton(
           elevation: 2,
           padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0),),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
           color: Colors.white,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -141,7 +155,9 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     //FaIcon(FontAwesomeIcons.searchLocation, color: Colors.grey,),
-                    SizedBox(width: 10,),
+                    SizedBox(
+                      width: 10,
+                    ),
                     Flexible(
                       flex: 1,
                       child: Column(
@@ -161,7 +177,10 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
                   ],
                 ),
               ),
-              FaIcon(FontAwesomeIcons.caretDown, color: Colors.grey[400], ),
+              FaIcon(
+                FontAwesomeIcons.caretDown,
+                color: Colors.grey[400],
+              ),
             ],
           ),
           onPressed: () async {
@@ -172,7 +191,10 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
               cancelLabel: CANCELAR,
               barrierDismissible: false,
               actions: topics.values.map((e) {
-                return AlertDialogAction<String>(label: e["label"], key: e["key"]);
+                return AlertDialogAction<String>(
+                  label: e["label"],
+                  key: e["key"],
+                );
               }).toList(),
             );
             if (topicSelected != null) {
@@ -202,7 +224,10 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
         text: "Testar nesse celular",
         onPressed: () {
           if (validateAndSave()) {
-            Singletons.pushNotification().pushLocalNotification(titleController.text, message);
+            Singletons.pushNotification().pushLocalNotification(
+              titleController.text,
+              message,
+            );
           }
         },
       ),
@@ -223,6 +248,8 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
             pushNotification.senderUser = Singletons.user();
             pushNotification.topic = topicSelected["key"];
 
+            print(pushNotification.toMap());
+
             setState(() => _loading = true);
             presenter.create(pushNotification);
           }
@@ -232,9 +259,7 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
   }
 
   @override
-  listSuccess(List<PushNotification> list) {
-
-  }
+  listSuccess(List<PushNotification> list) {}
 
   @override
   onFailure(String error) {
@@ -249,5 +274,4 @@ class _NewNotificationPageState extends State<NewNotificationPage> implements Pu
     await Future.delayed(Duration(seconds: 1));
     PageRouter.pop(context, result);
   }
-
 }

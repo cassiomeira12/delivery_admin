@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -41,10 +42,10 @@ class _PushNotificationPageState extends State<PushNotificationPage>
       "label": "Meus clientes",
       "key": Singletons.company().topic
     },
-//    "com.navan.kideliver-android": {
-//      "label": "Todos clientes",
-//      "key": "com.navan.kideliver-android"
-//    }
+    "com.navan.kideliver-android": {
+      "label": "Todos clientes",
+      "key": "com.navan.kideliver-android"
+    }
   };
   var topicSelected;
 
@@ -55,7 +56,7 @@ class _PushNotificationPageState extends State<PushNotificationPage>
     companyName = widget.notification.senderCompany != null
         ? widget.notification.senderCompany.name
         : NOTIFICATION;
-    topicSelected = topics[Singletons.company().topic];
+    topicSelected = topics[widget.notification.topic];
     title = widget.notification.title;
     message = widget.notification.message;
     titleController = TextEditingController(text: title);
@@ -91,7 +92,7 @@ class _PushNotificationPageState extends State<PushNotificationPage>
               formPushNotification(),
               topic(),
               testButton(),
-              true ? resendButton() : avaliationPushNotification(),
+              kReleaseMode ? resendButton() : avaliationPushNotification(),
             ],
           ),
         ),
@@ -117,7 +118,7 @@ class _PushNotificationPageState extends State<PushNotificationPage>
       child: Center(
         child: TextInputField(
           labelText: "Título",
-          enable: false,
+          enable: true,
           controller: titleController,
         ),
       ),
@@ -182,10 +183,7 @@ class _PushNotificationPageState extends State<PushNotificationPage>
                   ],
                 ),
               ),
-              FaIcon(
-                FontAwesomeIcons.caretDown,
-                color: Colors.grey[400],
-              ),
+              FaIcon(FontAwesomeIcons.caretDown, color: Colors.grey[400]),
             ],
           ),
           onPressed: () async {

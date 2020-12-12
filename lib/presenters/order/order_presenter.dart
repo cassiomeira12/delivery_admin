@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:kidelivercompany/models/singleton/singletons.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
 import '../../contracts/order/cupon_contract.dart';
 import '../../contracts/order/order_contract.dart';
 import '../../models/order/cupon.dart';
 import '../../models/order/order.dart';
-import '../../models/singleton/singletons.dart';
 import '../../services/parse/parse_cupon_service.dart';
 import '../../services/parse/parse_order_service.dart';
 import '../../strings.dart';
@@ -144,12 +145,23 @@ class OrdersPresenter implements OrderContractPresenter {
     var includes = ["cupon"];
     liveQuery = LiveQuery();
 
-    QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      ..whereEqualTo("company", Singletons.company().toPointer())
-      ..whereGreaterThanOrEqualsTo("createdAt", day)
-      ..whereLessThan("createdAt", day.add(Duration(days: 1)))
-      ..includeObject(includes)
-      ..orderByDescending("createdAt");
+    QueryBuilder query;
+
+    if (kDebugMode) {
+      query = QueryBuilder(ParseObject("Order"))
+        //..whereEqualTo("company", Singletons.company().toPointer())
+        ..whereGreaterThanOrEqualsTo("createdAt", day)
+        ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+        ..includeObject(includes)
+        ..orderByDescending("createdAt");
+    } else {
+      query = QueryBuilder(ParseObject("Order"))
+        ..whereEqualTo("company", Singletons.company().toPointer())
+        ..whereGreaterThanOrEqualsTo("createdAt", day)
+        ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+        ..includeObject(includes)
+        ..orderByDescending("createdAt");
+    }
 
     subscriptionCreate = await liveQuery.client.subscribe(query);
     subscriptionUpdate = await liveQuery.client.subscribe(query);
@@ -223,12 +235,23 @@ class OrdersPresenter implements OrderContractPresenter {
   Future<List<Order>> listDayOrders(DateTime day) async {
     var includes = ["cupon"];
 
-    QueryBuilder query = QueryBuilder(ParseObject("Order"))
-      ..whereEqualTo("company", Singletons.company().toPointer())
-      ..whereGreaterThanOrEqualsTo("createdAt", day)
-      ..whereLessThan("createdAt", day.add(Duration(days: 1)))
-      ..includeObject(includes)
-      ..orderByDescending("createdAt");
+    QueryBuilder query;
+
+    if (kDebugMode) {
+      query = QueryBuilder(ParseObject("Order"))
+        //..whereEqualTo("company", Singletons.company().toPointer())
+        ..whereGreaterThanOrEqualsTo("createdAt", day)
+        ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+        ..includeObject(includes)
+        ..orderByDescending("createdAt");
+    } else {
+      query = QueryBuilder(ParseObject("Order"))
+        ..whereEqualTo("company", Singletons.company().toPointer())
+        ..whereGreaterThanOrEqualsTo("createdAt", day)
+        ..whereLessThan("createdAt", day.add(Duration(days: 1)))
+        ..includeObject(includes)
+        ..orderByDescending("createdAt");
+    }
 
     int filter = await PreferencesUtil.getOrderFilter();
 

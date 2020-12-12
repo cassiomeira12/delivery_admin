@@ -14,7 +14,6 @@ class ParseInit {
   static Parse parse;
 
   static Future<bool> init() async {
-    print("init start");
     parse = await Parse().initialize(
       appId,
       serverUrl,
@@ -22,9 +21,8 @@ class ParseInit {
       //masterKey: masterKey,
       clientKey: clientKey,
       autoSendSessionId: true,
-      debug: !kReleaseMode,
+      debug: kDebugMode,
     );
-    print("init finish");
     return (await parse.healthCheck()).success;
   }
 }

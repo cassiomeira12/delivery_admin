@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'services/parse/parse_init.dart';
-import 'themes/my_themes.dart';
-import 'themes/custom_theme.dart';
 import 'strings.dart';
+import 'themes/custom_theme.dart';
+import 'themes/my_themes.dart';
 import 'views/root_page.dart';
 
 void main() {
@@ -26,7 +27,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     root = RootPage();
-    ParseInit.init().then((value) => root.init());
+    ParseInit.init().then((value) {
+      root.init();
+    });
   }
 
   @override
@@ -38,5 +41,4 @@ class _MyAppState extends State<MyApp> {
       home: root,
     );
   }
-
 }
